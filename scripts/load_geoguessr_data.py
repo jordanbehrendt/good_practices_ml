@@ -19,4 +19,5 @@ def load_data(DATA_PATH: str):
                 }
                 list_rows.append(temp_dict)
     df = pd.DataFrame(list_rows)
-    return df
+    cleaned_df = df.loc[df['width'] == 1536]
+    return cleaned_df
