@@ -1,0 +1,6 @@
+data_path:
+  jordan: '/share/temp/bjordan/good_practices_in_machine_learning/compressed_dataset/'
+  amit: ''
+  leon: ''
+repo_path:
+  jordan: '/share/temp/bjordan/good_practices_in_machine_learning/good_practices_ml/'
