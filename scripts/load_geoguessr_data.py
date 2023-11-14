@@ -3,7 +3,13 @@ import PIL
 from PIL import Image
 import pandas as pd
 
-def load_data(DATA_PATH: str):
+def filter_min_img_df(df: pd.DataFrame, min_img: int):
+    label_counts = df['label'].value_counts()
+    valid_labels = label_counts[label_counts >= min_img].index
+    df = df[df['label'].isin(valid_labels)]
+    return df
+
+def load_data(DATA_PATH: str, min_img: int = 0, size_constraints: bool = False):
     list_rows = []
     for folder in os.listdir(DATA_PATH):
         for file in os.listdir(os.path.join(DATA_PATH,folder)):
@@ -19,5 +25,8 @@ def load_data(DATA_PATH: str):
                 }
                 list_rows.append(temp_dict)
     df = pd.DataFrame(list_rows)
-    cleaned_df = df.loc[df['width'] == 1536]
-    return cleaned_df
+    if size_constraints:
+        df = df.loc[df['width'] == 1536]
+    if min_img > 0:
+        df = filter_min_img_df(df, min_img)
+    return df

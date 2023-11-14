@@ -8,7 +8,7 @@ import argparse
 def data_profile(DATA_PATH: str, REPO_PATH: str):
     sys.path.append(f'{REPO_PATH}scripts')
     import load_geoguessr_data
-    geoguessr_df = load_geoguessr_data.load_data(DATA_PATH=DATA_PATH)
+    geoguessr_df = load_geoguessr_data.load_data(DATA_PATH=DATA_PATH, min_img = 10000, size_constraints = True)
     profile = ProfileReport(geoguessr_df, title='Geoguessr Profile Report')
     profile.to_file(f'{REPO_PATH}/data_exploration/geoguessr_profile.html')
     image_distribution = geoguessr_df['label'].value_counts()
