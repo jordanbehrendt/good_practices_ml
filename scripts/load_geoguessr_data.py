@@ -49,8 +49,8 @@ def load_data(DATA_PATH: str, min_img: int = 0, size_constraints: bool = False, 
 
 class ImageDataset_from_df(Dataset):
     def __init__(self, df,transform=None, target_transform=None, name='default_data'):
-        if self.target_transform:
-            self.captions = clip.tokenize(df["label"].apply(self.target_transform).tolist())
+        if target_transform:
+            self.captions = clip.tokenize(df["label"].apply(target_transform).tolist())
         else:
             self.captions = clip.tokenize(df["label"].tolist())
         self.images = df["path"].tolist()
@@ -58,7 +58,6 @@ class ImageDataset_from_df(Dataset):
         device = "cuda" if torch.cuda.is_available() else "cpu"
         self.model, self.preprocessor = clip.load("ViT-B/32", device=device)
         self.transform = transform
-        self.target_transform = target_transform
         self.name = name
 
     def __len__(self):

@@ -16,7 +16,7 @@ def save_data_to_file(data, model_name, dataset_name, output_dir='./Experiments/
         raise TypeError("The 'data' parameter must be a pandas DataFrame.")
 
     # Create a fitting file name with a timestamp
-    timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
+    timestamp = datetime.now().strftime("%Y_%m_%d_%Hh")
     file_name = f"{model_name}_{dataset_name}_performance_{timestamp}.csv"
 
     # Combine the output directory and file name
