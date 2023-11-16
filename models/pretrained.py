@@ -21,7 +21,7 @@ def pretrained_model(DATA_PATH: str):
     geoguessr_df = geo_data.load_data(DATA_PATH=DATA_PATH)
 
     dataset = geo_data.ImageDataset_from_df(geoguessr_df)
-    batch_size = 10
+    batch_size = 100
 
     with torch.no_grad():
         for images, texts in tqdm.tqdm(DataLoader(dataset, batch_size=batch_size, shuffle=True)):

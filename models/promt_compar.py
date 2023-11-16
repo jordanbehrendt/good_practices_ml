@@ -20,7 +20,7 @@ def pretrained_model(DATA_PATH: str):
     model, preprocessor = clip.load("ViT-B/32", device=device)
     
     sys.path.append(f'{REPO_PATH}scripts')
-    geoguessr_df = geo_data.load_data(DATA_PATH=DATA_PATH,debug_data=True)
+    geoguessr_df = geo_data.load_data(DATA_PATH=DATA_PATH)
 
     standard_dataset = geo_data.ImageDataset_from_df(geoguessr_df,)
     v1_dataset = geo_data.ImageDataset_from_df(geoguessr_df, target_transform=(lambda x : f"This image shows country {x}"), name="elab_prompt")
@@ -28,7 +28,7 @@ def pretrained_model(DATA_PATH: str):
 
     dataset_collection = [standard_dataset,v1_dataset,v2_dataset]
 
-    batch_size = 10
+    batch_size = 100
     for dataset in dataset_collection:
         all_probabilities = []
         all_texts = []
