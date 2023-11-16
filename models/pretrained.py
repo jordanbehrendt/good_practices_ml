@@ -1,22 +1,25 @@
+import sys
+sys.path.append('.')
+#----------------------------------------------
 import torch
 import clip
 import tqdm
-from torch.utils.data import DataLoader
 import yaml
 import argparse
 import sys
-from load_geoguessr_data import ImageDataset_from_df, load_data
+import scripts.load_geoguessr_data as geo_data
+from torch.utils.data import DataLoader
 
 
 
 def pretrained_model(DATA_PATH: str):
     device = "cuda" if torch.cuda.is_available() else "cpu"
     model, preprocessor = clip.load("ViT-B/32", device=device)
-
+    
     sys.path.append(f'{REPO_PATH}scripts')
-    geoguessr_df = load_data(DATA_PATH=DATA_PATH)
+    geoguessr_df = geo_data.load_data(DATA_PATH=DATA_PATH,debug_data=True)
 
-    dataset = ImageDataset_from_df(geoguessr_df)
+    dataset = geo_data.ImageDataset_from_df(geoguessr_df)
     batch_size = 100
 
     with torch.no_grad():
