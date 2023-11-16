@@ -1,41 +1,20 @@
-import os
-import PIL
-from PIL import Image
-import pandas as pd
-import numpy as np
 import torch
 import clip
 import tqdm
-from torch.utils.data import Dataset, DataLoader
-from torchvision.io import read_image
+from torch.utils.data import DataLoader
 import yaml
 import argparse
 import sys
+from load_geoguessr_data import ImageDataset_from_df, load_data
 
-class ImageDataset_from_df(Dataset):
-    def __init__(self, df):
 
-        self.images = df["path"].tolist()
-        self.caption = clip.tokenize(df["label"].tolist())
-        device = "cuda" if torch.cuda.is_available() else "cpu"
-        self.model, self.preprocessor = clip.load("ViT-B/32", device=device)
-
-    def __len__(self):
-        return len(self.caption)
-
-    def __getitem__(self, idx):
-        
-        images = self.preprocessor(Image.open(self.images[idx])) #preprocess from clip.load
-        caption = self.caption[idx]
-        return images,caption
 
 def pretrained_model(DATA_PATH: str):
     device = "cuda" if torch.cuda.is_available() else "cpu"
     model, preprocessor = clip.load("ViT-B/32", device=device)
 
     sys.path.append(f'{REPO_PATH}scripts')
-    import load_geoguessr_data
-    geoguessr_df = load_geoguessr_data.load_data(DATA_PATH=DATA_PATH)
+    geoguessr_df = load_data(DATA_PATH=DATA_PATH)
 
     dataset = ImageDataset_from_df(geoguessr_df)
     batch_size = 100

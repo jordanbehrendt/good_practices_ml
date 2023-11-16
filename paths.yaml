@@ -1,6 +1,7 @@
 data_path:
   jordan: '/share/temp/bjordan/good_practices_in_machine_learning/compressed_dataset/'
   amit: ''
-  leon: ''
+  leon: '/home/leon/Documents/GPML/good_practices_ml/data/raw_data/compressed_dataset'
 repo_path:
   jordan: '/share/temp/bjordan/good_practices_in_machine_learning/good_practices_ml/'
+  leon: '/home/leon/Documents/GPML/good_practices_ml/'
