@@ -8,6 +8,7 @@ import yaml
 import argparse
 import sys
 import scripts.load_geoguessr_data as geo_data
+import numpy as np
 from torch.utils.data import DataLoader
 
 
@@ -17,10 +18,10 @@ def pretrained_model(DATA_PATH: str):
     model, preprocessor = clip.load("ViT-B/32", device=device)
     
     sys.path.append(f'{REPO_PATH}scripts')
-    geoguessr_df = geo_data.load_data(DATA_PATH=DATA_PATH,debug_data=True)
+    geoguessr_df = geo_data.load_data(DATA_PATH=DATA_PATH)
 
     dataset = geo_data.ImageDataset_from_df(geoguessr_df)
-    batch_size = 100
+    batch_size = 10
 
     with torch.no_grad():
         for images, texts in tqdm.tqdm(DataLoader(dataset, batch_size=batch_size, shuffle=True)):
@@ -32,7 +33,7 @@ def pretrained_model(DATA_PATH: str):
             probs = logits_per_image.softmax(dim=-1).cpu().numpy()
 
             print(probs)
-            max_index = probs.argmax()
+            max_index = probs[0].argmax()
             print(probs[0][max_index])
 
 if __name__ == "__main__":
