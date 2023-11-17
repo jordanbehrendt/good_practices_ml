@@ -12,15 +12,21 @@ import scripts.helpers as scripts
 import numpy as np
 import pandas as pd
 from torch.utils.data import DataLoader
-
+import random
+import sklearn.model_selection
 
 
 def pretrained_model(DATA_PATH: str):
+    seed = 1234
+    random.seed(seed)
+    
     device = "cuda" if torch.cuda.is_available() else "cpu"
     model, preprocessor = clip.load("ViT-B/32", device=device)
-    
+
     sys.path.append(f'{REPO_PATH}scripts')
-    geoguessr_df = geo_data.load_data(DATA_PATH=DATA_PATH)
+    geoguessr_df = geo_data.load_data(DATA_PATH=DATA_PATH, min_img = 20, max_img = 5000, size_constraints= True)
+
+    train, test = sklearn.model_selection.train_test_split(geoguessr_df, test_size = 0.2, random_state = seed, stratify = geoguessr_df["label"])
 
     standard_dataset = geo_data.ImageDataset_from_df(geoguessr_df,)
     v1_dataset = geo_data.ImageDataset_from_df(geoguessr_df, target_transform=(lambda x : f"This image shows country {x}"), name="elab_prompt")
@@ -56,6 +62,7 @@ if __name__ == "__main__":
     parser.add_argument('--user', metavar='str', required=True, help='the user of the gpml group')
     parser.add_argument('--yaml_path', metavar='str', required=True, help='the path to the yaml file with the stored paths')
     args = parser.parse_args()
+
     with open(args.yaml_path) as file:
         paths = yaml.safe_load(file)
         DATA_PATH = paths['data_path'][args.user]

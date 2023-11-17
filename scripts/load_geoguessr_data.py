@@ -4,28 +4,47 @@ import torch
 import clip
 import pandas as pd
 from torch.utils.data import Dataset
+import random
 
 def filter_min_img_df(df: pd.DataFrame, min_img: int):
+    """Filters classes by minimum amount of images
+
+    Args:
+        df (pd.DataFrame): dataframe that should be filtered
+        min_img (int): minimum number of images
+
+    Returns:
+        pd.DataFrame: filtered dataframe
+    """
     label_counts = df['label'].value_counts()
     valid_labels = label_counts[label_counts >= min_img].index
     df = df[df['label'].isin(valid_labels)]
     return df
 
-def load_data(DATA_PATH: str, min_img: int = 0, size_constraints: bool = False, debug_data: bool = False):
+def load_data(DATA_PATH: str, min_img: int = 0, max_img: int = None, size_constraints: bool = False, debug_data: bool = False, random_seed: int = 1234):
     """Loads data in a dataframe form a given folder, with basic filtering.
 
     Args:
         DATA_PATH (str): Path to folder containing folders of images.
         min_img (int, optional): Minimal number of images accepted into the dataset. Defaults to 0.
+        max_img (int, optional): Maximal number of images accepted into the dataset. Defaults to None.
         size_constraints (bool, optional): Remove images of diffrent sizes. Defaults to False.
         debug_data (bool, optional): Reduces dataset size to 100 images. Defaults to False.
 
     Returns:
         pd.DataFrame: DataFrame containg basic infromation on label, img widht/hight, format, path to img.
     """
+    random.seed(random_seed)
+
     list_rows = []
     for folder in os.listdir(DATA_PATH):
-        for file in os.listdir(os.path.join(DATA_PATH,folder)):
+        files = os.listdir(os.path.join(DATA_PATH,folder))
+        num_images = len(files)
+        if num_images < min_img:
+            continue
+        if (max_img is not None) and (num_images > max_img):
+            files = random.sample(files, max_img)
+        for file in files:
             with PIL.Image.open(os.path.join(DATA_PATH,folder,file)) as img:
                 width, height = img.size
                 form = img.format
