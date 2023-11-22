@@ -16,7 +16,7 @@ import random
 import sklearn.model_selection
 
 
-def pretrained_model(DATA_PATH: str):
+def pretrained_model(DATA_PATH: str, debug: bool):
     seed = 1234
     random.seed(seed)
     
@@ -24,13 +24,16 @@ def pretrained_model(DATA_PATH: str):
     model, preprocessor = clip.load("ViT-B/32", device=device)
 
     sys.path.append(f'{REPO_PATH}scripts')
-    geoguessr_df = geo_data.load_data(DATA_PATH=DATA_PATH, min_img = 20, max_img = 5000, size_constraints= True)
+    geoguessr_df = geo_data.load_data(DATA_PATH=DATA_PATH, min_img = 20, max_img = 5000, size_constraints= True, debug_data=debug)
+    if debug:
+        test = geoguessr_df
+        train = geoguessr_df
+    else:  
+        train, test = sklearn.model_selection.train_test_split(geoguessr_df, test_size = 0.2, random_state = seed, stratify = geoguessr_df["label"])
 
-    train, test = sklearn.model_selection.train_test_split(geoguessr_df, test_size = 0.2, random_state = seed, stratify = geoguessr_df["label"])
-
-    standard_dataset = geo_data.ImageDataset_from_df(geoguessr_df,)
-    v1_dataset = geo_data.ImageDataset_from_df(geoguessr_df, target_transform=(lambda x : f"This image shows country {x}"), name="elab_prompt")
-    v2_dataset = geo_data.ImageDataset_from_df(geoguessr_df, target_transform=(lambda x : f"A google streetview image from {x}"), name="street_prompt")
+    standard_dataset = geo_data.ImageDataset_from_df(test)
+    v1_dataset = geo_data.ImageDataset_from_df(test, target_transform=(lambda x : f"This image shows the country {x}"), name="elab_prompt")
+    v2_dataset = geo_data.ImageDataset_from_df(test, target_transform=(lambda x : f"A google streetview image from {x}"), name="street_prompt")
 
     dataset_collection = [standard_dataset,v1_dataset,v2_dataset]
 
@@ -59,12 +62,13 @@ def pretrained_model(DATA_PATH: str):
         scripts.save_data_to_file(performance_data,"pretrained",dataset.name,os.path.join(REPO_PATH,'Experiments/'))
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Pretrained Model')
-    parser.add_argument('--user', metavar='str', required=True, help='the user of the gpml group')
-    parser.add_argument('--yaml_path', metavar='str', required=True, help='the path to the yaml file with the stored paths')
+    parser.add_argument('--user', metavar='str', required=True, help='The user of the gpml group')
+    parser.add_argument('--yaml_path', metavar='str', required=True, help='The path to the yaml file with the stored paths')
+    parser.add_argument('-d', '--debug', action='store_true', required=False, help='Enable debug mode', default=False)
     args = parser.parse_args()
 
     with open(args.yaml_path) as file:
         paths = yaml.safe_load(file)
         DATA_PATH = paths['data_path'][args.user]
         REPO_PATH = paths['repo_path'][args.user]
-        pretrained_model(DATA_PATH)
+        pretrained_model(DATA_PATH,args.debug)
