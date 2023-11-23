@@ -42,7 +42,8 @@ def zero_shot_prediction(DATA_PATH: str, debug: bool):
 
     dataset_collection = [standard_dataset,v1_dataset,v2_dataset]
 
-    batch_size = 100
+    # 450 * 19 = 8550 (8542 images are 20% of the min 20 max 5000 img dataset)
+    batch_size = 450
     for dataset in dataset_collection:
         all_probabilities = []
         if dataset.target_transform:
