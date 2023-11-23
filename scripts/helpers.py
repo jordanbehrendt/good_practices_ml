@@ -2,13 +2,14 @@ import os
 import pandas as pd
 from datetime import datetime
 
-def save_data_to_file(data, model_name, dataset_name, output_dir='./Experiments/'):
+def save_data_to_file(data, model_name, dataset_name, batch_number=None, output_dir='./Experiments/'):
     """Saves model performance in a CSV file with a fitting name.
 
     Args:
         data (pd.DataFrame): DataFrame containing model performance data.
         model_name (str): Name of the model.
         dataset_name (str): Name of the dataset.
+        batch_number (str): Number of the batch if necessary. Default is None.
         output_dir (str): Directory to save the CSV file to. Default is 'output'.
     """
     # Check if data is a DataFrame
@@ -18,6 +19,8 @@ def save_data_to_file(data, model_name, dataset_name, output_dir='./Experiments/
     # Create a fitting file name with a timestamp
     timestamp = datetime.now().strftime("%Y_%m_%d_%Hh")
     file_name = f"{model_name}_{dataset_name}_performance_{timestamp}.csv"
+    if batch_number:
+        file_name = f"{model_name}_{dataset_name}_batch{batch_number}_performance_{timestamp}.csv"
 
     # Combine the output directory and file name
     file_path = os.path.join(output_dir, file_name)

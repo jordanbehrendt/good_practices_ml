@@ -4,16 +4,18 @@
     "type": "split",
     "children": [
       {
-        "id": "5cc7b5a925d4cb07",
+        "id": "faeaedb901f643dc",
         "type": "tabs",
         "children": [
           {
-            "id": "d7be072e2f294860",
+            "id": "18d603b1835fec87",
             "type": "leaf",
             "state": {
-              "type": "kanban",
+              "type": "markdown",
               "state": {
-                "file": "Kanban.md"
+                "file": "Home.md",
+                "mode": "source",
+                "source": false
               }
             }
           }
@@ -83,7 +85,7 @@
             "state": {
               "type": "backlink",
               "state": {
-                "file": "Kanban.md",
+                "file": "Home.md",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -100,7 +102,7 @@
             "state": {
               "type": "outgoing-link",
               "state": {
-                "file": "Kanban.md",
+                "file": "Home.md",
                 "linksCollapsed": false,
                 "unlinkedCollapsed": true
               }
@@ -123,7 +125,7 @@
             "state": {
               "type": "outline",
               "state": {
-                "file": "Kanban.md"
+                "file": "Home.md"
               }
             }
           }
@@ -145,9 +147,10 @@
       "homepage:Open homepage": false
     }
   },
-  "active": "d7be072e2f294860",
+  "active": "18d603b1835fec87",
   "lastOpenFiles": [
     "Home.md",
+    "Data selection and processing.md",
     "Kanban.md"
   ]
 }
