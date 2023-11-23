@@ -28,13 +28,12 @@ def zero_shot_prediction(DATA_PATH: str, debug: bool):
     
     # create country list for the clip model to use as possible labels
     labels = geoguessr_df['label'].unique()
-    label_tokens = clip.tokenize(labels)
 
     if debug:
         test = geoguessr_df
         train = geoguessr_df
     else:  
-        train, test = sklearn.model_selection.train_test_split(geoguessr_df, test_size = 0.2, random_state = seed, stratify = geoguessr_df["label"])
+        train, test = sklearn.model_selection.train_test_split(geoguessr_df, test_size = 0.2, random_state = seed, stratify = geoguessr_df["label"], shuffle=True)
 
     standard_dataset = geo_data.ImageDataset_from_df(test,transform=preprocessor)
     v1_dataset = geo_data.ImageDataset_from_df(test, transform=preprocessor, target_transform=(lambda x : f"This image shows the country {x}"), name="elab_prompt")
@@ -45,7 +44,6 @@ def zero_shot_prediction(DATA_PATH: str, debug: bool):
     # 450 * 19 = 8550 (8542 images are 20% of the min 20 max 5000 img dataset)
     batch_size = 450
     for dataset in dataset_collection:
-        all_probabilities = []
         if dataset.target_transform:
             possible_labels = [dataset.target_transform(x) for x in labels]
         else:
@@ -53,7 +51,7 @@ def zero_shot_prediction(DATA_PATH: str, debug: bool):
         label_tokens = clip.tokenize(possible_labels)
         print(f"Running data from dataset: {dataset.name}")
         
-        for batch_number, (images, label) in enumerate(tqdm.tqdm(DataLoader(dataset, batch_size=batch_size, shuffle=True),desc="Testing")):
+        for batch_number, (images, label) in enumerate(tqdm.tqdm(DataLoader(dataset, batch_size=batch_size),desc="Testing")):
             
             images = images.to(device)
                 
@@ -62,17 +60,16 @@ def zero_shot_prediction(DATA_PATH: str, debug: bool):
                 logits_per_image, logits_per_text = model(images, label_tokens)
                 probs = logits_per_image.softmax(dim=-1).cpu().numpy()
 
-                max_index = probs.argmax(axis=1)  # Finding the index of the maximum probability for each sample
-                max_probabilities = probs[range(probs.shape[0]), max_index]
-                predicted_label = labels[max_index]
-                all_probabilities.extend(max_probabilities)
+            max_index = probs.argmax(axis=1)  # Finding the index of the maximum probability for each sample
+            max_probabilities = probs[range(probs.shape[0]), max_index]
+            predicted_label = labels[max_index]
 
-                performance_data = pd.DataFrame({
-                    'Probabilities': all_probabilities,
-                    'predicted labels': predicted_label,
-                    'label' : label
-                })
-                scripts.save_data_to_file(performance_data,"pretrained",dataset.name,batch_number,os.path.join(REPO_PATH,'Experiments/'))
+            performance_data = pd.DataFrame({
+                'Probabilities': max_probabilities,
+                'predicted labels': predicted_label,
+                'label' : label
+            })
+            scripts.save_data_to_file(performance_data,"pretrained",dataset.name,batch_number,experiment_name = "prompt_compare", output_dir=os.path.join(REPO_PATH,'Experiments/'))
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Pretrained Model')
