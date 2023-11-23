@@ -2,7 +2,7 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Leon Current File",
+            "name": "Leon Laptop Current File",
             "type": "python",
             "request": "launch",
             "program": "${file}",
@@ -11,7 +11,8 @@
                 "--user",
                 "leon",
                 "--yaml_path",
-                "/home/leon/Documents/GPML/good_practices_ml/paths.yaml"
+                "/home/leon/Documents/GPML/good_practices_ml/paths.yaml",
+                "-d"
             ]
         },
         {

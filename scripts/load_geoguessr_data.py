@@ -62,7 +62,7 @@ def load_data(DATA_PATH: str, min_img: int = 0, max_img: int = None, size_constr
     if min_img > 0:
         df = filter_min_img_df(df, min_img)
     if debug_data:
-        df = df.iloc[:99]
+        df = df.sample(10)
     return df
 
 
@@ -88,5 +88,6 @@ class ImageDataset_from_df(Dataset):
             image = self.transform(image)
         image = self.preprocessor(image) #preprocess from clip.load
         caption = self.captions[idx]
+
 
         return image,caption
