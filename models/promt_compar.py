@@ -31,15 +31,10 @@ def pretrained_model(DATA_PATH: str, debug: bool):
     else:  
         train, test = sklearn.model_selection.train_test_split(geoguessr_df, test_size = 0.2, random_state = seed, stratify = geoguessr_df["label"])
 
-<<<<<<< HEAD
     train, test = sklearn.model_selection.train_test_split(geoguessr_df, test_size = 0.2, random_state = seed, stratify = geoguessr_df["label"])
 
     standard_dataset = geo_data.ImageDataset_from_df(test)
-    v1_dataset = geo_data.ImageDataset_from_df(test, target_transform=(lambda x : f"This image shows country {x}"), name="elab_prompt")
-=======
-    standard_dataset = geo_data.ImageDataset_from_df(test)
     v1_dataset = geo_data.ImageDataset_from_df(test, target_transform=(lambda x : f"This image shows the country {x}"), name="elab_prompt")
->>>>>>> df5aa4a7d0cc15e8108efc2fb8c5e324fe4b8b0b
     v2_dataset = geo_data.ImageDataset_from_df(test, target_transform=(lambda x : f"A google streetview image from {x}"), name="street_prompt")
 
     dataset_collection = [standard_dataset,v1_dataset,v2_dataset]
