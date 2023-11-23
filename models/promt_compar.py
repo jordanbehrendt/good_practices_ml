@@ -28,13 +28,14 @@ def pretrained_model(DATA_PATH: str):
 
     train, test = sklearn.model_selection.train_test_split(geoguessr_df, test_size = 0.2, random_state = seed, stratify = geoguessr_df["label"])
 
-    standard_dataset = geo_data.ImageDataset_from_df(geoguessr_df,)
-    v1_dataset = geo_data.ImageDataset_from_df(geoguessr_df, target_transform=(lambda x : f"This image shows country {x}"), name="elab_prompt")
-    v2_dataset = geo_data.ImageDataset_from_df(geoguessr_df, target_transform=(lambda x : f"A google streetview image from {x}"), name="street_prompt")
+    standard_dataset = geo_data.ImageDataset_from_df(test)
+    v1_dataset = geo_data.ImageDataset_from_df(test, target_transform=(lambda x : f"This image shows country {x}"), name="elab_prompt")
+    v2_dataset = geo_data.ImageDataset_from_df(test, target_transform=(lambda x : f"A google streetview image from {x}"), name="street_prompt")
 
     dataset_collection = [standard_dataset,v1_dataset,v2_dataset]
 
-    batch_size = 100
+    # 450 * 19 = 8550 (8542 images are 20% of the min 20 max 5000 img dataset)
+    batch_size = 450
     for dataset in dataset_collection:
         all_probabilities = []
         all_texts = []
