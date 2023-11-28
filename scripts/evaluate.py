@@ -3,6 +3,8 @@ import os
 import argparse
 import yaml
 from sklearn import metrics
+from typing import List
+from collections.abc import Callable
 import matplotlib.pyplot as plt
 import seaborn as sns
 
@@ -30,6 +32,28 @@ def evaluate(REPO_PATH: str, experiment_name: str):
     plt.ylabel("Accuracy")
     plt.savefig(os.path.join(experiment_dir, f"{experiment_name}_boxplot.png"))
         
+
+    def model_performance(probs: List[float], labels: List[str], possible_captions: List):
+        """Saves the conifdence of the best prediction with the predicted an correct label on a batch.
+
+        Args:
+            probs (List[float]): The probabilities for each class of each sample in the batch.
+            labels (List[str]): The groud trouth labels for each sample in the batch.
+            possible_captions (List): The list of all possible captions (labels).
+
+        Returns:
+            pd.DataFrame: A named DataFrame, containing the
+        """
+        max_index = probs.argmax(axis=1)  # Finding the index of the maximum probability for each sample
+        max_probabilities = probs[range(probs.shape[0]), max_index]
+        predicted_label = possible_captions[max_index]
+
+        performance_data = pd.DataFrame({
+            'Probabilities': max_probabilities,
+            'predicted labels': predicted_label,
+            'label' : labels
+        })
+        return performance_data
 
 
 

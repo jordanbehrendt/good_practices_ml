@@ -14,6 +14,7 @@ import pandas as pd
 from torch.utils.data import DataLoader
 import random
 import sklearn.model_selection
+from models.test_model import test_model
 
 
 def zero_shot_prediction(DATA_PATH: str, debug: bool):
@@ -43,33 +44,7 @@ def zero_shot_prediction(DATA_PATH: str, debug: bool):
 
     # 450 * 19 = 8550 (8542 images are 20% of the min 20 max 5000 img dataset)
     batch_size = 450
-    for dataset in dataset_collection:
-        if dataset.target_transform:
-            possible_labels = [dataset.target_transform(x) for x in labels]
-        else:
-            possible_labels = labels
-        label_tokens = clip.tokenize(possible_labels)
-        print(f"Running data from dataset: {dataset.name}")
-        
-        for batch_number, (images, label) in enumerate(tqdm.tqdm(DataLoader(dataset, batch_size=batch_size),desc="Testing")):
-            
-            images = images.to(device)
-                
-            with torch.no_grad():
-
-                logits_per_image, logits_per_text = model(images, label_tokens)
-                probs = logits_per_image.softmax(dim=-1).cpu().numpy()
-
-            max_index = probs.argmax(axis=1)  # Finding the index of the maximum probability for each sample
-            max_probabilities = probs[range(probs.shape[0]), max_index]
-            predicted_label = labels[max_index]
-
-            performance_data = pd.DataFrame({
-                'Probabilities': max_probabilities,
-                'predicted labels': predicted_label,
-                'label' : label
-            })
-            scripts.save_data_to_file(performance_data,"pretrained",dataset.name,batch_number,experiment_name = "prompt_compare", output_dir=os.path.join(REPO_PATH,'Experiments/'))
+    test_model(DATA_PATH,REPO_PATH,model,'pretrained','prompt_compare',dataset_collection,labels,batch_size)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Pretrained Model')
