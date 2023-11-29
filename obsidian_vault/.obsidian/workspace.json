@@ -13,7 +13,7 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "Home.md",
+                "file": "Weekly Todos/For 01.12.md",
                 "mode": "source",
                 "source": false
               }
@@ -85,7 +85,7 @@
             "state": {
               "type": "backlink",
               "state": {
-                "file": "Home.md",
+                "file": "Weekly Todos/For 01.12.md",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -102,7 +102,7 @@
             "state": {
               "type": "outgoing-link",
               "state": {
-                "file": "Home.md",
+                "file": "Weekly Todos/For 01.12.md",
                 "linksCollapsed": false,
                 "unlinkedCollapsed": true
               }
@@ -125,7 +125,7 @@
             "state": {
               "type": "outline",
               "state": {
-                "file": "Home.md"
+                "file": "Weekly Todos/For 01.12.md"
               }
             }
           }
@@ -150,7 +150,10 @@
   "active": "18d603b1835fec87",
   "lastOpenFiles": [
     "Home.md",
+    "Weekly Todos/For 01.12.md",
+    "Weekly Todos",
     "Data selection and processing.md",
+    "Dataset collection.md",
     "Kanban.md"
   ]
 }
