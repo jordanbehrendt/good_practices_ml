@@ -17,8 +17,7 @@ import sklearn.model_selection
 from typing import List
 
 
-def test_model(DATA_PATH: str, REPO_PATH: str,model, model_name: str, experiment_name: str, test_sets: List[pd.DataFrame], possible_labels: List[str], batch_size: int = 450) -> None:
-    seed = 1234
+def test_model(DATA_PATH: str, REPO_PATH: str,model, model_name: str, experiment_name: str, test_sets: List[pd.DataFrame], possible_labels: List[str], batch_size: int = 450, seed: int = 1234) -> None:
     random.seed(seed)
     device = "cuda" if torch.cuda.is_available() else "cpu"
 
