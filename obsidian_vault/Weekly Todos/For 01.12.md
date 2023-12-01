@@ -1,10 +1,13 @@
 
+
+## To Do
+ - [ ] Analyze which countries are shown on the world heat map
+ - [ ] Use country_list.csv as the labels for the model
 ## Leon
 
 
 ## Kieran
- - Change model so that it uses the CLIP Countries as labels
- - Look at World Map
+ - Understand and get script to work!
  - Photos from https://bigfoto.com/
  - Aerial photos from https://openaerialmap.org/
 ## Jordan
