@@ -4,6 +4,7 @@ import requests
 import argparse
 import yaml
 import csv
+import json
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.common.exceptions import TimeoutException
@@ -11,6 +12,7 @@ from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
 from webdriver_manager.chrome import ChromeDriverManager
 
+# Options for the selenium chrome webdriver
 options = Options()
 options.add_argument('--headless')
 options.add_argument('--no-sandbox')
@@ -18,58 +20,19 @@ options.add_argument('--disable-dev-shm-usage')
 options.add_argument('--disable-popup-blocking')
 options.add_argument('--disable-notifications')
 
-regions = [ 
-    {'region': 'africa', 
-    'array': [
-        {'name': 'Mauritius', 'links': ['mauritius']},
-        {'name': 'Tunisia', 'links': ['tunisia']},
-        {'name': 'Egypt', 'links': ['egypt']},
-        {'name': 'Ghana', 'links': ['ghana']},
-        {'name': 'Morocco', 'links': ['morocco']},
-        {'name': 'South Africa', 'links': ['south-africa']},
-    ]},
-    {'region': 'america', 
-    'array': [
-        {'name': 'Canada', 'links': ['canada']},
-        {'name': 'Brazil', 'links': ['rio-de-janeiro']}
-    ]},
-    {'region': 'asia', 
-    'array': [
-        {'name': 'Indonesia', 'links': ['bali']},
-        {'name': 'Hong Kong', 'links': ['hongkong']},
-        {'name': 'China', 'links': ['beijing']},
-        {'name': 'Israel', 'links': ['israel']},
-        {'name': 'Laos', 'links': ['laos']},
-        {'name': 'Malaysia', 'links': ['malaysia']},
-        {'name': 'Singapore', 'links': ['singapore']},
-        {'name': 'South Korea', 'links': ['seoul']},
-        {'name': 'Turkey', 'links': ['turkey']},
-        {'name': 'Thailand', 'links': ['bangkok']},
-        {'name': 'Vietnam', 'links': ['vietnam']},
-        {'name': 'Uzbekistan', 'links': ['uzbekistan']},
-    ]},
-    {'region': 'pacific', 
-    'array': [
-        {'name': 'Australia', 'links': ['australia']},
-        {'name': 'New Zealand', 'links': ['new-zealand']},
-    ]},
-    {'region': 'europe',
-    'array': [
-        {'name': 'Croatia', 'links': ['croatia']},
-        {'name': 'Czech Republic', 'links': ['prague']},
-        {'name': 'Austria', 'links': ['austria/graz', 'austria/vienna', 'austria/salzburg']},
-        {'name': 'Bulgaria', 'links': ['bulgaria/sofia', 'bulgaria/plovdiv']},
-        {'name': 'Denmark', 'links': ['copenhagen']},
-        {'name': 'France', 'links': ['paris']},
-        {'name': 'Germany', 'links': ['germany/berlin', 'germany/munich', 'germany/bonn', 'germany/neuswan']},
-        {'name': 'Netherlands', 'links': ['netherlands/other-2', 'netherlands/amsterdam', 'netherlands/rotterdam', 'netherlands/denhaag', 'netherlands/utrecht']},
-        {'name': 'Poland', 'links': ['poland']},
-        {'name': 'Switzerland', 'links': ['switzerland/zurich']},
-        {'name': 'United Kingdom', 'links': ['london']},
-    ]},
-]
-
 def get_travel_images(REPO_PATH):
+    """Scrapes images from bigfoto.com using the paths saved in the file regions.json
+    Saves the files into the folder {REPO_PATH}/data/bigfoto
+
+    Args:
+        REPO_PATH (str): Path to project folder.
+
+    Returns:
+        None
+    """
+    regions_file = open("{}/data_finding/regions.json".format(REPO_PATH))
+    regions_json = json.load(regions_file)
+    regions = regions_json["regions"]
     for region in regions:
         for country in region['array']:
             for link_path in country['links']:
@@ -94,6 +57,15 @@ def get_travel_images(REPO_PATH):
                 
 
 def get_aerial_images(REPO_PATH):
+    """Finds images from openaerialmap.org using bounding boxes saved in bounding_boxes.csv
+    Saves the files into the folder {REPO_PATH}/data/open_aerial_map
+
+    Args:
+        REPO_PATH (str): Path to project folder.
+
+    Returns:
+        None
+    """
     # Bounding Boxes taken from 'natural earth data http//www.naturalearthdata.com/download/110m/cultural/ne_110m_admin_0_countries.zip'
     file = open('{}/data_finding/bounding_boxes.csv'.format(REPO_PATH))
     csvreader = csv.reader(file)
@@ -103,14 +75,12 @@ def get_aerial_images(REPO_PATH):
     for row in csvreader:
         bounding_boxes.append(row)
 
-    country_filenames = []
     for country in bounding_boxes:
         bbox = [float(country[1]), float(country[2]), float(country[3]), float(country[4])]
         gdf = leafmap.oam_search(
             bbox=bbox, limit=2, return_gdf=True
         )
         if gdf is not None:
-            # print(f'{country[0]}: Found {len(gdf)} images')
             images = gdf['thumbnail'].tolist()
             if len(images) != 0:
                 os.makedirs("{}/data/open_aerial_map/{}/".format(REPO_PATH, country[0]))
