@@ -4,20 +4,20 @@
 	 - All Probs
  - Output Folder Names: Experiments/{model_name}/{prompt_name}/{dateset_name}-{custom_tag}/{date}-{batch_number}.csv
     """
+from torch.utils.data import DataLoader
+from typing import Callable, List
+from datetime import datetime
+import scripts.load_geoguessr_data as geo_data
+import numpy as np
+import os
+import clip
+import tqdm
+import random
+import torch
+import pandas as pd
 import sys
 sys.path.append('.')
-#----------------------------------------------
-import pandas as pd
-import torch
-import random
-import tqdm
-import clip
-import os
-import numpy as np
-import scripts.load_geoguessr_data as geo_data
-from datetime import datetime
-from typing import Callable, List
-from torch.utils.data import DataLoader
+# ----------------------------------------------
 
 
 class ModelTester:
@@ -53,6 +53,7 @@ class ModelTester:
         tester = ModelTester(dataset=my_dataset, model=my_model, prompt=my_prompt, batch_size=32, country_list=my_country_list, seed=42, folder_path='./', model_name='MyModel', prompt_name='MyPrompt', custom_tag='Tag1')
         tester.run_test()
     """
+
     def __init__(self, dataset: geo_data.ImageDataset_from_df, model: torch.nn.Module, prompt: Callable, batch_size: int, country_list: List[str], seed: int, folder_path: str, model_name: str, prompt_name: str, custom_tag: str):
         """Generate a ModelTester object, that can be used to test the model.
 
@@ -80,7 +81,6 @@ class ModelTester:
         self.custom_tag = custom_tag
         self.performance_data = None
 
-
     def run_test(self):
         """Runs the model on the given test set, with the given batchsize.
         The results are saved as csv files using the strucutre:
@@ -91,24 +91,24 @@ class ModelTester:
 
         country_tokens = clip.tokenize(self.country_list)
         print(f"Running data from dataset: {self.test_set.name}")
-        
-        for batch_number, (images, labels) in enumerate(tqdm.tqdm(DataLoader(self.test_set, batch_size=self.batch_size),desc=f"Testing on {self.test_set.name}")):
-            
+
+        for batch_number, (images, labels) in enumerate(tqdm.tqdm(DataLoader(self.test_set, batch_size=self.batch_size), desc=f"Testing on {self.test_set.name}")):
+
             images = images.to(device)
-                
+
             with torch.no_grad():
 
                 logits_per_image, _ = self.model(images, country_tokens)
                 probs = logits_per_image.softmax(dim=-1).cpu().numpy()
 
-
             performance_data = pd.DataFrame({
-                'label' : labels,
-                'All-Probs' : probs.tolist()
+                'label': labels,
+                'All-Probs': probs.tolist()
             })
-            self.__save_data_to_file(performance_data, self.model_name, self.prompt_name, self.test_set.name, batch_number, self.custom_tag,os.path.join(self.folder_path,'Experiments/'))
+            self.__save_data_to_file(performance_data, self.model_name, self.prompt_name, self.test_set.name,
+                                     batch_number, self.custom_tag, os.path.join(self.folder_path, 'Experiments/'))
 
-    def __save_data_to_file(self,data: pd.DataFrame, model_name: str, prompt_name: str, dataset_name: str, batch_number: str, custom_tag: str = None, output_dir='./Experiments/'):
+    def __save_data_to_file(self, data: pd.DataFrame, model_name: str, prompt_name: str, dataset_name: str, batch_number: str, custom_tag: str = None, output_dir='./Experiments/'):
         """Saves data from a Pandas DataFrame as a csv file in the way: 
         Experiments/{model_name}/{prompt_name}/{dateset_name}-{custom_tag}/{date}-{batch_number}.csv
         Args:
@@ -128,7 +128,8 @@ class ModelTester:
             raise TypeError("The 'data' parameter must be a pandas DataFrame.")
 
         # Create directory structure
-        experiment_dir = os.path.join(output_dir, model_name, prompt_name, f"{dataset_name}-{custom_tag}" if custom_tag else dataset_name)
+        experiment_dir = os.path.join(output_dir, model_name, prompt_name,
+                                      f"{dataset_name}-{custom_tag}" if custom_tag else dataset_name)
         os.makedirs(experiment_dir, exist_ok=True)
 
         # Generate file name
@@ -141,4 +142,5 @@ class ModelTester:
             data.to_csv(file_path, index=False)
             print(f"Model performance saved to {file_path} successfully.")
         except Exception as e:
-            print(f"Error: Unable to save model performance to {file_path}. {str(e)}")
+            print(
+                f"Error: Unable to save model performance to {file_path}. {str(e)}")
