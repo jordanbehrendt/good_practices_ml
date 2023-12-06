@@ -6,6 +6,7 @@ import pandas as pd
 from torch.utils.data import Dataset
 import random
 
+
 def filter_min_img_df(df: pd.DataFrame, min_img: int):
     """Filters classes by minimum amount of images
 
@@ -20,6 +21,7 @@ def filter_min_img_df(df: pd.DataFrame, min_img: int):
     valid_labels = label_counts[label_counts >= min_img].index
     df = df[df['label'].isin(valid_labels)]
     return df
+
 
 def load_data(DATA_PATH: str, min_img: int = 0, max_img: int = None, size_constraints: bool = False, debug_data: bool = False, random_seed: int = 1234):
     """Loads data in a dataframe form a given folder, with basic filtering.
@@ -38,22 +40,22 @@ def load_data(DATA_PATH: str, min_img: int = 0, max_img: int = None, size_constr
 
     list_rows = []
     for folder in os.listdir(DATA_PATH):
-        files = os.listdir(os.path.join(DATA_PATH,folder))
+        files = os.listdir(os.path.join(DATA_PATH, folder))
         num_images = len(files)
         if num_images < min_img:
             continue
         if (max_img is not None) and (num_images > max_img):
             files = random.sample(files, max_img)
         for file in files:
-            with PIL.Image.open(os.path.join(DATA_PATH,folder,file)) as img:
+            with PIL.Image.open(os.path.join(DATA_PATH, folder, file)) as img:
                 width, height = img.size
                 form = img.format
-                temp_dict={
-                    'label' : folder,
-                    'width' : width,
-                    'height' : height,
-                    'format' : form,
-                    'path' : os.path.join(DATA_PATH,folder,file)
+                temp_dict = {
+                    'label': folder,
+                    'width': width,
+                    'height': height,
+                    'format': form,
+                    'path': os.path.join(DATA_PATH, folder, file)
                 }
                 list_rows.append(temp_dict)
     df = pd.DataFrame(list_rows)
@@ -67,7 +69,7 @@ def load_data(DATA_PATH: str, min_img: int = 0, max_img: int = None, size_constr
 
 
 class ImageDataset_from_df(Dataset):
-    def __init__(self, df,transform=None, target_transform=None, name='default_data'):
+    def __init__(self, df, transform=None, target_transform=None, name='default_data'):
         self.captions = df["label"].tolist()
         self.images = df["path"].tolist()
         self.target_transform = target_transform
@@ -81,9 +83,9 @@ class ImageDataset_from_df(Dataset):
         image = PIL.Image.open(self.images[idx])
         if self.transform:
             image = self.transform(image)
-            
+
         caption = self.captions[idx]
         if self.target_transform:
             caption = self.target_transform(caption)
 
-        return image,caption
+        return image, caption
