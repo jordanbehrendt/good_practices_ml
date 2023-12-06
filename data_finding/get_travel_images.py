@@ -1,5 +1,7 @@
 import os
 import requests
+import argparse
+import yaml
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.common.exceptions import TimeoutException
@@ -65,7 +67,7 @@ regions = [
     ]},
 ]
 
-def get_travel_images():
+def get_travel_images(REPO_PATH):
     for region in regions:
         for country in region['array']:
             for link_path in country['links']:
@@ -79,14 +81,23 @@ def get_travel_images():
                     links = [elem.get_attribute('href') for elem in elems]
                     for i in range(0,len(links)):
                         img_data = requests.get(links[i]).content
-                        folder_path = "./bigfoto/{}".format(country['name'])
+                        folder_path = "{}/data_finding/bigfoto/{}".format(REPO_PATH, country['name'])
                         if not os.path.isdir(folder_path):
                             os.makedirs(folder_path)
-                        with open("./bigfoto/{}/{}-{}.png".format(country['name'],link_path.replace('/','-'),i), 'wb') as handler:
+                        with open("{}/data_finding/bigfoto/{}/{}-{}.png".format(REPO_PATH, country['name'],link_path.replace('/','-'),i), 'wb') as handler:
                             handler.write(img_data)
                 except TimeoutException:
                     print("Loading of result page took too much time!")
                     driver.quit()
 
 if __name__ == "__main__":
-    get_travel_images()
+    parser = argparse.ArgumentParser(description='Pretrained Model')
+    parser.add_argument('--user', metavar='str', required=True, help='The user of the gpml group')
+    parser.add_argument('--yaml_path', metavar='str', required=True, help='The path to the yaml file with the stored paths')
+    args = parser.parse_args()
+
+    with open(args.yaml_path) as file:
+        paths = yaml.safe_load(file)
+        DATA_PATH = paths['data_path'][args.user]
+        REPO_PATH = paths['repo_path'][args.user]
+        get_travel_images(REPO_PATH)
