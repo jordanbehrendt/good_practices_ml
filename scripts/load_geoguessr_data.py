@@ -83,7 +83,7 @@ class ImageDataset_from_df(Dataset):
             image = self.transform(image)
             
         caption = self.captions[idx]
-        #if self.target_transform:
-        #    caption = self.target_transform(caption)
+        if self.target_transform:
+            caption = self.target_transform(caption)
 
         return image,caption
