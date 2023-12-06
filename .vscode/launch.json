@@ -15,7 +15,9 @@
                 "leon",
                 "--yaml_path",
                 "/home/leon/Documents/GPML/good_practices_ml/paths.yaml",
-                "-d"
+                "-d",
+                "--config_path",
+                "/home/leon/Documents/GPML/good_practices_ml/prompt_compare_config.yaml"
             ]
         },
         {
