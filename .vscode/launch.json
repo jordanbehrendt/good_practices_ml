@@ -16,7 +16,9 @@
                 "leon",
                 "--yaml_path",
                 "/home/leon/Documents/GPML/good_practices_ml/paths.yaml",
-                "-d"
+                "-d",
+                "--config_path",
+                "/home/leon/Documents/GPML/good_practices_ml/prompt_compare_config.yaml"
             ]
         },
         {
@@ -49,6 +51,19 @@
                 "/share/temp/bjordan/good_practices_in_machine_learning/good_practices_ml/paths.yaml",
                 "--config_path",
                 "/share/temp/bjordan/good_practices_in_machine_learning/good_practices_ml/prompt_compare_config.yaml"
+            ]
+        },
+        {
+            "name": "Kieran: Current File",
+            "type": "python",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            "args": [
+                "--user",
+                "kieran",
+                "--yaml_path",
+                "/home/kieran/Documents/Uni/WiSe23-24/Good_Practices_of_Machine_Learning/good_practices_ml/paths.yaml"
             ]
         }
     ]
