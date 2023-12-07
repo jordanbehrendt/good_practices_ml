@@ -5,6 +5,8 @@ import argparse
 import yaml
 import csv
 import json
+import pandas
+import operator
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.common.exceptions import TimeoutException
@@ -54,7 +56,67 @@ def get_travel_images(REPO_PATH):
                 except TimeoutException:
                     print("Loading of result page took too much time!")
                     driver.quit()
-                
+
+def find_interior_centroid_boxes(REPO_PATH):
+    """Find largest interior box for each country, based on polygon data taken from natural earth (https://github.com/martynafford/natural-earth-geojson/blob/master/110m/cultural/ne_110m_admin_0_countries.json)
+    and centroids taken from (https://github.com/gavinr/world-countries-centroids/blob/master/dist/countries.csv)
+    Saves the internal boxes into the file internal_boxes.csv
+    
+    Args:
+        REPO_PATH (str): Path to project folder.
+
+    Returns:
+        None
+    """
+    polygon_file = open("{}/data_finding/ne_110m_admin_0_countries.json".format(REPO_PATH))
+    polygons_json = json.load(polygon_file)
+    countries_polygons = polygons_json["features"]
+
+    country_panda = pandas.read_csv('{}/data_finding/country_list.csv'.format(REPO_PATH))
+    country_centroids = pandas.read_csv('{}/data_finding/countries_centroids.csv'.format(REPO_PATH))
+
+    interior_boxes = []
+    for index, row in country_panda.iterrows():
+        centroid_object = country_centroids[country_centroids['ISO'] == row['Alpha2Code']]
+        if not centroid_object.empty:
+            longitude = float(centroid_object['longitude'].values[0])
+            latitude = float(centroid_object['latitude'].values[0])
+            polygon_object = []
+            for country_pol in countries_polygons:
+                if (country_pol["properties"]["ISO_A2"] == row['Alpha2Code']):
+                    polygon_object = country_pol["geometry"]["coordinates"]
+            inner_box = [longitude - 10, latitude - 10, longitude + 10, latitude + 10]
+            polygon_exist = False
+            if (len(polygon_object) > 0):
+                polygon_exist = True
+                for el in polygon_object[0]:
+                    if len(el) > 2:
+                        for nested_el in el:
+                            if len(nested_el) == 2:
+                                if (((nested_el[0] > inner_box[0]) and (nested_el[0] < inner_box[2])) and ((nested_el[1] > inner_box[1]) and (nested_el[1] < inner_box[3]))):
+                                    if (nested_el[0] < longitude):
+                                        inner_box[0] = nested_el[0]
+                                    else:
+                                        inner_box[2] = nested_el[0]
+                                    if (nested_el[1] < latitude):
+                                        inner_box[1] = nested_el[1]
+                                    else:
+                                        inner_box[3] = nested_el[1]
+                    else:
+                        if (((el[0] > inner_box[0]) and (el[0] < inner_box[2])) and ((el[1] > inner_box[1]) and (el[1] < inner_box[3]))):
+                            if (el[0] < longitude):
+                                inner_box[0] = el[0]
+                            else:
+                                inner_box[2] = el[0]
+                            if (el[1] < latitude):
+                                inner_box[1] = el[1]
+                            else:
+                                inner_box[3] = el[1]
+            if polygon_exist:
+                interior_boxes.append({'Country': row['Country'], 'Alpha2Code': row['Alpha2Code'], 'x1': inner_box[0], 'y1': inner_box[1], 'x2': inner_box[2], 'y2': inner_box[3]})            
+    interior_panda = pandas.DataFrame(interior_boxes)
+    interior_panda.to_csv("{}/data_finding/interior_boxes.csv".format(REPO_PATH))
+
 
 def get_aerial_images(REPO_PATH):
     """Finds images from openaerialmap.org using bounding boxes saved in bounding_boxes.csv
@@ -66,27 +128,20 @@ def get_aerial_images(REPO_PATH):
     Returns:
         None
     """
-    # Bounding Boxes taken from 'natural earth data http//www.naturalearthdata.com/download/110m/cultural/ne_110m_admin_0_countries.zip'
-    file = open('{}/data_finding/bounding_boxes.csv'.format(REPO_PATH))
-    csvreader = csv.reader(file)
-    header = []
-    header = next(csvreader)
-    bounding_boxes = []
-    for row in csvreader:
-        bounding_boxes.append(row)
+    interior_boxes = pandas.read_csv('{}/data_finding/interior_boxes.csv'.format(REPO_PATH))
 
-    for country in bounding_boxes:
-        bbox = [float(country[1]), float(country[2]), float(country[3]), float(country[4])]
+    for index, row in interior_boxes.iterrows():
+        bbox = [float(row['x1']), float(row['y1']), float(row['x2']), float(row['y2'])]
         gdf = leafmap.oam_search(
             bbox=bbox, limit=2, return_gdf=True
         )
         if gdf is not None:
             images = gdf['thumbnail'].tolist()
             if len(images) != 0:
-                os.makedirs("{}/data/open_aerial_map/{}/".format(REPO_PATH, country[0]))
+                os.makedirs("{}/data/open_aerial_map/{}/".format(REPO_PATH, row['Country']))
                 for i in range(0,len(images)):
                     img_data = requests.get(images[i]).content
-                    with open("{}/data/open_aerial_map/{}/aerial-{}-{}.png".format(REPO_PATH, country[0],country[0],i), 'wb') as handler:
+                    with open("{}/data/open_aerial_map/{}/aerial-{}-{}.png".format(REPO_PATH, row['Country'],row['Country'],i), 'wb') as handler:
                         handler.write(img_data)
 
 if __name__ == "__main__":
@@ -99,5 +154,6 @@ if __name__ == "__main__":
         paths = yaml.safe_load(file)
         DATA_PATH = paths['data_path'][args.user]
         REPO_PATH = paths['repo_path'][args.user]
-        get_travel_images(REPO_PATH)
+        # get_travel_images(REPO_PATH)
         get_aerial_images(REPO_PATH)
+        # find_interior_centroid_boxes(REPO_PATH)
