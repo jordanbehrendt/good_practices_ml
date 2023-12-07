@@ -7,7 +7,7 @@ import tqdm
 import yaml
 import argparse
 import os
-import scripts.load_geoguessr_data as geo_data
+import scripts.load_dataset as geo_data
 import scripts.helpers as scripts
 import numpy as np
 import pandas as pd
