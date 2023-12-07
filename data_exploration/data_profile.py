@@ -261,7 +261,7 @@ def data_profile(dataset_dir: str, REPO_PATH: str, dataset_name: str) -> None:
         os.makedirs(output_dir)
 
     # Loading dataset and creating a profile report
-    df = load_dataset.load_data(DATA_PATH=dataset_dir, size_constraints=True)
+    df = load_dataset.load_data(DATA_PATH=dataset_dir, size_constraints=False)
     profile = ProfileReport(df, title=f'{dataset_name} Profile Report')
     profile.to_file(os.path.join(output_dir, 'profile.html'))
 
@@ -301,4 +301,4 @@ if __name__ == "__main__":
     parser.add_argument('--dataset_dir', metavar='str', required=True, help='the path to directory with the dataset')
     parser.add_argument('--dataset_name', metavar='str', required=True, help='the name of the dataset')
     args = parser.parse_args()
-    main(args.user, args.yaml_path, args.dataset_dir, args.dataset_name)
+    create_dataset_profile(args.user, args.yaml_path, args.dataset_dir, args.dataset_name)

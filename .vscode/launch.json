@@ -65,6 +65,57 @@
                 "--yaml_path",
                 "/home/kieran/Documents/Uni/WiSe23-24/Good_Practices_of_Machine_Learning/good_practices_ml/paths.yaml"
             ]
-        }
+        },
+        {
+            "name": "Kieran Data Profile - BigFoto",
+            "type": "python",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            "args": [
+                "--user",
+                "kieran",
+                "--yaml_path",
+                "/home/kieran/Documents/Uni/WiSe23-24/Good_Practices_of_Machine_Learning/good_practices_ml/paths.yaml",
+                "--dataset_dir",
+                "/home/kieran/Documents/Uni/WiSe23-24/Good_Practices_of_Machine_Learning/good_practices_ml/data/bigfoto/",
+                "--dataset_name",
+                "BigFoto"
+            ]
+        },
+        {
+            "name": "Kieran Data Profile - OpenAerialMap",
+            "type": "python",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            "args": [
+                "--user",
+                "kieran",
+                "--yaml_path",
+                "/home/kieran/Documents/Uni/WiSe23-24/Good_Practices_of_Machine_Learning/good_practices_ml/paths.yaml",
+                "--dataset_dir",
+                "/home/kieran/Documents/Uni/WiSe23-24/Good_Practices_of_Machine_Learning/good_practices_ml/data/open_aerial_map",
+                "--dataset_name",
+                "OpenAerialMap"
+            ]
+        },
+        {
+            "name": "Kieran Data Profile - GeoGuesser",
+            "type": "python",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            "args": [
+                "--user",
+                "kieran",
+                "--yaml_path",
+                "/home/kieran/Documents/Uni/WiSe23-24/Good_Practices_of_Machine_Learning/good_practices_ml/paths.yaml",
+                "--dataset_dir",
+                "/home/kieran/Documents/Uni/WiSe23-24/Good_Practices_of_Machine_Learning/good_practices_ml/data/compressed_dataset",
+                "--dataset_name",
+                "GeoGuesser"
+            ]
+        },
     ]
 }
