@@ -1,6 +1,7 @@
 {
     "version": "0.2.0",
     "configurations": [
+    
 
 
         
@@ -30,7 +31,11 @@
                 "--user",
                 "jordan",
                 "--yaml_path",
-                "/share/temp/bjordan/good_practices_in_machine_learning/good_practices_ml/paths.yaml"
+                "/share/temp/bjordan/good_practices_in_machine_learning/good_practices_ml/paths.yaml",
+                "--dataset_dir",
+                "/share/temp/bjordan/good_practices_in_machine_learning/compressed_dataset/",
+                "--dataset_name",
+                "Geolocation"
             ]
         },
         {
