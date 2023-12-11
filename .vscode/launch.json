@@ -1,6 +1,8 @@
 {
     "version": "0.2.0",
     "configurations": [
+
+    
     
 
 
@@ -51,6 +53,31 @@
                 "/share/temp/bjordan/good_practices_in_machine_learning/good_practices_ml/paths.yaml",
                 "--config_path",
                 "/share/temp/bjordan/good_practices_in_machine_learning/good_practices_ml/prompt_compare_config.yaml"
+            ]
+        },
+        {
+            "name": "Jordan Evaluate",
+            "type": "python",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            "args": [
+                "--user",
+                "jordan",
+                "--yaml_path",
+                "/share/temp/bjordan/good_practices_in_machine_learning/good_practices_ml/paths.yaml",
+                "--experiment_dirs",
+                "/share/temp/bjordan/good_practices_in_machine_learning/good_practices_ml/Experiments/prompt_compare/default_data",
+                "/share/temp/bjordan/good_practices_in_machine_learning/good_practices_ml/Experiments/prompt_compare/default_data",
+                "--experiment_names",
+                "model_a",
+                "model_b",
+                "--metric",
+                "country_acc",
+                "--paired_ttest",
+                "True",
+                "--comparison_name",
+                "test_evaluate"
             ]
         },
         {
