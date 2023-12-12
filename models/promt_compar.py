@@ -2,7 +2,7 @@ import sklearn.model_selection
 import random
 import model_tester as testing
 import pandas as pd
-import scripts.load_geoguessr_data as geo_data
+import scripts.load_dataset as geo_data
 import os
 import argparse
 import yaml

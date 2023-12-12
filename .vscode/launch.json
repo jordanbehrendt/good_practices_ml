@@ -2,6 +2,9 @@
     "version": "0.2.0",
     "configurations": [
 
+    
+    
+
 
         
             {
@@ -30,7 +33,11 @@
                 "--user",
                 "jordan",
                 "--yaml_path",
-                "/share/temp/bjordan/good_practices_in_machine_learning/good_practices_ml/paths.yaml"
+                "/share/temp/bjordan/good_practices_in_machine_learning/good_practices_ml/paths.yaml",
+                "--dataset_dir",
+                "/share/temp/bjordan/good_practices_in_machine_learning/compressed_dataset/",
+                "--dataset_name",
+                "Geolocation"
             ]
         },
         {
@@ -49,6 +56,31 @@
             ]
         },
         {
+            "name": "Jordan Evaluate",
+            "type": "python",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            "args": [
+                "--user",
+                "jordan",
+                "--yaml_path",
+                "/share/temp/bjordan/good_practices_in_machine_learning/good_practices_ml/paths.yaml",
+                "--experiment_dirs",
+                "/share/temp/bjordan/good_practices_in_machine_learning/good_practices_ml/Experiments/prompt_compare/default_data",
+                "/share/temp/bjordan/good_practices_in_machine_learning/good_practices_ml/Experiments/prompt_compare/default_data",
+                "--experiment_names",
+                "model_a",
+                "model_b",
+                "--metric",
+                "country_acc",
+                "--paired_ttest",
+                "True",
+                "--comparison_name",
+                "test_evaluate"
+            ]
+        },
+        {
             "name": "Kieran: Current File",
             "type": "python",
             "request": "launch",
@@ -60,6 +92,57 @@
                 "--yaml_path",
                 "/home/kieran/Documents/Uni/WiSe23-24/Good_Practices_of_Machine_Learning/good_practices_ml/paths.yaml"
             ]
-        }
+        },
+        {
+            "name": "Kieran Data Profile - BigFoto",
+            "type": "python",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            "args": [
+                "--user",
+                "kieran",
+                "--yaml_path",
+                "/home/kieran/Documents/Uni/WiSe23-24/Good_Practices_of_Machine_Learning/good_practices_ml/paths.yaml",
+                "--dataset_dir",
+                "/home/kieran/Documents/Uni/WiSe23-24/Good_Practices_of_Machine_Learning/good_practices_ml/data/bigfoto/",
+                "--dataset_name",
+                "BigFoto"
+            ]
+        },
+        {
+            "name": "Kieran Data Profile - OpenAerialMap",
+            "type": "python",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            "args": [
+                "--user",
+                "kieran",
+                "--yaml_path",
+                "/home/kieran/Documents/Uni/WiSe23-24/Good_Practices_of_Machine_Learning/good_practices_ml/paths.yaml",
+                "--dataset_dir",
+                "/home/kieran/Documents/Uni/WiSe23-24/Good_Practices_of_Machine_Learning/good_practices_ml/data/open_aerial_map",
+                "--dataset_name",
+                "OpenAerialMap"
+            ]
+        },
+        {
+            "name": "Kieran Data Profile - GeoGuesser",
+            "type": "python",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            "args": [
+                "--user",
+                "kieran",
+                "--yaml_path",
+                "/home/kieran/Documents/Uni/WiSe23-24/Good_Practices_of_Machine_Learning/good_practices_ml/paths.yaml",
+                "--dataset_dir",
+                "/home/kieran/Documents/Uni/WiSe23-24/Good_Practices_of_Machine_Learning/good_practices_ml/data/compressed_dataset",
+                "--dataset_name",
+                "GeoGuesser"
+            ]
+        },
     ]
 }
