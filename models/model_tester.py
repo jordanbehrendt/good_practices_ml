@@ -1,24 +1,16 @@
-""" - Inputs: Dataset, Model, Prompt, batch_size, country_list
- - Output: csv for each batch with 
-	 - Ground Truth Label
-	 - All Probs
- - Output Folder Names: Experiments/{model_name}/{prompt_name}/{dateset_name}-{custom_tag}/{date}-{batch_number}.csv
-    """
+import sys
+sys.path.append('.')
+# ----------------------------------------------
 from torch.utils.data import DataLoader
 from typing import Callable, List
 from datetime import datetime
 import scripts.load_geoguessr_data as geo_data
-import numpy as np
 import os
 import clip
 import tqdm
 import random
 import torch
 import pandas as pd
-import sys
-sys.path.append('.')
-# ----------------------------------------------
-
 
 class ModelTester:
     """
@@ -74,7 +66,7 @@ class ModelTester:
         self.country_list = country_list
         self.batch_size = batch_size
         self.seed = seed
-        self.test_set.target_transform = prompt
+        self.prompt = prompt
         self.folder_path = folder_path
         self.model_name = model_name
         self.prompt_name = prompt_name
@@ -89,7 +81,7 @@ class ModelTester:
         random.seed(self.seed)
         device = "cuda" if torch.cuda.is_available() else "cpu"
 
-        country_tokens = clip.tokenize(self.country_list)
+        country_tokens = clip.tokenize(list(map(self.prompt, self.country_list)))
         print(f"Running data from dataset: {self.test_set.name}")
 
         for batch_number, (images, labels) in enumerate(tqdm.tqdm(DataLoader(self.test_set, batch_size=self.batch_size), desc=f"Testing on {self.test_set.name}")):
