@@ -136,14 +136,15 @@ def find_interior_boxes(REPO_PATH):
 
 def get_rectangle(polygon, center):
     """Creates rectangle based on the given polygon and the center point.
-    First measures
+    First measures the shortest distances to the boundaries in the x and y directions
+    then creates and returns a rectangle defined by these smallest distances
 
     Args:
-        polygon (Polygon): 
-        center (Point): 
+        polygon (Polygon): The country polygon provided by natural earth 
+        center (Point): The center of the polygon
 
     Returns:
-        bbox (List): 
+        bbox (List): The largest possible rectangle (probably not interior) created by going as far as possible in x and y directions
     """
     distances = []
     multipoints = []
