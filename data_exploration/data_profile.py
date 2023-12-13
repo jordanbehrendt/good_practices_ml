@@ -9,140 +9,13 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import yaml
 from ydata_profiling import ProfileReport
-from reportlab.lib.pagesizes import letter
-from reportlab.pdfgen import canvas
-from reportlab.platypus import SimpleDocTemplate, Table, TableStyle
-from PIL import Image
-import csv
-from PyPDF2 import PdfMerger
 
 # Local or intra-package imports
 import sys
 import os
 sys.path.append(os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'scripts'))
 import load_dataset
-
-def images_to_pdf(pdf_filename: str, image_files: list) -> None:
-    """
-    Convert images to a PDF document.
-
-    Args:
-        pdf_filename (str): File path of the output PDF.
-        image_files (list): List of file paths for images to be included in the PDF.
-
-    Returns:
-        None
-    """
-    # Create a canvas for the PDF
-    c = canvas.Canvas(pdf_filename, pagesize=letter)
-
-    for image_file in image_files:
-        img = Image.open(image_file)
-        img_width, img_height = img.size
-
-        # Set the image size to fit the PDF page
-        pdf_width, pdf_height = letter
-        width_ratio = pdf_width / float(img_width)
-        height_ratio = pdf_height / float(img_height)
-        ratio = min(width_ratio, height_ratio)
-        img_width *= ratio
-        img_height *= ratio
-
-        # Draw the image onto the PDF canvas
-        c.drawImage(image_file, 0, 0, width=img_width, height=img_height)
-        c.showPage()
-
-    # Save the PDF
-    c.save()
-
-def read_csv(csv_filename: str) -> list:
-    """
-    Read data from a CSV file and return it as a list of rows.
-
-    Args:
-        csv_filename (str): File path of the CSV file to read.
-
-    Returns:
-        list: Data read from the CSV file as a list of rows.
-    """
-    # Open the CSV file and read its contents using csv.reader
-    with open(csv_filename, 'r') as file:
-        csv_reader = csv.reader(file)
-        data = [row for row in csv_reader]
-    
-    return data
-
-
-def create_pdf_with_table(pdf_filename: str, csv_data: list) -> None:
-    """
-    Create a PDF file containing a table generated from CSV data.
-
-    Args:
-        pdf_filename (str): File path for the generated PDF.
-        csv_data (list): Data to be converted into a table in the PDF.
-
-    Returns:
-        None: Saves the PDF file with the table.
-    """
-    # Initialize a SimpleDocTemplate object with the specified filename and page size
-    doc = SimpleDocTemplate(pdf_filename, pagesize=letter)
-
-    # Create a table from CSV data
-    table = Table(csv_data)
-
-    # Define table style settings
-    style = TableStyle([
-        ('BACKGROUND', (0, 0), (-1, 0), 'grey'),
-        ('TEXTCOLOR', (0, 0), (-1, 0), 'white'),
-        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
-        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-        ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
-        ('BACKGROUND', (0, 1), (-1, -1), 'lightgrey'),
-    ])
-
-    # Apply the defined style to the table
-    table.setStyle(style)
-
-    # Build the PDF document containing the table
-    elements = [table]
-    doc.build(elements)
-
-def create_data_profile_pdf(output_dir: str) -> None:
-    """
-    Generate a PDF containing images and a table from CSV data and merge them into a single PDF.
-
-    Args:
-        output_dir (str): Directory path where the data files are stored.
-
-    Returns:
-        None: Saves the merged PDF file.
-    """
-    # List all files in the directory
-    data_exploration_files = os.listdir(output_dir)
-    data_exploration_files = [os.path.join(output_dir, file) for file in data_exploration_files]
-
-    # Filter image files (JPG) and find the CSV file
-    image_files = [file for file in data_exploration_files if file.lower().endswith('.jpg')]
-    csv_filename = [file for file in data_exploration_files if file.lower().endswith('.csv')][0]
-
-    # Create a PDF from images
-    pdf_from_images = os.path.join(output_dir, 'graphs.pdf')
-    images_to_pdf(pdf_from_images, image_files)
-
-    # Read CSV file
-    csv_data = read_csv(csv_filename)
-
-    # Create a PDF file with a table from CSV data
-    pdf_from_csv = os.path.join(output_dir, 'image_distribution_table.pdf')
-    create_pdf_with_table(pdf_from_csv, csv_data)
-
-    # Merge PDFs into a single file
-    pdf_merger = PdfMerger()
-    pdf_merger.append(pdf_from_images)
-    pdf_merger.append(pdf_from_csv)
-    pdf_merged = os.path.join(output_dir, 'image_distribution.pdf')
-    pdf_merger.write(pdf_merged)
-    pdf_merger.close()
+import pdf
 
 def line_graph(image_distribution_path: str, output_dir: str, logarithmic: bool) -> None:
     """
@@ -274,7 +147,7 @@ def data_profile(dataset_dir: str, REPO_PATH: str, dataset_name: str) -> None:
     world_heat_map(os.path.join(output_dir, 'image_distribution.csv'), output_dir=output_dir, logarithmic=False)
     line_graph(os.path.join(output_dir, 'image_distribution.csv'), output_dir=output_dir, logarithmic=True)
     line_graph(os.path.join(output_dir, 'image_distribution.csv'), output_dir=output_dir, logarithmic=False)
-    create_data_profile_pdf(output_dir)
+    pdf.create_merged_pdf(output_dir, 'image_distribution')
 
 def create_dataset_profile(user: str, yaml_path: str, dataset_dir: str, dataset_name: str) -> None:
     """

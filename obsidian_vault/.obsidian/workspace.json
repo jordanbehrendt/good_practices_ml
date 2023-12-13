@@ -4,16 +4,16 @@
     "type": "split",
     "children": [
       {
-        "id": "a63c7e9722b10e72",
+        "id": "606580931ce5c767",
         "type": "tabs",
         "children": [
           {
-            "id": "187cc8a3352ce6de",
+            "id": "a9f6b7a8f9a3fd01",
             "type": "leaf",
             "state": {
               "type": "markdown",
               "state": {
-                "file": "Data Collection/Aerial Images.md",
+                "file": "Weekly Todos/For 15.12.md",
                 "mode": "source",
                 "source": false
               }
@@ -85,7 +85,7 @@
             "state": {
               "type": "backlink",
               "state": {
-                "file": "Data Collection/Aerial Images.md",
+                "file": "Script Structure.md",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -102,7 +102,7 @@
             "state": {
               "type": "outgoing-link",
               "state": {
-                "file": "Data Collection/Aerial Images.md",
+                "file": "Script Structure.md",
                 "linksCollapsed": false,
                 "unlinkedCollapsed": true
               }
@@ -125,7 +125,7 @@
             "state": {
               "type": "outline",
               "state": {
-                "file": "Data Collection/Aerial Images.md"
+                "file": "Script Structure.md"
               }
             }
           }
@@ -147,13 +147,8 @@
       "homepage:Open homepage": false
     }
   },
-  "active": "187cc8a3352ce6de",
+  "active": "ac0f7dcf3d693072",
   "lastOpenFiles": [
-    "Data Collection/BigFoto.md",
-    "Data Collection/Aerial Images.md",
-    "Dataset collection.md",
-    "Data Collection",
-    "Home.md",
     "Weekly Todos/For 08.12.md",
     "Script Structure.md",
     "Kanban.md",

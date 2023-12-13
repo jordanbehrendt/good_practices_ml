@@ -1,7 +1,7 @@
 
 
 ## To Do
- - [ ] Analyze which countries are shown on the world heat map
+ - [x] Analyze which countries are shown on the world heat map ✅ 2023-12-08
  - [ ] Use country_list.csv as the labels for the model
 ## Leon
 
