@@ -1,5 +1,6 @@
 from typing import List
 import pandas as pd
+import numpy as np
 import os
 from sklearn import metrics
 import ast
@@ -50,9 +51,9 @@ def calculate_metric(repo_path: str, batch_df: pd.DataFrame, metric_name: str) -
     Returns:
         float: Calculated metric value.
     """
-    country_list = pd.read_csv('/share/temp/bjordan/good_practices_in_machine_learning/good_practices_ml/data_finding/country_list.csv')
-    batch_df['All-Probs'].apply(ast.literal_eval)
-    batch_df['Prediced labels'] = batch_df['All-Probs'].apply(lambda x: country_list['Country'].iloc(x.index(max(x))))
+    country_list = pd.read_csv('/home/kieran/Documents/Uni/WiSe23-24/Good_Practices_of_Machine_Learning/good_practices_ml/data_finding/country_list.csv')
+    batch_df['Probs-Array'] = batch_df['All-Probs'].apply(lambda x: ast.literal_eval(x))
+    batch_df['Predicted labels'] = batch_df['Probs-Array'].apply(lambda x: country_list['Country'].iloc[np.argmax(np.array(x))])
 
     if metric_name == 'country_acc':
         return calculate_country_accuracy(batch_df)
