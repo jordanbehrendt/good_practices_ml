@@ -17,14 +17,15 @@ seed = 1234
 device = "cuda" if torch.cuda.is_available() else "cpu"
 model, preprocessor = clip.load("ViT-B/32", device=device)
 
-#geoguessr = load_dataset.load_data('/share/temp/bjordan/good_practices_in_machine_learning/compressed_dataset/', 20, 5000, False, False, seed)
-#geoguessr = load_dataset.ImageDataset_from_df(geoguessr, preprocessor, name= "GeoGuesser")
+geoguessr = load_dataset.load_data('/share/temp/bjordan/good_practices_in_machine_learning/compressed_dataset/', 20, 5000, True, False, seed)
+geoguessr = geoguessr.head(int(len(geoguessr)*0.2))
+geoguessr = load_dataset.ImageDataset_from_df(geoguessr, preprocessor, name= "GeoGuesser")
 #bigfoto = load_dataset.load_data('/share/temp/bjordan/good_practices_in_machine_learning/BigFoto/', 0, 5000, False, False, seed)
 #bigfoto = load_dataset.ImageDataset_from_df(bigfoto, preprocessor, name= "BigFoto")
 #aerialmap = load_dataset.load_data('/share/temp/bjordan/good_practices_in_machine_learning/OpenAerialMap/', 0, 5000, False, False, seed)
 #aerialmap = load_dataset.ImageDataset_from_df(aerialmap, preprocessor, name= "OpenAerialMap")
-mars = load_dataset.load_data('/share/temp/bjordan/good_practices_in_machine_learning/Mars/', 0, 5000, False, False, seed)
-mars = load_dataset.ImageDataset_from_df(mars, preprocessor, name= "Mars")
+#mars = load_dataset.load_data('/share/temp/bjordan/good_practices_in_machine_learning/Mars/', 0, 5000, False, False, seed)
+#mars = load_dataset.ImageDataset_from_df(mars, preprocessor, name= "Mars")
 
 default_prompt = lambda x: f"{x}"
 image_prompt = lambda x: f"This image shows the country {x}"
@@ -50,5 +51,5 @@ image_prompt_name = 'image_from_prompt'
 context_prompt_name = 'context_prompt'
 
 
-mars_test = model_tester.ModelTester(mars, model, [default_prompt, image_prompt, mars_context_prompt], mars_batch_size, mars_list, seed, folder_path, model_name, [default_prompt_name, image_prompt_name, context_prompt_name] , 'v1')
-mars_test.run_test()
+geoguessr_test = model_tester.ModelTester(geoguessr, model, [default_prompt, image_prompt, geoguessr_context_prompt], geoguessr_batch_size, country_list, seed, folder_path, model_name, [default_prompt_name, image_prompt_name, context_prompt_name] , 'v1')
+geoguessr_test.run_test()
