@@ -7,7 +7,7 @@
 from torch.utils.data import DataLoader
 from typing import Callable, List
 from datetime import datetime
-import scripts.load_geoguessr_data as geo_data
+import scripts.load_dataset as geo_data
 import numpy as np
 import os
 import clip
