@@ -6,4 +6,4 @@ Images that are possibly too far away:
 Remove:
  - Strangely shaped images
  - Repeats
- - 
+
