@@ -2,6 +2,7 @@
     "version": "0.2.0",
     "configurations": [
 
+
     
     
 
@@ -67,17 +68,19 @@
                 "--yaml_path",
                 "/share/temp/bjordan/good_practices_in_machine_learning/good_practices_ml/paths.yaml",
                 "--experiment_dirs",
-                "/share/temp/bjordan/good_practices_in_machine_learning/good_practices_ml/Experiments/prompt_compare/default_data",
-                "/share/temp/bjordan/good_practices_in_machine_learning/good_practices_ml/Experiments/prompt_compare/default_data",
+                "/share/temp/bjordan/good_practices_in_machine_learning/good_practices_ml/Experiments/pretrained_clip/country_prompt/OpenAerialMap-v1",
+                "/share/temp/bjordan/good_practices_in_machine_learning/good_practices_ml/Experiments/pretrained_clip/image_from_prompt_prompt/OpenAerialMap-v1",
+                "/share/temp/bjordan/good_practices_in_machine_learning/good_practices_ml/Experiments/pretrained_clip/context_prompt/OpenAerialMap-v1",
                 "--experiment_names",
-                "model_a",
-                "model_b",
+                "AerialMap Country Prompt",
+                "AerialMap Image Prompt",
+                "AerialMap Context Prompt",
                 "--metric",
                 "country_acc",
                 "--paired_ttest",
                 "True",
                 "--comparison_name",
-                "test_evaluate"
+                "OpenAerial Prompt Compare"
             ]
         },
         {

@@ -51,7 +51,7 @@ def calculate_metric(repo_path: str, batch_df: pd.DataFrame, metric_name: str) -
         float: Calculated metric value.
     """
     country_list = pd.read_csv('/share/temp/bjordan/good_practices_in_machine_learning/good_practices_ml/data_finding/country_list.csv')
-    batch_df['All-Probs'].apply(ast.literal_eval, replace=True)
+    batch_df['All-Probs'].apply(ast.literal_eval)
     batch_df['Prediced labels'] = batch_df['All-Probs'].apply(lambda x: country_list['Country'].iloc(x.index(max(x))))
 
     if metric_name == 'country_acc':
