@@ -1,9 +1,6 @@
-""" - Inputs: Dataset, Model, Prompt, batch_size, country_list
- - Output: csv for each batch with 
-	 - Ground Truth Label
-	 - All Probs
- - Output Folder Names: Experiments/{model_name}/{prompt_name}/{dateset_name}-{custom_tag}/{date}-{batch_number}.csv
-    """
+import sys
+sys.path.append('.')
+# ----------------------------------------------
 from torch.utils.data import DataLoader
 from typing import Callable, List
 from datetime import datetime
@@ -15,10 +12,6 @@ import tqdm
 import random
 import torch
 import pandas as pd
-import sys
-sys.path.append('.')
-# ----------------------------------------------
-
 
 class ModelTester:
     """
@@ -54,19 +47,19 @@ class ModelTester:
         tester.run_test()
     """
 
-    def __init__(self, dataset: geo_data.ImageDataset_from_df, model: torch.nn.Module, prompt: Callable, batch_size: int, country_list: List[str], seed: int, folder_path: str, model_name: str, prompt_name: str, custom_tag: str):
+    def __init__(self, dataset: geo_data.ImageDataset_from_df, model: torch.nn.Module, prompt: List[Callable], batch_size: int, country_list: List[str], seed: int, folder_path: str, model_name: str, prompt_name: List[str], custom_tag: str):
         """Generate a ModelTester object, that can be used to test the model.
 
         Args:
             dataset (geo_data.ImageDataset_from_df): The test-dataset.
             model (torch.nn.Module): The Model to test.
-            prompt (Callable): Transformation for the prompt given the countryname.
+            prompt (List[Callable]): Transformations for prompts given the countryname.
             batch_size (int): The batch size to use.
             country_list (List[str]): List of all possible countries.
             seed (int): Random seed used for operations.
             folder_path (str): Path to save results to.
             model_name (str): The name of the model that is used.
-            prompt_name (str): The name of the prompt used.
+            prompt_name (List[str]): The name of all prompts used.
             custom_tag (str): Custom tag for naming experiment.
         """
         self.test_set = dataset
@@ -74,7 +67,7 @@ class ModelTester:
         self.country_list = country_list
         self.batch_size = batch_size
         self.seed = seed
-        self.test_set.target_transform = prompt
+        self.prompt = prompt
         self.folder_path = folder_path
         self.model_name = model_name
         self.prompt_name = prompt_name
@@ -89,24 +82,24 @@ class ModelTester:
         random.seed(self.seed)
         device = "cuda" if torch.cuda.is_available() else "cpu"
 
-        country_tokens = clip.tokenize(self.country_list)
-        print(f"Running data from dataset: {self.test_set.name}")
+        for promt, promt_name in zip(self.prompt,self.prompt_name):
+            country_tokens = clip.tokenize(list(map(promt, self.country_list)))
+            print(f"Running data from dataset: {self.test_set.name}")
+            for batch_number, (images, labels) in enumerate(tqdm.tqdm(DataLoader(self.test_set, batch_size=self.batch_size), desc=f"Testing on {self.test_set.name}")):
 
-        for batch_number, (images, labels) in enumerate(tqdm.tqdm(DataLoader(self.test_set, batch_size=self.batch_size), desc=f"Testing on {self.test_set.name}")):
+                images = images.to(device)
 
-            images = images.to(device)
+                with torch.no_grad():
 
-            with torch.no_grad():
+                    logits_per_image, _ = self.model(images, country_tokens)
+                    probs = logits_per_image.softmax(dim=-1).cpu().numpy()
 
-                logits_per_image, _ = self.model(images, country_tokens)
-                probs = logits_per_image.softmax(dim=-1).cpu().numpy()
-
-            performance_data = pd.DataFrame({
-                'label': labels,
-                'All-Probs': probs.tolist()
-            })
-            self.__save_data_to_file(performance_data, self.model_name, self.prompt_name, self.test_set.name,
-                                     batch_number, self.custom_tag, os.path.join(self.folder_path, 'Experiments/'))
+                performance_data = pd.DataFrame({
+                    'label': labels,
+                    'All-Probs': probs.tolist()
+                })
+                self.__save_data_to_file(performance_data, self.model_name, promt_name, self.test_set.name,
+                                        batch_number, self.custom_tag, os.path.join(self.folder_path, 'Experiments/'))
 
     def __save_data_to_file(self, data: pd.DataFrame, model_name: str, prompt_name: str, dataset_name: str, batch_number: str, custom_tag: str = None, output_dir='./Experiments/'):
         """Saves data from a Pandas DataFrame as a csv file in the way: 
