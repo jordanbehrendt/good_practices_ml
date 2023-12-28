@@ -2,6 +2,7 @@
     "version": "0.2.0",
     "configurations": [
 
+
     
     
 
@@ -67,17 +68,19 @@
                 "--yaml_path",
                 "/share/temp/bjordan/good_practices_in_machine_learning/good_practices_ml/paths.yaml",
                 "--experiment_dirs",
-                "/share/temp/bjordan/good_practices_in_machine_learning/good_practices_ml/Experiments/prompt_compare/default_data",
-                "/share/temp/bjordan/good_practices_in_machine_learning/good_practices_ml/Experiments/prompt_compare/default_data",
+                "/share/temp/bjordan/good_practices_in_machine_learning/good_practices_ml/Experiments/pretrained_clip/country_prompt/OpenAerialMap-v1",
+                "/share/temp/bjordan/good_practices_in_machine_learning/good_practices_ml/Experiments/pretrained_clip/image_from_prompt_prompt/OpenAerialMap-v1",
+                "/share/temp/bjordan/good_practices_in_machine_learning/good_practices_ml/Experiments/pretrained_clip/context_prompt/OpenAerialMap-v1",
                 "--experiment_names",
-                "model_a",
-                "model_b",
+                "AerialMap Country Prompt",
+                "AerialMap Image Prompt",
+                "AerialMap Context Prompt",
                 "--metric",
                 "country_acc",
                 "--paired_ttest",
                 "True",
                 "--comparison_name",
-                "test_evaluate"
+                "OpenAerial Prompt Compare"
             ]
         },
         {
@@ -142,6 +145,93 @@
                 "/home/kieran/Documents/Uni/WiSe23-24/Good_Practices_of_Machine_Learning/good_practices_ml/data/compressed_dataset",
                 "--dataset_name",
                 "GeoGuesser"
+            ]
+        },
+        {
+            "name": "Kieran Evaluate Country Prompt",
+            "type": "python",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            "args": [
+                "--user",
+                "kieran",
+                "--yaml_path",
+                "/home/kieran/Documents/Uni/WiSe23-24/Good_Practices_of_Machine_Learning/good_practices_ml/paths.yaml",
+                "--experiment_dirs",
+                // "/home/kieran/Documents/Uni/WiSe23-24/Good_Practices_of_Machine_Learning/good_practices_ml/Experiments/pretrained_clip/country_prompt/Geoguesser-v1",
+                "/home/kieran/Documents/Uni/WiSe23-24/Good_Practices_of_Machine_Learning/good_practices_ml/Experiments/pretrained_clip/country_prompt/BigFoto-v1",
+                "/home/kieran/Documents/Uni/WiSe23-24/Good_Practices_of_Machine_Learning/good_practices_ml/Experiments/pretrained_clip/country_prompt/OpenAerialMap-v1",
+                // "/home/kieran/Documents/Uni/WiSe23-24/Good_Practices_of_Machine_Learning/good_practices_ml/Experiments/pretrained_clip/country_prompt/Mars-v1",
+                "--experiment_names",
+                // "GeoGuesser Dataset",
+                "Bigfoto Dataset",
+                "AerialMap Dataset",
+                // "Mars Dataset",
+                "--metric",
+                "country_acc",
+                "--paired_ttest",
+                "False",
+                "--comparison_name",
+                "Country Prompt Compare"
+            ]
+        },
+        {
+            "name": "Kieran Evaluate Image From Prompt",
+            "type": "python",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            "args": [
+                "--user",
+                "kieran",
+                "--yaml_path",
+                "/home/kieran/Documents/Uni/WiSe23-24/Good_Practices_of_Machine_Learning/good_practices_ml/paths.yaml",
+                "--experiment_dirs",
+                // "/home/kieran/Documents/Uni/WiSe23-24/Good_Practices_of_Machine_Learning/good_practices_ml/Experiments/pretrained_clip/image_from_prompt/Geoguesser-v1",
+                "/home/kieran/Documents/Uni/WiSe23-24/Good_Practices_of_Machine_Learning/good_practices_ml/Experiments/pretrained_clip/image_from_prompt/BigFoto-v1",
+                "/home/kieran/Documents/Uni/WiSe23-24/Good_Practices_of_Machine_Learning/good_practices_ml/Experiments/pretrained_clip/image_from_prompt/OpenAerialMap-v1",
+                // "/home/kieran/Documents/Uni/WiSe23-24/Good_Practices_of_Machine_Learning/good_practices_ml/Experiments/pretrained_clip/image_from_prompt/Mars-v1",
+                "--experiment_names",
+                // "GeoGuesser Dataset",
+                "Bigfoto Dataset",
+                "AerialMap Dataset",
+                // "Mars Dataset",
+                "--metric",
+                "country_acc",
+                "--paired_ttest",
+                "False",
+                "--comparison_name",
+                "Image From Prompt Compare"
+            ]
+        },
+        {
+            "name": "Kieran Evaluate Context Prompt",
+            "type": "python",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            "args": [
+                "--user",
+                "kieran",
+                "--yaml_path",
+                "/home/kieran/Documents/Uni/WiSe23-24/Good_Practices_of_Machine_Learning/good_practices_ml/paths.yaml",
+                "--experiment_dirs",
+                // "/home/kieran/Documents/Uni/WiSe23-24/Good_Practices_of_Machine_Learning/good_practices_ml/Experiments/pretrained_clip/context_prompt/Geoguesser-v1",
+                "/home/kieran/Documents/Uni/WiSe23-24/Good_Practices_of_Machine_Learning/good_practices_ml/Experiments/pretrained_clip/context_prompt/BigFoto-v1",
+                "/home/kieran/Documents/Uni/WiSe23-24/Good_Practices_of_Machine_Learning/good_practices_ml/Experiments/pretrained_clip/context_prompt/OpenAerialMap-v1",
+                // "/home/kieran/Documents/Uni/WiSe23-24/Good_Practices_of_Machine_Learning/good_practices_ml/Experiments/pretrained_clip/context_prompt/Mars-v1",
+                "--experiment_names",
+                // "GeoGuesser Dataset",
+                "Bigfoto Dataset",
+                "AerialMap Dataset",
+                // "Mars Dataset",
+                "--metric",
+                "country_acc",
+                "--paired_ttest",
+                "False",
+                "--comparison_name",
+                "Context Prompt Compare"
             ]
         },
     ]

@@ -65,6 +65,7 @@ def load_data(DATA_PATH: str, min_img: int = 0, max_img: int = None, size_constr
         df = filter_min_img_df(df, min_img)
     if debug_data:
         df = df.sample(10)
+    df = df.sample(frac=1,random_state=random_seed).reset_index(drop=True)
     return df
 
 
