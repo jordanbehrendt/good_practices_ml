@@ -131,7 +131,7 @@ def main(repo_path: str, exp_dirs: List[str], exp_names: List[str], metric: str,
         repo_path (str): Path to repository.
         exp_dirs (List[str]): List of experiment directories.
         exp_names (List[str]): List of experiment names.
-        metric (str): Metric for evaluation ('country_acc' or 'region_acc').
+        metric (str): Metric for evaluation ('country_acc', 'region_acc' or 'mixed).
         paired_ttest (bool): Whether batches are paired.
         comparison_name (str): Custom name for comparison.
     """
@@ -152,7 +152,7 @@ if __name__ == "__main__":
     parser.add_argument('--yaml_path', metavar='str', required=True, help='The path to the yaml file with the stored paths')
     parser.add_argument('--experiment_dirs', nargs='+', metavar='str', required=True, help='At least two paths to the directories with the experiments that should be compared')
     parser.add_argument('--experiment_names', nargs='+', metavar='str', required=True, help='At least two names of the experiments that should be compared')
-    parser.add_argument('--metric', metavar='str', required=True, help='Metric of the evaluation (country_acc, region_acc)')
+    parser.add_argument('--metric', metavar='str', required=True, help='Metric of the evaluation (country_acc, region_acc, mixed)')
     parser.add_argument('--paired_ttest', metavar='str', required=True, help='Information if the training batches are paired')
     parser.add_argument('--comparison_name', metavar='str', required=True, help='Custom name of the comparison')
     args = parser.parse_args()

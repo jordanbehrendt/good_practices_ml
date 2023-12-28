@@ -46,7 +46,7 @@ def calculate_metric(repo_path: str, batch_df: pd.DataFrame, metric_name: str) -
     Args:
         repo_path (str): Path to repository.
         batch_df (pd.DataFrame): DataFrame containing 'label' and 'Predicted labels'.
-        metric_name (str): Name of the metric to be calculated ('country_acc' or 'region_acc').
+        metric_name (str): Name of the metric to be calculated ('country_acc', 'region_acc' or 'mixed').
 
     Returns:
         float: Calculated metric value.
@@ -59,9 +59,11 @@ def calculate_metric(repo_path: str, batch_df: pd.DataFrame, metric_name: str) -
         return calculate_country_accuracy(batch_df)
     elif metric_name == 'region_acc':
         return calculate_region_accuracy(repo_path, batch_df)
+    elif metric_name == 'mixed':
+        return calculate_country_accuracy(batch_df) * 0.5 + calculate_region_accuracy(repo_path, batch_df) * 0.5
     else:
         raise ValueError(f"The metric {metric_name} is not known.")
-
+    
 def calculate_experiment_metric(repo_path: str, exp_dirs: List[str], exp_names: List[str], metric_name: str) -> dict:
     """
     Calculate metric for each experiment directory.
@@ -70,7 +72,7 @@ def calculate_experiment_metric(repo_path: str, exp_dirs: List[str], exp_names: 
         repo_path (str): Path to repository.
         exp_dirs (List[str]): List of experiment directories.
         exp_names (List[str]): List of experiment names.
-        metric_name (str): Name of the metric to be calculated ('country_acc' or 'region_acc').
+        metric_name (str): Name of the metric to be calculated ('country_acc', 'region_acc' or 'mixed').
 
     Returns:
         dict: Dictionary with experiment names as keys and corresponding metric values as lists.
