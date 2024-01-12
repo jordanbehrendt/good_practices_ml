@@ -90,3 +90,19 @@ class ImageDataset_from_df(Dataset):
             caption = self.target_transform(caption)
 
         return image, caption
+    
+class EmbeddingDataset_from_df(Dataset):
+    def __init__(self, df, name) -> None:
+        self.prompt_embeddings = torch.load('./Embeddings/Prompt/prompt_image_shows_embedding.pt')
+        self.labels = df['label'].tolist()
+        self.image_embeddings = df['Embedding'].tolist()
+        self.name = name
+
+    def __len__(self):
+        return len(self.labels)
+    
+    def __getitem__(self, index):
+        image_embedding = torch.tensor(eval(self.image_embeddings[index].replace(', grad_fn=<MmBackward0>)', '').replace('tensor(', '')))
+        label = self.labels[index]
+        embeddings = torch.cat((image_embedding, self.prompt_embeddings), dim=0)
+        return embeddings, label
