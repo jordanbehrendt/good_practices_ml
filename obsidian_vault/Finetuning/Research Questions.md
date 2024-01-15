@@ -2,10 +2,11 @@
 ## Methodology
 
 #### Model
-Pytorch Nueral Netowrk (torch.nn.Module)
+Pytorch Neural Network (torch.nn.Module)
 #### Input
  - Encoding of image (Tensor with length 768)
  - Cosine distance between this image and the Encodings of the string 'An image from {Country}'
+ - total: 979 inputs
 #### Output
  - A string of the country (taken from the list of 211 possible countries)
 #### Optimizer
