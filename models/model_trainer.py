@@ -68,7 +68,7 @@ class ModelTrainer():
         return sum(last_loss)/len(last_loss)
 
     def start_training(self):
-        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+        timestamp = datetime.datetime.now().strftime('%Y%m%d_%H%M%S')
         for epoch in range(self.num_epochs):
             self.model.train()  # Set the model to training mode
             running_loss = 0.0
