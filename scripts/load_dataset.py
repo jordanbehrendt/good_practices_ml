@@ -6,7 +6,7 @@ import pandas as pd
 from torch.utils.data import Dataset
 import random
 from sklearn.metrics.pairwise import cosine_similarity
-
+import numpy as np
 
 def filter_min_img_df(df: pd.DataFrame, min_img: int):
     """Filters classes by minimum amount of images
@@ -106,17 +106,17 @@ class EmbeddingDataset_from_df(Dataset):
         image_embedding = torch.tensor(eval(self.image_embeddings[index].replace(', grad_fn=<MmBackward0>)', '').replace('tensor(', '')))
         label = self.labels[index]
 
-        image_embedding_values = image_embedding.flatten().tolist()
+        image_embedding_values = np.array(image_embedding.flatten().tolist()).reshape(1, -1)
         prompt_distances = []
         # Reshape the vectors to be 2D arrays for sklearn's cosine_similarity
-        image_embedding = image_embedding.reshape(1, -1)
+        #image_embedding = image_embedding.reshape(1, -1)
         for prompt_embedding in self.prompt_embeddings:
-            prompt_embedding = prompt_embedding.reshape(1, -1)
+            prompt_embedding_values = np.array(prompt_embedding.flatten().tolist()).reshape(1, -1)
+            # Calculate Cosine Similarity         
+            prompt_distances.append(cosine_similarity(image_embedding_values, prompt_embedding_values)[0,0])
 
-            # Calculate Cosine Similarity
-            prompt_distances = prompt_distances.append(cosine_similarity(image_embedding, prompt_embedding)[0, 0])
+        embeddings = np.concatenate((image_embedding_values[0], np.array(prompt_distances))).astype(np.float32)
 
-        embeddings = image_embedding_values + prompt_distances
 
         #embeddings = torch.cat((image_embedding, self.prompt_embeddings), dim=0)
         return embeddings, label

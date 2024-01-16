@@ -44,7 +44,7 @@ class ModelTrainer():
         # Here, we use enumerate(training_loader) instead of
         # iter(training_loader) so that we can track the batch
         # index and do some intra-epoch reporting
-        for i, data in enumerate(self.training_loader):
+        for i, data in enumerate(self.train_loader):
             # Every data instance is an input + label pair
             inputs, labels = data
             # Zero your gradients for every batch!
@@ -109,7 +109,7 @@ class Regional_Loss(torch.nn.Module):
             ref_country = target
             ref_alph2code = self.country_list[self.country_list['Country'] == target]['Alpha2Code'].values[0]
             ref_region = self.region_list[self.region_list['ISO-alpha2 Code'] == ref_alph2code]['Intermediate Region Name'].values[0]
-            pred_country = self.country_list['Country'].iloc[np.argmax(np.array(output))]
+            pred_country = self.country_list['Country'].iloc[np.argmax(output.detach().numpy())]
             pred_alpha2code = self.country_list[self.country_list['Country'] == pred_country]['Alpha2Code'].values[0]
             pred_region = self.region_list[self.region_list['ISO-alpha2 Code'] == pred_alpha2code]['Intermediate Region Name'].values[0]
 
@@ -119,7 +119,7 @@ class Regional_Loss(torch.nn.Module):
                 loss.append(0.5)
             else:
                 loss.append(1)
-        return loss.mean()
+        return np.array(loss).mean()
 
 # Directory containing CSV files
 directory = '/share/temp/bjordan/good_practices_in_machine_learning/good_practices_ml/Embeddings/Image/'
@@ -149,9 +149,9 @@ train_dataset = load_dataset.EmbeddingDataset_from_df(train, "train")
 val_dataset = load_dataset.EmbeddingDataset_from_df(val, "val")
 test_dataset = load_dataset.EmbeddingDataset_from_df(test, "test")
 
-train_loader = DataLoader(train_dataset, batch_size=1, shuffle=True)
-val_loader = DataLoader(val_dataset, batch_size=1, shuffle=True)
-test_loader = DataLoader(test_dataset, batch_size=1, shuffle=True)
+train_loader = DataLoader(train_dataset, batch_size=10, shuffle=True)
+val_loader = DataLoader(val_dataset, batch_size=10, shuffle=True)
+test_loader = DataLoader(test_dataset, batch_size=10, shuffle=True)
 
 
 

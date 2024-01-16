@@ -2,7 +2,7 @@ import torch
 
 class FinetunedClip(torch.nn.Module):
 
-    def __init__(self, input_size = 212, hidden_size = 212, output_size = 211):
+    def __init__(self, input_size = 723, hidden_size = 723, output_size = 211):
         super().__init__()
 
         self.linear1 = torch.nn.Linear(input_size, input_size)
