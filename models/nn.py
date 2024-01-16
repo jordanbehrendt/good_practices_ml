@@ -9,7 +9,7 @@ class FinetunedClip(torch.nn.Module):
         self.activation = torch.nn.ReLU()
         self.linear2 = torch.nn.Linear(input_size, hidden_size)
         self.linear3 = torch.nn.Linear(hidden_size, output_size)
-        self.softmax = torch.nn.Softmax()
+        self.softmax = torch.nn.Softmax(dim=1)
 
     def forward(self, x):
         x = self.linear1(x)
