@@ -3,6 +3,7 @@ import PIL
 import torch
 import clip
 import pandas as pd
+import ast
 from torch.utils.data import Dataset
 import random
 from sklearn.metrics.pairwise import cosine_similarity
@@ -103,7 +104,11 @@ class EmbeddingDataset_from_df(Dataset):
         return len(self.labels)
     
     def __getitem__(self, index):
-        image_embedding = torch.tensor(eval(self.image_embeddings[index].replace(', grad_fn=<MmBackward0>)', '').replace('tensor(', '')))
+        image_embedding_str = self.image_embeddings[index]
+        start = image_embedding_str.find('[[')
+        end = image_embedding_str.find(']]')+2
+        image_embedding_str = image_embedding_str[start:end]
+        image_embedding = torch.tensor(ast.literal_eval(image_embedding_str))
         label = self.labels[index]
 
         image_embedding_values = np.array(image_embedding.flatten().tolist()).reshape(1, -1)
