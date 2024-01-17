@@ -23,7 +23,7 @@ class ModelTrainer():
         self.learning_rate = learning_rate
         self.optimizer = optim.Adam(model.parameters(), lr=learning_rate)
         self.country_list = pd.read_csv(country_list)
-        self.region_list = pd.read_csv(region_list)
+        self.region_list = pd.read_csv(region_list,delimiter=';')
         self.criterion = Regional_Loss(self.country_list, self.region_list)
         self.writer = SummaryWriter()
         self.start_training()
@@ -39,12 +39,12 @@ class ModelTrainer():
             float: Average loss for the epoch
         """
         running_loss = 0.
-        last_loss = []
+        last_loss = 0.
 
         # Here, we use enumerate(training_loader) instead of
         # iter(training_loader) so that we can track the batch
         # index and do some intra-epoch reporting
-        for i, data in enumerate(self.training_loader):
+        for i, data in enumerate(self.train_loader):
             # Every data instance is an input + label pair
             inputs, labels = data
             # Zero your gradients for every batch!
@@ -59,16 +59,16 @@ class ModelTrainer():
             # Gather data and report
             running_loss += loss.item()
             if i % 50 == 49:
-                last_loss.append(running_loss / 50) # loss per batch
+                last_loss= (running_loss / 50) # loss per batch
                 print('  batch {} loss: {}'.format(i + 1, last_loss))
-                tb_x = epoch_index * len(self.training_loader) + i + 1
+                tb_x = epoch_index * len(self.train_loader) + i + 1
                 self.writer.add_scalar('Loss/train', last_loss, tb_x)
                 running_loss = 0.
 
         return sum(last_loss)/len(last_loss)
 
     def start_training(self):
-        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+        timestamp = datetime.datetime.now().strftime('%Y%m%d_%H%M%S')
         for epoch in range(self.num_epochs):
             self.model.train()  # Set the model to training mode
             running_loss = 0.0
@@ -107,24 +107,43 @@ class Regional_Loss(torch.nn.Module):
         loss = []
         for output, target in zip(outputs,targets):
             ref_country = target
-            ref_alph2code = self.country_list[self.country_list['Country'] == target]['Alpha2Code'].values[0]
-            ref_region = self.region_list[self.region_list['ISO-alpha2 Code'] == ref_alph2code]['Intermediate Region Name'].values[0]
-            pred_country = self.country_list['Country'].iloc[np.argmax(np.array(output))]
-            pred_alpha2code = self.country_list[self.country_list['Country'] == pred_country]['Alpha2Code'].values[0]
-            pred_region = self.region_list[self.region_list['ISO-alpha2 Code'] == pred_alpha2code]['Intermediate Region Name'].values[0]
+            ref_country_row = self.country_list[self.country_list['Country'] == ref_country]
+            if ref_country_row.empty:
+                print(f"Country {ref_country} not found in country list")
+                continue
+            ref_alph2code = ref_country_row['Alpha2Code'].values[0]
+            ref_region_row = self.region_list[self.region_list['ISO-alpha2 Code'] == ref_alph2code]
+            if ref_region_row.empty:
+                print(f"Alpha2Code {ref_alph2code} not found in region list")
+                continue
+            ref_region = ref_region_row['Intermediate Region Name'].values[0]
+            pred_country = self.country_list['Country'].iloc[torch.argmax(output).item()]
+            pred_country_row = self.country_list[self.country_list['Country'] == pred_country]
+            if pred_country_row.empty:
+                print(f"Country {pred_country} not found in country list")
+                continue
+            pred_alpha2code = pred_country_row['Alpha2Code'].values[0]
+            pred_region_row = self.region_list[self.region_list['ISO-alpha2 Code'] == pred_alpha2code]
+            if pred_region_row.empty:
+                print(f"Alpha2Code {pred_alpha2code} not found in region list")
+                continue
+            pred_region = pred_region_row['Intermediate Region Name'].values[0]
 
             if ref_country == pred_country:
-                loss.append(0)
+                loss.append(0.)
             elif ref_region == pred_region:
                 loss.append(0.5)
             else:
-                loss.append(1)
+                loss.append(1.)
+        loss = torch.tensor(loss)
+        loss.requires_grad = True
+
         return loss.mean()
 
 # Directory containing CSV files
-directory = '/share/temp/bjordan/good_practices_in_machine_learning/good_practices_ml/Embeddings/Image/'
-country_list = "/share/temp/bjordan/good_practices_in_machine_learning/good_practices_ml/data_finding/country_list.csv"
-region_list = "/share/temp/bjordan/good_practices_in_machine_learning/good_practices_ml/data/UNSD_Methodology.csv"
+directory = '/home/lbrenig/Dokumente/GPML/good_practices_ml/Embeddings/Image'
+country_list = "/home/lbrenig/Dokumente/GPML/good_practices_ml/data_finding/country_list.csv"
+region_list = "/home/lbrenig/Dokumente/GPML/good_practices_ml/data/UNSD_Methodology.csv"
 
 
 # Get a list of filenames that start with "geoguessr" and end with ".csv"
@@ -149,9 +168,9 @@ train_dataset = load_dataset.EmbeddingDataset_from_df(train, "train")
 val_dataset = load_dataset.EmbeddingDataset_from_df(val, "val")
 test_dataset = load_dataset.EmbeddingDataset_from_df(test, "test")
 
-train_loader = DataLoader(train_dataset, batch_size=1, shuffle=True)
-val_loader = DataLoader(val_dataset, batch_size=1, shuffle=True)
-test_loader = DataLoader(test_dataset, batch_size=1, shuffle=True)
+train_loader = DataLoader(train_dataset, batch_size=10, shuffle=True)
+val_loader = DataLoader(val_dataset, batch_size=10, shuffle=True)
+test_loader = DataLoader(test_dataset, batch_size=10, shuffle=True)
 
 
 
