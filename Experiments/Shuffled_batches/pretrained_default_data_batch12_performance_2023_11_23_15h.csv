@@ -22,7 +22,7 @@ Probabilities,predicted labels,label
 0.1232251,Latvia,Brazil
 0.18124618,New Zealand,New Zealand
 0.1480991,Canada,Poland
-0.08473323,Kyrgyzstan,South Africa
+0.08473323,Kyrgyz Republic,South Africa
 0.2656606,Malaysia,Thailand
 0.73585445,United Kingdom,United Kingdom
 0.31110728,Albania,Tunisia
@@ -238,7 +238,7 @@ Probabilities,predicted labels,label
 0.15365721,Bulgaria,Russia
 0.46967795,South Africa,South Africa
 0.15185145,Canada,Canada
-0.23998998,North Macedonia,Chile
+0.23998998,Macedonia,Chile
 0.7579517,Italy,Spain
 0.11837963,Latvia,Colombia
 0.7696161,Ireland,United Kingdom

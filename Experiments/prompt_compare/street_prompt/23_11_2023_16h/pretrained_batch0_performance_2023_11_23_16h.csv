@@ -13,7 +13,7 @@ Probabilities,predicted labels,label
 0.5588397,Spain,France
 0.3708285,Uruguay,Brazil
 0.32240337,United States,Canada
-0.13140158,Kyrgyzstan,Japan
+0.13140158,Kyrgyz Republic,Japan
 0.5041173,Philippines,Ecuador
 0.25052947,Cambodia,Indonesia
 0.63088363,Canada,United States
@@ -95,7 +95,7 @@ Probabilities,predicted labels,label
 0.45060655,Netherlands,Germany
 0.2346142,United Kingdom,Sweden
 0.2408679,Latvia,Poland
-0.4240807,Kyrgyzstan,Mongolia
+0.4240807,Kyrgyz Republic,Mongolia
 0.8326099,Israel,Israel
 0.69703203,United States,United States
 0.30150756,Spain,France
@@ -297,11 +297,11 @@ Probabilities,predicted labels,label
 0.21854573,Uruguay,Argentina
 0.97649264,Japan,Japan
 0.34208184,Germany,Germany
-0.42210338,Kyrgyzstan,Canada
+0.42210338,Kyrgyz Republic,Canada
 0.40627772,United States,United States
 0.13630687,Albania,Turkey
 0.10823374,United States,Poland
-0.23820537,Kyrgyzstan,United States
+0.23820537,Kyrgyz Republic,United States
 0.8576276,Singapore,Singapore
 0.12242677,Nigeria,Japan
 0.56461084,Lesotho,Australia
@@ -324,7 +324,7 @@ Probabilities,predicted labels,label
 0.2079793,Malaysia,Malaysia
 0.30835193,United States,United States
 0.27716112,Uruguay,Argentina
-0.3464376,Kyrgyzstan,Romania
+0.3464376,Kyrgyz Republic,Romania
 0.30350426,Canada,Russia
 0.16869831,Eswatini,Brazil
 0.7537817,Australia,Australia
@@ -411,7 +411,7 @@ Probabilities,predicted labels,label
 0.54643506,Reunion,United States
 0.16409442,New Zealand,United Kingdom
 0.68340546,Japan,Japan
-0.12350708,Kyrgyzstan,Argentina
+0.12350708,Kyrgyz Republic,Argentina
 0.2330181,France,France
 0.14554569,Argentina,United States
 0.23935668,Serbia,Romania
@@ -434,7 +434,7 @@ Probabilities,predicted labels,label
 0.16843192,United States,Finland
 0.17419036,Dominican Republic,Thailand
 0.19727391,Japan,Australia
-0.22057708,North Macedonia,Slovenia
+0.22057708,Macedonia,Slovenia
 0.08767959,Italy,Japan
 0.14418736,Italy,Japan
 0.3967122,Uganda,Brazil
@@ -443,7 +443,7 @@ Probabilities,predicted labels,label
 0.29336098,United States,United States
 0.31133172,Lesotho,Peru
 0.3875209,Finland,Finland
-0.22160293,Kyrgyzstan,Russia
+0.22160293,Kyrgyz Republic,Russia
 0.3468326,Finland,Russia
 0.5298422,Laos,Cambodia
 0.20180736,Lesotho,Australia

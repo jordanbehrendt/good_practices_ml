@@ -244,7 +244,7 @@ Probabilities,predicted labels,label
 0.07936297,Palestine,United Arab Emirates
 0.5504318,Israel,Israel
 0.81173474,Ireland,United Kingdom
-0.105562516,Kyrgyzstan,France
+0.105562516,Kyrgyz Republic,France
 0.4018913,Philippines,Taiwan
 0.243796,South Africa,Brazil
 0.7373626,South Africa,South Africa
@@ -302,7 +302,7 @@ Probabilities,predicted labels,label
 0.23922324,Mexico,Mexico
 0.1384123,Philippines,Nigeria
 0.16890278,Australia,Australia
-0.1123457,North Macedonia,Turkey
+0.1123457,Macedonia,Turkey
 0.6695509,Finland,Finland
 0.40977463,Ireland,Ireland
 0.11811088,Bolivia,Spain

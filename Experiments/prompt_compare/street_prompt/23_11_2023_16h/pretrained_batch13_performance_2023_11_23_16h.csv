@@ -18,7 +18,7 @@ Probabilities,predicted labels,label
 0.37341815,Portugal,Croatia
 0.7782384,Japan,Japan
 0.100636154,Serbia,Estonia
-0.4314571,North Macedonia,Chile
+0.4314571,Macedonia,Chile
 0.13700423,United Kingdom,Ireland
 0.33899808,Montenegro,Italy
 0.3420906,Dominican Republic,Brazil
@@ -28,7 +28,7 @@ Probabilities,predicted labels,label
 0.3039068,Laos,Thailand
 0.34961313,Latvia,United States
 0.1462466,Germany,Germany
-0.24044532,Kyrgyzstan,Mexico
+0.24044532,Kyrgyz Republic,Mexico
 0.22911435,Latvia,Argentina
 0.20028988,Italy,France
 0.42735928,Italy,Italy
@@ -170,7 +170,7 @@ Probabilities,predicted labels,label
 0.56536055,Israel,Israel
 0.2041446,Canada,United States
 0.59572405,Australia,Australia
-0.13665456,Kyrgyzstan,Canada
+0.13665456,Kyrgyz Republic,Canada
 0.70230424,Australia,Australia
 0.2522017,United States,United States
 0.48791474,Japan,Japan
@@ -203,7 +203,7 @@ Probabilities,predicted labels,label
 0.1805421,South Africa,Brazil
 0.4892843,United Kingdom,United Kingdom
 0.94899285,Japan,Japan
-0.2289854,Kyrgyzstan,United States
+0.2289854,Kyrgyz Republic,United States
 0.14782359,Albania,Italy
 0.5214163,Thailand,Malaysia
 0.4825658,United States,Netherlands
@@ -216,7 +216,7 @@ Probabilities,predicted labels,label
 0.32857993,Reunion,United States
 0.14758727,Lithuania,Russia
 0.200619,United States,United States
-0.13753778,Kyrgyzstan,Poland
+0.13753778,Kyrgyz Republic,Poland
 0.21685085,Poland,Romania
 0.15673369,Serbia,Greece
 0.22375569,Canada,Japan
@@ -299,7 +299,7 @@ Probabilities,predicted labels,label
 0.1571274,Hungary,Poland
 0.85530007,Japan,Japan
 0.54349434,United States,United States
-0.21232906,North Macedonia,Bulgaria
+0.21232906,Macedonia,Bulgaria
 0.23494266,Latvia,Spain
 0.24976443,Latvia,Poland
 0.3595671,Sweden,Sweden
@@ -350,7 +350,7 @@ Probabilities,predicted labels,label
 0.32503605,South Africa,South Africa
 0.21558613,Ecuador,Japan
 0.50188434,Ireland,United Kingdom
-0.120907016,Czechia,Austria
+0.120907016,Czech Republic,Austria
 0.15771289,Italy,Croatia
 0.2544751,Germany,Germany
 0.49862495,Laos,Thailand
@@ -420,7 +420,7 @@ Probabilities,predicted labels,label
 0.23645681,Reunion,United States
 0.7105484,France,France
 0.21256967,Bangladesh,Taiwan
-0.13567817,North Macedonia,Chile
+0.13567817,Macedonia,Chile
 0.85128963,Ireland,Ireland
 0.89417386,Malta,Malta
 0.14421782,France,France
