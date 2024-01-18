@@ -113,7 +113,7 @@ Probabilities,predicted labels,label
 0.7189963,France,Italy
 0.42047384,Australia,Australia
 0.12077605,Slovakia,Japan
-0.2630113,Kyrgyzstan,Mongolia
+0.2630113,Kyrgyz Republic,Mongolia
 0.17548926,Italy,Colombia
 0.7545399,Japan,Japan
 0.5904029,Australia,Australia
@@ -320,7 +320,7 @@ Probabilities,predicted labels,label
 0.1657392,Mexico,Japan
 0.32542512,Netherlands,Netherlands
 0.6410902,Singapore,Singapore
-0.21712208,Kyrgyzstan,Canada
+0.21712208,Kyrgyz Republic,Canada
 0.24137379,Ireland,France
 0.17746294,South Korea,South Korea
 0.23064487,Lesotho,Kenya

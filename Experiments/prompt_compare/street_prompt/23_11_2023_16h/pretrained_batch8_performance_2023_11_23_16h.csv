@@ -121,7 +121,7 @@ Probabilities,predicted labels,label
 0.50879836,United Kingdom,United Kingdom
 0.51598483,Latvia,Canada
 0.55192554,Australia,Australia
-0.14635667,Kyrgyzstan,Finland
+0.14635667,Kyrgyz Republic,Finland
 0.19798093,Mongolia,Russia
 0.11767403,Japan,Spain
 0.12489902,Hungary,United States
@@ -129,7 +129,7 @@ Probabilities,predicted labels,label
 0.43682852,United Kingdom,United Kingdom
 0.4235705,United States,Canada
 0.09516888,Finland,Russia
-0.2832623,Kyrgyzstan,Chile
+0.2832623,Kyrgyz Republic,Chile
 0.44761884,Malaysia,Singapore
 0.16109195,Sweden,Denmark
 0.37239462,Japan,Singapore
@@ -284,13 +284,13 @@ Probabilities,predicted labels,label
 0.22502986,Latvia,Canada
 0.5384147,Australia,Australia
 0.12244068,Sweden,Belgium
-0.24487905,North Macedonia,South Africa
+0.24487905,Macedonia,South Africa
 0.4834981,United Kingdom,United Kingdom
 0.15317108,Bulgaria,Slovakia
 0.4767679,New Zealand,New Zealand
 0.17060527,Latvia,Brazil
 0.2274082,Canada,Poland
-0.11857507,Kyrgyzstan,Argentina
+0.11857507,Kyrgyz Republic,Argentina
 0.2082972,Ireland,France
 0.42998004,United Kingdom,United Kingdom
 0.33886206,United States,United States
@@ -375,7 +375,7 @@ Probabilities,predicted labels,label
 0.14646877,Senegal,France
 0.75588083,United Kingdom,United Kingdom
 0.72038704,Japan,Japan
-0.16956705,Kyrgyzstan,Romania
+0.16956705,Kyrgyz Republic,Romania
 0.15058057,France,France
 0.18181594,Portugal,Spain
 0.07669945,Portugal,France
@@ -416,7 +416,7 @@ Probabilities,predicted labels,label
 0.30006483,Denmark,Netherlands
 0.15172611,Poland,Russia
 0.13464575,Canada,France
-0.30190167,North Macedonia,United States
+0.30190167,Macedonia,United States
 0.18571086,Latvia,United States
 0.38214985,United Kingdom,United Kingdom
 0.31914413,Eswatini,Brazil

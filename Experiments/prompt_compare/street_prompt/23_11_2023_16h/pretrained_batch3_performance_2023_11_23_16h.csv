@@ -89,7 +89,7 @@ Probabilities,predicted labels,label
 0.8051074,Japan,Japan
 0.26570275,Latvia,Hungary
 0.13257481,Philippines,Chile
-0.20167068,North Macedonia,Argentina
+0.20167068,Macedonia,Argentina
 0.26730976,Sweden,Norway
 0.7954444,Japan,Japan
 0.21592425,Belgium,Netherlands
@@ -185,7 +185,7 @@ Probabilities,predicted labels,label
 0.08937401,Latvia,Lithuania
 0.06999468,Greece,Spain
 0.49594295,Canada,Norway
-0.404071,North Macedonia,Turkey
+0.404071,Macedonia,Turkey
 0.47041065,Canada,United States
 0.6136824,Hong Kong,Taiwan
 0.46027467,Reunion,United States

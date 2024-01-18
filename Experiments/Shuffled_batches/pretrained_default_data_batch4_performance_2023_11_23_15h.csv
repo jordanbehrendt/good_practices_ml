@@ -95,7 +95,7 @@ Probabilities,predicted labels,label
 0.58073837,South Africa,Mexico
 0.21481955,United Kingdom,Sweden
 0.9517214,United Kingdom,United Kingdom
-0.13438049,North Macedonia,Spain
+0.13438049,Macedonia,Spain
 0.108636476,Latvia,France
 0.25291318,New Zealand,Japan
 0.50815743,South Africa,Botswana
@@ -113,7 +113,7 @@ Probabilities,predicted labels,label
 0.5962303,Malaysia,Singapore
 0.26545718,France,France
 0.20668732,Belgium,France
-0.12118794,North Macedonia,Italy
+0.12118794,Macedonia,Italy
 0.70171577,Australia,Australia
 0.88196313,New Zealand,Australia
 0.8113075,Finland,Sweden

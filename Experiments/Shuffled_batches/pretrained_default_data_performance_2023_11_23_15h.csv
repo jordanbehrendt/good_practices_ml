@@ -144,7 +144,7 @@ Probabilities,predicted labels,label
 0.59413236,Taiwan,Taiwan
 0.43780175,South Africa,Kenya
 0.27461815,Netherlands,Belgium
-0.090276346,Kyrgyzstan,Spain
+0.090276346,Kyrgyz Republic,Spain
 0.5316244,Australia,Japan
 0.13292383,Chile,Portugal
 0.8129181,United Kingdom,United Kingdom
@@ -325,7 +325,7 @@ Probabilities,predicted labels,label
 0.22469291,Finland,Japan
 0.1966697,Japan,Japan
 0.55054045,Australia,Australia
-0.3868164,North Macedonia,Mexico
+0.3868164,Macedonia,Mexico
 0.25609344,Philippines,Colombia
 0.27460194,Australia,Australia
 0.4391476,Belgium,Czechia

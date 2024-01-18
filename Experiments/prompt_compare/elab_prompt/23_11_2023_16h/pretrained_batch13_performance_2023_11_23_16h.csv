@@ -260,7 +260,7 @@ Probabilities,predicted labels,label
 0.19344476,Senegal,Brazil
 0.36310253,Argentina,Argentina
 0.5362627,Sweden,Norway
-0.11266356,Czechia,France
+0.11266356,Czech Republic,France
 0.101776734,Belgium,Czechia
 0.46381652,Australia,South Africa
 0.33763453,Denmark,Denmark
@@ -350,7 +350,7 @@ Probabilities,predicted labels,label
 0.55910903,South Africa,South Africa
 0.13452634,Japan,Japan
 0.5710974,Ireland,United Kingdom
-0.13311037,Czechia,Austria
+0.13311037,Czech Republic,Austria
 0.3453292,Italy,Croatia
 0.16768049,Germany,Germany
 0.24627219,Laos,Thailand
