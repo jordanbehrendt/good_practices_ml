@@ -16,18 +16,26 @@ import torch.nn.functional as F
 
 class ModelTrainer():
 
-    def __init__(self, model: torch.nn.Module, train_loader, val_loader, country_list, region_list, num_epochs = 10, learning_rate = 0.001) -> None:
+    def __init__(self, model: torch.nn.Module, train_loader, val_loader, country_list, region_list, num_epochs = 10, learning_rate = 0.003) -> None:
         self.model = model
         self.train_loader = train_loader
         self.val_loader = val_loader
         self.num_epochs = num_epochs
         self.learning_rate = learning_rate
+        self.criterion = torch.nn.CrossEntropyLoss()
         self.optimizer = optim.Adam(self.model.parameters(), lr=learning_rate)
         self.country_list = pd.read_csv(country_list)
         self.region_list = pd.read_csv(region_list,delimiter=',')
-        self.criterion = Regional_Loss(self.country_list, self.region_list)
+        self.region_criterion = Regional_Loss(self.country_list, self.region_list)
         self.writer = SummaryWriter()
         self.start_training()
+
+    def get_ohe_labels(self, labels):
+        ohe_array = []
+        for label in labels:
+            ref_country_row = self.country_list[self.country_list['Country'] == label]
+            ohe_array.append(torch.eye(len(self.country_list))[ref_country_row.index.values[0]])
+        return torch.stack(ohe_array, dim=0)
 
     def train_one_epoch(self, epoch_index):
         """Train one Epoch of the model. Based on Pytorch Tutorial.
@@ -48,17 +56,20 @@ class ModelTrainer():
         for i, data in enumerate(self.train_loader):
             # Every data instance is an input + label pair
             inputs, labels = data
-            # Zero your gradients for every batch!
-            self.optimizer.zero_grad()
             # Make predictions for this batch
             outputs = self.model(inputs)
             # Compute the loss and its gradients
-            loss = self.criterion(outputs, labels)
+            ohe_list = self.get_ohe_labels(labels)
+            loss = self.criterion(outputs, ohe_list)
+            accuracy = (1 - self.region_criterion(outputs, labels))
+            # Zero your gradients for every batch!
+            self.optimizer.zero_grad()
             loss.backward()
             # Adjust learning weights
             self.optimizer.step()
             # Gather data and report
             running_loss += loss.item()
+            print(f"batch {i} loss: {loss}, accuracy: {accuracy}")
             if i % 50 == 49:
                 last_loss= (running_loss / 50) # loss per batch
                 print('  batch {} loss: {}'.format(i + 1, last_loss))
@@ -120,8 +131,8 @@ class Regional_Loss(torch.nn.Module):
             ref_region = ref_region_row['Intermediate Region Name'].values[0]
             pred_country = self.country_list['Country'].iloc[torch.argmax(output).item()]
 
-            ohe = torch.eye(len(output))[ref_country_row.index.values[0]]
-            cross_entropy_loss = F.cross_entropy(output, ohe)
+            #ohe = torch.eye(len(output))[ref_country_row.index.values[0]]
+            #cross_entropy_loss = F.cross_entropy(output, ohe)
 
             pred_country_row = self.country_list[self.country_list['Country'] == pred_country]
             if pred_country_row.empty:
@@ -134,18 +145,18 @@ class Regional_Loss(torch.nn.Module):
                 continue
             pred_region = pred_region_row['Intermediate Region Name'].values[0]
 
-            #if ref_country == pred_country:
-            #    loss.append(0.)
+            if ref_country == pred_country:
+                loss.append(0.)
             #elif ref_region == pred_region:
             #    loss.append(0.5)
-            #else:
-            #    loss.append(1.)
-            if ref_region == pred_region:
-                cross_entropy_loss -= 1
-            loss.append(cross_entropy_loss)
+            else:
+                loss.append(1.)
+            #if ref_region == pred_region:
+            #    cross_entropy_loss -= 1
+            #loss.append(cross_entropy_loss)
 
         loss = torch.tensor(loss)
-        loss.requires_grad = True
+        #loss.requires_grad = True
 
         return loss.mean()
 
@@ -177,9 +188,9 @@ train_dataset = load_dataset.EmbeddingDataset_from_df(train, "train")
 val_dataset = load_dataset.EmbeddingDataset_from_df(val, "val")
 test_dataset = load_dataset.EmbeddingDataset_from_df(test, "test")
 
-train_loader = DataLoader(train_dataset, batch_size=100, shuffle=True)
-val_loader = DataLoader(val_dataset, batch_size=100, shuffle=True)
-test_loader = DataLoader(test_dataset, batch_size=100, shuffle=True)
+train_loader = DataLoader(train_dataset, batch_size=50, shuffle=True)
+val_loader = DataLoader(val_dataset, batch_size=50, shuffle=True)
+test_loader = DataLoader(test_dataset, batch_size=50, shuffle=True)
 
 
 
