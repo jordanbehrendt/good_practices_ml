@@ -13,6 +13,8 @@ import sklearn.model_selection
 from torch.utils.data import DataLoader, TensorDataset
 from torch.utils.tensorboard import SummaryWriter
 import torch.nn.functional as F
+import argparse
+import yaml
 
 class ModelTrainer():
 
@@ -160,41 +162,77 @@ class Regional_Loss(torch.nn.Module):
 
         return loss.mean()
 
-# Directory containing CSV files
-directory = '/share/temp/bjordan/good_practices_in_machine_learning/good_practices_ml/Embeddings/Image'
-country_list = "/share/temp/bjordan/good_practices_in_machine_learning/good_practices_ml/data_finding/country_list.csv"
-region_list = "/share/temp/bjordan/good_practices_in_machine_learning/good_practices_ml/data_finding/UNSD_Methodology.csv"
 
 
-# Get a list of filenames that start with "geoguessr" and end with ".csv"
-file_list = [file for file in os.listdir(directory) if file.startswith('geoguessr') and file.endswith('.csv')]
+def create_and_train_model(REPO_PATH: str, training_dataset_name: str, debug: bool, config_path: str):
+    # Directory containing CSV files
+    training_directory = f'{REPO_PATH}/Embeddings/Training/{training_dataset_name}'
+    validation_directory = f'{REPO_PATH}/Embeddings/Validation/{training_dataset_name}'
+    testing_directory = f'{REPO_PATH}/Embeddings/Testing'
+    country_list = f'{REPO_PATH}/data_finding/country_list.csv'
+    region_list = f'{REPO_PATH}/data_finding/UNSD_Methodology.csv'
 
-# Initialize an empty list to store DataFrames
-dfs = []
+    # Get a list of all filenames in each directory
+    training_file_list = [file for file in os.listdir(training_directory)]
+    validation_file_list = [file for file in os.listdir(validation_directory)]
+    testing_file_list = [file for file in os.listdir(testing_directory)]
 
-# Iterate through the files, read them as DataFrames, and append to the list
-for file in file_list:
-    file_path = os.path.join(directory, file)
-    df = pd.read_csv(file_path)
-    dfs.append(df)
+    # Initialize empty lists to store DataFrames
+    training_dfs = []
+    validation_dfs = []
+    testing_dfs = []
 
-# Concatenate all DataFrames in the list into a single DataFrame
-combined_df = pd.concat(dfs, ignore_index=True)
+    # Iterate through the files, read them as DataFrames, and append to the list
+    for file in training_file_list:
+        file_path = os.path.join(training_directory, file)
+        df = pd.read_csv(file_path)
+        training_dfs.append(df)
+    for file in validation_file_list:
+        file_path = os.path.join(validation_directory, file)
+        df = pd.read_csv(file_path)
+        validation_dfs.append(df)
+    for file in testing_file_list:
+        file_path = os.path.join(testing_directory, file)
+        df = pd.read_csv(file_path)
+        testing_dfs.append(df)
 
-train, test = sklearn.model_selection.train_test_split(combined_df, test_size=0.2, random_state=1234, shuffle=True)
-val, test = sklearn.model_selection.train_test_split(test, test_size=0.5, random_state=1234, shuffle=True)
-
-train_dataset = load_dataset.EmbeddingDataset_from_df(train, "train")
-val_dataset = load_dataset.EmbeddingDataset_from_df(val, "val")
-test_dataset = load_dataset.EmbeddingDataset_from_df(test, "test")
-
-train_loader = DataLoader(train_dataset, batch_size=50, shuffle=True)
-val_loader = DataLoader(val_dataset, batch_size=50, shuffle=True)
-test_loader = DataLoader(test_dataset, batch_size=50, shuffle=True)
+    # Concatenate all DataFrames in the list into a single DataFrame
+    combined_training_df = pd.concat(training_dfs, ignore_index=True)
+    combined_validation_df = pd.concat(validation_dfs, ignore_index=True)
+    combined_testing_df = pd.concat(testing_dfs, ignore_index=True)
 
 
+    train_dataset = load_dataset.EmbeddingDataset_from_df(combined_training_df, "train")
+    val_dataset = load_dataset.EmbeddingDataset_from_df(combined_validation_df, "val")
+    test_dataset = load_dataset.EmbeddingDataset_from_df(combined_testing_df, "test")
 
-model = nn.FinetunedClip()
-trainer = ModelTrainer(model, train_loader, val_loader, country_list, region_list)
-trainer.test_model(test_loader)
-print("END")
+    train_loader = DataLoader(train_dataset, batch_size=50, shuffle=True)
+    val_loader = DataLoader(val_dataset, batch_size=50, shuffle=True)
+    test_loader = DataLoader(test_dataset, shuffle=False)
+
+
+    model = nn.FinetunedClip()
+    trainer = ModelTrainer(model, train_loader, val_loader, country_list, region_list)
+    trainer.test_model(test_loader)
+    print("END")
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description='Pretrained Model')
+    parser.add_argument('--user', metavar='str', required=True,
+                        help='The user of the gpml group')
+    parser.add_argument('--yaml_path', metavar='str', required=True,
+                        help='The path to the yaml file with the stored paths')
+    parser.add_argument('--config_path', metavar='str', required=True,
+                        help='The path to the yaml file with the stored configs')
+    parser.add_argument('-d', '--debug', action='store_true',
+                        required=False, help='Enable debug mode', default=False)
+    parser.add_argument('--training_dataset_name', metavar='str', required=True, help='the name of the dataset')
+    args = parser.parse_args()
+
+
+    with open(args.yaml_path) as file:
+        paths = yaml.safe_load(file)
+        REPO_PATH = paths['repo_path'][args.user]
+        create_and_train_model(REPO_PATH, args.training_dataset_name, args.debug, args.config_path)
+

@@ -95,33 +95,37 @@ class ImageDataset_from_df(Dataset):
     
 class EmbeddingDataset_from_df(Dataset):
     def __init__(self, df, name) -> None:
-        self.prompt_embeddings = torch.load('./Embeddings/Prompt/prompt_image_shows_embedding.pt')
+        # self.prompt_embeddings = torch.load('./Embeddings/Prompt/prompt_image_shows_embedding.pt')
         self.labels = df['label'].tolist()
-        self.image_embeddings = df['Embedding'].tolist()
+        # self.image_embeddings = df['Embedding'].tolist()
+        self.model_inputs = df['model_inputs'].tolist()
         self.name = name
 
     def __len__(self):
         return len(self.labels)
     
     def __getitem__(self, index):
-        image_embedding_str = self.image_embeddings[index]
-        start = image_embedding_str.find('[[')
-        end = image_embedding_str.find(']]')+2
-        image_embedding_str = image_embedding_str[start:end]
-        image_embedding = torch.tensor(ast.literal_eval(image_embedding_str))
-        label = self.labels[index]
+        model_input_str = self.model_inputs[index]
+        start = model_input_str.find('[[')
+        end = model_input_str.find(']]')+2
+        model_input_str = model_input_str[start:end]
+        model_input = torch.tensor(ast.literal_eval(model_input_str))
+        return model_input
+    
+    
+        # label = self.labels[index]
 
-        image_embedding_values = np.array(image_embedding.flatten().tolist()).reshape(1, -1)
-        prompt_distances = []
-        # Reshape the vectors to be 2D arrays for sklearn's cosine_similarity
-        #image_embedding = image_embedding.reshape(1, -1)
-        for prompt_embedding in self.prompt_embeddings:
-            prompt_embedding_values = np.array(prompt_embedding.flatten().tolist()).reshape(1, -1)
-            # Calculate Cosine Similarity         
-            prompt_distances.append(cosine_similarity(image_embedding_values, prompt_embedding_values)[0,0])
+        # image_embedding_values = np.array(image_embedding.flatten().tolist()).reshape(1, -1)
+        # prompt_distances = []
+        # # Reshape the vectors to be 2D arrays for sklearn's cosine_similarity
+        # #image_embedding = image_embedding.reshape(1, -1)
+        # for prompt_embedding in self.prompt_embeddings:
+        #     prompt_embedding_values = np.array(prompt_embedding.flatten().tolist()).reshape(1, -1)
+        #     # Calculate Cosine Similarity         
+        #     prompt_distances.append(cosine_similarity(image_embedding_values, prompt_embedding_values)[0,0])
 
-        embeddings = np.concatenate((image_embedding_values[0], np.array(prompt_distances))).astype(np.float32)
+        # embeddings = np.concatenate((image_embedding_values[0], np.array(prompt_distances))).astype(np.float32)
 
 
-        #embeddings = torch.cat((image_embedding, self.prompt_embeddings), dim=0)
-        return embeddings, label
+        # #embeddings = torch.cat((image_embedding, self.prompt_embeddings), dim=0)
+        # return embeddings, label
