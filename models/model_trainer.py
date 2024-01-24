@@ -24,11 +24,11 @@ class ModelTrainer():
         self.val_loader = val_loader
         self.num_epochs = num_epochs
         self.learning_rate = learning_rate
-        self.criterion = torch.nn.CrossEntropyLoss()
+        #self.criterion = torch.nn.CrossEntropyLoss()
         self.optimizer = optim.Adam(self.model.parameters(), lr=learning_rate)
         self.country_list = pd.read_csv(country_list)
         self.region_list = pd.read_csv(region_list,delimiter=',')
-        self.region_criterion = Regional_Loss(self.country_list, self.region_list)
+        self.criterion = Regional_Loss(self.country_list, self.region_list)
         self.writer = SummaryWriter()
         self.start_training()
 
@@ -61,9 +61,9 @@ class ModelTrainer():
             # Make predictions for this batch
             outputs = self.model(inputs)
             # Compute the loss and its gradients
-            ohe_list = self.get_ohe_labels(labels)
-            loss = self.criterion(outputs, ohe_list)
-            accuracy = (1 - self.region_criterion(outputs, labels))
+            #ohe_list = self.get_ohe_labels(labels)
+            #loss = self.criterion(outputs, ohe_list)
+            loss, accuracy, region_accuracy = self.criterion(outputs, labels)
             # Zero your gradients for every batch!
             self.optimizer.zero_grad()
             loss.backward()
@@ -71,7 +71,7 @@ class ModelTrainer():
             self.optimizer.step()
             # Gather data and report
             running_loss += loss.item()
-            print(f"batch {i} loss: {loss}, accuracy: {accuracy}")
+            print(f"batch {i} loss: {loss}, accuracy: {accuracy}, region_accuracy: {region_accuracy}")
             if i % 50 == 49:
                 last_loss= (running_loss / 50) # loss per batch
                 print('  batch {} loss: {}'.format(i + 1, last_loss))
@@ -119,120 +119,92 @@ class Regional_Loss(torch.nn.Module):
 
     def forward(self, outputs, targets):
         loss = []
+        accuracies = []
+        region_accuracies = []
         for output, target in zip(outputs,targets):
             ref_country = target
             ref_country_row = self.country_list[self.country_list['Country'] == ref_country]
             if ref_country_row.empty:
                 print(f"Country {ref_country} not found in country list")
                 continue
-            ref_alph2code = ref_country_row['Alpha2Code'].values[0]
-            ref_region_row = self.region_list[self.region_list['ISO-alpha2 Code'] == ref_alph2code]
-            if ref_region_row.empty:
-                print(f"Alpha2Code {ref_alph2code} not found in region list")
-                continue
-            ref_region = ref_region_row['Intermediate Region Name'].values[0]
+            #ref_alph2code = ref_country_row['Alpha2Code'].values[0]
+            #ref_region_row = self.region_list[self.region_list['ISO-alpha2 Code'] == ref_alph2code]
+            #if ref_region_row.empty:
+            #    print(f"Alpha2Code {ref_alph2code} not found in region list")
+            #    continue
+            #ref_region = ref_region_row['Intermediate Region Name'].values[0]
+            ref_region = ref_country_row['Intermediate Region Name'].values[0]
             pred_country = self.country_list['Country'].iloc[torch.argmax(output).item()]
 
-            #ohe = torch.eye(len(output))[ref_country_row.index.values[0]]
-            #cross_entropy_loss = F.cross_entropy(output, ohe)
+            ohe = torch.eye(len(output))[ref_country_row.index.values[0]]
+            cross_entropy_loss = F.cross_entropy(output, ohe)
 
             pred_country_row = self.country_list[self.country_list['Country'] == pred_country]
             if pred_country_row.empty:
                 print(f"Country {pred_country} not found in country list")
                 continue
-            pred_alpha2code = pred_country_row['Alpha2Code'].values[0]
-            pred_region_row = self.region_list[self.region_list['ISO-alpha2 Code'] == pred_alpha2code]
-            if pred_region_row.empty:
-                print(f"Alpha2Code {pred_alpha2code} not found in region list")
-                continue
-            pred_region = pred_region_row['Intermediate Region Name'].values[0]
+            #pred_alpha2code = pred_country_row['Alpha2Code'].values[0]
+            #pred_region_row = self.region_list[self.region_list['ISO-alpha2 Code'] == pred_alpha2code]
+            #if pred_region_row.empty:
+            #    print(f"Alpha2Code {pred_alpha2code} not found in region list")
+            #    continue
+            #pred_region = pred_region_row['Intermediate Region Name'].values[0]
+            pred_region = pred_country_row['Intermediate Region Name'].values[0]
 
             if ref_country == pred_country:
-                loss.append(0.)
-            #elif ref_region == pred_region:
-            #    loss.append(0.5)
+                accuracies.append(1)
+                region_accuracies.append(1)
+            elif ref_region == pred_region:
+                accuracies.append(0)
+                region_accuracies.append(0.5)
             else:
-                loss.append(1.)
-            #if ref_region == pred_region:
-            #    cross_entropy_loss -= 1
-            #loss.append(cross_entropy_loss)
+                accuracies.append(0)
+                region_accuracies.append(0)
+
+            if ref_region == pred_region:
+                cross_entropy_loss -= 0.1
+            loss.append(cross_entropy_loss)
 
         loss = torch.tensor(loss)
         #loss.requires_grad = True
 
-        return loss.mean()
+        return loss.mean(), accuracies.mean(), region_accuracies.mean()
+
+# Directory containing CSV files
+directory = '/share/temp/bjordan/good_practices_in_machine_learning/good_practices_ml/Embeddings/Image'
+country_list = "/share/temp/bjordan/good_practices_in_machine_learning/good_practices_ml/data_finding/country_list_region.csv"
+region_list = "/share/temp/bjordan/good_practices_in_machine_learning/good_practices_ml/data_finding/UNSD_Methodology.csv"
+
+
+# Get a list of filenames that start with "geoguessr" and end with ".csv"
+file_list = [file for file in os.listdir(directory) if file.startswith('geoguessr') and file.endswith('.csv')]
+
+# Initialize an empty list to store DataFrames
+dfs = []
+
+# Iterate through the files, read them as DataFrames, and append to the list
+for file in file_list:
+    file_path = os.path.join(directory, file)
+    df = pd.read_csv(file_path)
+    dfs.append(df)
+
+# Concatenate all DataFrames in the list into a single DataFrame
+combined_df = pd.concat(dfs, ignore_index=True)
+
+train, test = sklearn.model_selection.train_test_split(combined_df, test_size=0.2, random_state=1234, shuffle=True)
+val, test = sklearn.model_selection.train_test_split(test, test_size=0.5, random_state=1234, shuffle=True)
+
+train_dataset = load_dataset.EmbeddingDataset_from_df(train, "train")
+val_dataset = load_dataset.EmbeddingDataset_from_df(val, "val")
+test_dataset = load_dataset.EmbeddingDataset_from_df(test, "test")
+
+train_loader = DataLoader(train_dataset, batch_size=50, shuffle=True)
+val_loader = DataLoader(val_dataset, batch_size=50, shuffle=True)
+test_loader = DataLoader(test_dataset, batch_size=50, shuffle=True)
 
 
 
-def create_and_train_model(REPO_PATH: str, training_dataset_name: str, debug: bool, config_path: str):
-    # Directory containing CSV files
-    training_directory = f'{REPO_PATH}/Embeddings/Training/{training_dataset_name}'
-    validation_directory = f'{REPO_PATH}/Embeddings/Validation/{training_dataset_name}'
-    testing_directory = f'{REPO_PATH}/Embeddings/Testing'
-    country_list = f'{REPO_PATH}/data_finding/country_list.csv'
-    region_list = f'{REPO_PATH}/data_finding/UNSD_Methodology.csv'
-
-    # Get a list of all filenames in each directory
-    training_file_list = [file for file in os.listdir(training_directory)]
-    validation_file_list = [file for file in os.listdir(validation_directory)]
-    testing_file_list = [file for file in os.listdir(testing_directory)]
-
-    # Initialize empty lists to store DataFrames
-    training_dfs = []
-    validation_dfs = []
-    testing_dfs = []
-
-    # Iterate through the files, read them as DataFrames, and append to the list
-    for file in training_file_list:
-        file_path = os.path.join(training_directory, file)
-        df = pd.read_csv(file_path)
-        training_dfs.append(df)
-    for file in validation_file_list:
-        file_path = os.path.join(validation_directory, file)
-        df = pd.read_csv(file_path)
-        validation_dfs.append(df)
-    for file in testing_file_list:
-        file_path = os.path.join(testing_directory, file)
-        df = pd.read_csv(file_path)
-        testing_dfs.append(df)
-
-    # Concatenate all DataFrames in the list into a single DataFrame
-    combined_training_df = pd.concat(training_dfs, ignore_index=True)
-    combined_validation_df = pd.concat(validation_dfs, ignore_index=True)
-    combined_testing_df = pd.concat(testing_dfs, ignore_index=True)
-
-
-    train_dataset = load_dataset.EmbeddingDataset_from_df(combined_training_df, "train")
-    val_dataset = load_dataset.EmbeddingDataset_from_df(combined_validation_df, "val")
-    test_dataset = load_dataset.EmbeddingDataset_from_df(combined_testing_df, "test")
-
-    train_loader = DataLoader(train_dataset, batch_size=50, shuffle=True)
-    val_loader = DataLoader(val_dataset, batch_size=50, shuffle=True)
-    test_loader = DataLoader(test_dataset, shuffle=False)
-
-
-    model = nn.FinetunedClip()
-    trainer = ModelTrainer(model, train_loader, val_loader, country_list, region_list)
-    trainer.test_model(test_loader)
-    print("END")
-
-
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description='Pretrained Model')
-    parser.add_argument('--user', metavar='str', required=True,
-                        help='The user of the gpml group')
-    parser.add_argument('--yaml_path', metavar='str', required=True,
-                        help='The path to the yaml file with the stored paths')
-    parser.add_argument('--config_path', metavar='str', required=True,
-                        help='The path to the yaml file with the stored configs')
-    parser.add_argument('-d', '--debug', action='store_true',
-                        required=False, help='Enable debug mode', default=False)
-    parser.add_argument('--training_dataset_name', metavar='str', required=True, help='the name of the dataset')
-    args = parser.parse_args()
-
-
-    with open(args.yaml_path) as file:
-        paths = yaml.safe_load(file)
-        REPO_PATH = paths['repo_path'][args.user]
-        create_and_train_model(REPO_PATH, args.training_dataset_name, args.debug, args.config_path)
-
+model = nn.FinetunedClip()
+trainer = ModelTrainer(model, train_loader, val_loader, country_list, region_list)
+trainer.test_model(test_loader)
+print("END")
