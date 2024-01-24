@@ -1,14 +1,6 @@
 {
     "version": "0.2.0",
     "configurations": [
-
-
-
-    
-    
-
-
-        
             {
             "name": "Leon Laptop Current File",
             "type": "python",
@@ -261,6 +253,21 @@
                 "jordan",
                 "--yaml_path",
                 "/share/temp/bjordan/good_practices_in_machine_learning/good_practices_ml/paths.yaml",
+                "--training_dataset_name",
+                "Unbalanced",
+            ]
+        },
+        {
+            "name": "Leon Train Model",
+            "type": "python",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            "args": [
+                "--user",
+                "leon",
+                "--yaml_path",
+                "/home/leon/Documents/GPML/good_practices_ml/paths.yaml",
                 "--training_dataset_name",
                 "Unbalanced",
             ]
