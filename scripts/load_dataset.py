@@ -98,22 +98,20 @@ class EmbeddingDataset_from_df(Dataset):
         # self.prompt_embeddings = torch.load('./Embeddings/Prompt/prompt_image_shows_embedding.pt')
         self.labels = df['label'].tolist()
         # self.image_embeddings = df['Embedding'].tolist()
-        self.model_inputs = df['model_inputs'].tolist()
+        self.model_inputs = df['model_input'].tolist()
         self.name = name
 
     def __len__(self):
         return len(self.labels)
     
     def __getitem__(self, index):
-        model_input_str = self.model_inputs[index]
-        start = model_input_str.find('[[')
-        end = model_input_str.find(']]')+2
-        model_input_str = model_input_str[start:end]
-        model_input = torch.tensor(ast.literal_eval(model_input_str))
-        return model_input
+        label = self.labels[index]
+        model_input_str = eval(self.model_inputs[index])
+        model_input_array = np.frombuffer(model_input_str, dtype=np.float32) 
+        model_input = torch.tensor(model_input_array)
+        return model_input, label
     
     
-        # label = self.labels[index]
 
         # image_embedding_values = np.array(image_embedding.flatten().tolist()).reshape(1, -1)
         # prompt_distances = []

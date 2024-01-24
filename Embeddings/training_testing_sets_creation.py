@@ -26,19 +26,19 @@ def calculate_distances(embedding_str):
         prompt_distances.append(cosine_similarity(image_embedding_values, prompt_embedding_values)[0,0])
 
     model_input = np.concatenate((image_embedding_values[0], np.array(prompt_distances))).astype(np.float32)
-    return model_input
+    return model_input.tobytes()
 
 def balance_data(max_num, unbalanced_df, country_list):
     balanced_array = []
     for index,row in country_list.iterrows():
         country_df = unbalanced_df.loc[unbalanced_df["label"] == row["Country"]]
-        country_samples_count = len(country_df.index())
+        country_samples_count = len(country_df.index)
         if country_samples_count > max_num:
             drop_indices = np.random.choice(country_df.index,country_samples_count-max_num, replace=False)
             replace_df = country_df.drop(drop_indices)
             balanced_array.append(replace_df)
         else:
-            balanced_array.aapend(country_df)
+            balanced_array.append(country_df)
     balanced_df = pd.concat(balanced_array, ignore_index=True)
     return balanced_df
 
@@ -127,8 +127,8 @@ print('calculated tourist distances')
 country_list = pd.read_csv("/home/kieran/Documents/Uni/WiSe23-24/Good_Practices_of_Machine_Learning/good_practices_ml/data_finding/country_list.csv")
 
 # Create Balanced Dataset
-balanced_df = balance_data(max_num=2000,country_list=country_list, unbalanced_df=model_input_combined_df)
-remainder_df = pd.concat([model_input_combined_df, balanced_df], ignore_index=True).drop_duplicates(keep=False)
+balanced_df = balance_data(max_num=2000,country_list=country_list, unbalanced_df=combined_df)
+remainder_df = pd.concat([combined_df, balanced_df], ignore_index=True).drop_duplicates(keep=False)
 
 # Remove 15% of this Dataset for Testing
 balanced_train_and_val, balanced_test = sklearn.model_selection.train_test_split(balanced_df, test_size=0.15, random_state=1234, shuffle=True)
@@ -143,15 +143,15 @@ unbalanced_train_and_val = unbalanced_df.drop(drop_indices)
 assert(len(unbalanced_train_and_val.index) == len(balanced_train_and_val.index))
 
 # Remove 15% of Aerial Images and Tourist Images for Testing
-aerial_train_and_val, aerial_test = sklearn.model_selection.train_test_split(model_input_aerial_df, test_size=0.15, random_state=1234, shuffle=True)
-tourist_train_and_val, tourist_test = sklearn.model_selection.train_test_split(model_input_tourist_df, test_size=0.15, random_state=1234, shuffle=True)
+aerial_train_and_val, aerial_test = sklearn.model_selection.train_test_split(aerial_df, test_size=0.15, random_state=1234, shuffle=True)
+tourist_train_and_val, tourist_test = sklearn.model_selection.train_test_split(tourist_df, test_size=0.15, random_state=1234, shuffle=True)
 
 # todo TOURIST_TRAIN AND AERIAL_TRAIN MAY BE TOO BIG/SMALL
 replace_tourist_number = len(tourist_train_and_val.index)
 replace_aerial_number = len(aerial_train_and_val.index)
 replace_number = replace_tourist_number + replace_aerial_number
-drop_indices = np.random.choice(balanced_df.index, replace_number, replace=False)
-replace_df = balanced_df.drop(drop_indices)
+drop_indices = np.random.choice(balanced_train_and_val.index, replace_number, replace=False)
+replace_df = balanced_train_and_val.drop(drop_indices)
 replace_train_and_val = pd.concat([replace_df,tourist_train_and_val, aerial_train_and_val], ignore_index=True, sort=False)
 assert(len(replace_train_and_val.index) == len(balanced_train_and_val.index))
 
@@ -161,16 +161,16 @@ unbalanced_train, unbalanced_val = sklearn.model_selection.train_test_split(unba
 replace_train, replace_val = sklearn.model_selection.train_test_split(replace_train_and_val, test_size=0.15, random_state=1234, shuffle=True)
 
 #Save Training Embeddings
-save_batches('Training/Balanced','balanced', balanced_train)
-save_batches('Training/Unbalanced','unbalanced', unbalanced_train)
-save_batches('Training/Replace','replace', replace_train)
+save_batches('./Embeddings/Training/Balanced','balanced', balanced_train)
+save_batches('./Embeddings/Training/Unbalanced','unbalanced', unbalanced_train)
+save_batches('./Embeddings/Training/Replace','replace', replace_train)
 
 #Save Validation Embeddings
-save_batches('Validation/Balanced','balanced', balanced_val)
-save_batches('Validation/Unbalanced','unbalanced', unbalanced_val)
-save_batches('Validation/Replace','replace', replace_val)
+save_batches('./Embeddings/Validation/Balanced','balanced', balanced_val)
+save_batches('./Embeddings/Validation/Unbalanced','unbalanced', unbalanced_val)
+save_batches('./Embeddings/Validation/Replace','replace', replace_val)
 
 # Save Test Embeddings
-save_batches('Testing/','geoguessr', balanced_test)
-save_embeddings('Testing/','tourist', tourist_test)
-save_embeddings('Testing/','aerial', aerial_test)
+save_batches('./Embeddings/Testing/','geoguessr', balanced_test)
+save_embeddings('./Embeddings/Testing/','tourist', tourist_test)
+save_embeddings('./Embeddings/Testing/','aerial', aerial_test)

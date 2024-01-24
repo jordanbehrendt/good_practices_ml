@@ -164,7 +164,7 @@ class Regional_Loss(torch.nn.Module):
 
 
 
-def create_and_train_model(REPO_PATH: str, training_dataset_name: str, debug: bool, config_path: str):
+def create_and_train_model(REPO_PATH: str, training_dataset_name: str):
     # Directory containing CSV files
     training_directory = f'{REPO_PATH}/Embeddings/Training/{training_dataset_name}'
     validation_directory = f'{REPO_PATH}/Embeddings/Validation/{training_dataset_name}'
@@ -223,10 +223,6 @@ if __name__ == "__main__":
                         help='The user of the gpml group')
     parser.add_argument('--yaml_path', metavar='str', required=True,
                         help='The path to the yaml file with the stored paths')
-    parser.add_argument('--config_path', metavar='str', required=True,
-                        help='The path to the yaml file with the stored configs')
-    parser.add_argument('-d', '--debug', action='store_true',
-                        required=False, help='Enable debug mode', default=False)
     parser.add_argument('--training_dataset_name', metavar='str', required=True, help='the name of the dataset')
     args = parser.parse_args()
 
@@ -234,5 +230,5 @@ if __name__ == "__main__":
     with open(args.yaml_path) as file:
         paths = yaml.safe_load(file)
         REPO_PATH = paths['repo_path'][args.user]
-        create_and_train_model(REPO_PATH, args.training_dataset_name, args.debug, args.config_path)
+        create_and_train_model(REPO_PATH, args.training_dataset_name)
 
