@@ -3,6 +3,7 @@
     "configurations": [
 
 
+
     
     
 
@@ -245,6 +246,21 @@
                 "kieran",
                 "--yaml_path",
                 "/home/kieran/Documents/Uni/WiSe23-24/Good_Practices_of_Machine_Learning/good_practices_ml/paths.yaml",
+                "--training_dataset_name",
+                "Unbalanced",
+            ]
+        },
+        {
+            "name": "Jordan Train Model",
+            "type": "python",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            "args": [
+                "--user",
+                "jordan",
+                "--yaml_path",
+                "/share/temp/bjordan/good_practices_in_machine_learning/good_practices_ml/paths.yaml",
                 "--training_dataset_name",
                 "Unbalanced",
             ]

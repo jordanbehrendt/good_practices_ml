@@ -24,11 +24,11 @@ class ModelTrainer():
         self.val_loader = val_loader
         self.num_epochs = num_epochs
         self.learning_rate = learning_rate
-        #self.criterion = torch.nn.CrossEntropyLoss()
+        self.criterion = torch.nn.CrossEntropyLoss()
         self.optimizer = optim.Adam(self.model.parameters(), lr=learning_rate)
         self.country_list = pd.read_csv(country_list)
         self.region_list = pd.read_csv(region_list,delimiter=',')
-        self.criterion = Regional_Loss(self.country_list, self.region_list)
+        self.region_criterion = Regional_Loss(self.country_list, self.region_list)
         self.writer = SummaryWriter()
         self.start_training()
 
@@ -61,9 +61,9 @@ class ModelTrainer():
             # Make predictions for this batch
             outputs = self.model(inputs)
             # Compute the loss and its gradients
-            #ohe_list = self.get_ohe_labels(labels)
-            #loss = self.criterion(outputs, ohe_list)
-            loss, accuracy, region_accuracy = self.criterion(outputs, labels)
+            ohe_list = self.get_ohe_labels(labels)
+            loss = self.criterion(outputs, ohe_list)
+            accuracy, region_accuracy = self.region_criterion(outputs, labels)
             # Zero your gradients for every batch!
             self.optimizer.zero_grad()
             loss.backward()
@@ -71,13 +71,22 @@ class ModelTrainer():
             self.optimizer.step()
             # Gather data and report
             running_loss += loss.item()
-            print(f"batch {i} loss: {loss}, accuracy: {accuracy}, region_accuracy: {region_accuracy}")
-            if i % 50 == 49:
-                last_loss= (running_loss / 50) # loss per batch
-                print('  batch {} loss: {}'.format(i + 1, last_loss))
+            #print(f"batch {i} loss: {loss}, accuracy: {accuracy}, region_accuracy: {region_accuracy}")
+            if i % 100 == 99:
+                last_loss= (running_loss / 100) # loss per batch
+                # print('  batch {} loss: {}'.format(i + 1, last_loss))
                 tb_x = epoch_index * len(self.train_loader) + i + 1
                 self.writer.add_scalar('Loss/train', last_loss, tb_x)
                 running_loss = 0.
+                val_loss = 0.0
+                with torch.no_grad():
+                    for i, data in enumerate(self.val_loader):
+                        val_inputs, val_labels = data
+                        val_outputs = self.model(val_inputs)
+                        val_accuracy, val_region_accuracy = self.region_criterion(val_outputs, val_labels)
+                        # val_loss += self.criterion(val_outputs, val_targets).item()
+                avg_vaccuracy = val_accuracy / len(self.val_loader)
+                print('  batch {} validation accuracy: {}'.format(i + 1, avg_vaccuracy))
 
         return sum(last_loss)/len(last_loss)
 
@@ -136,8 +145,8 @@ class Regional_Loss(torch.nn.Module):
             ref_region = ref_country_row['Intermediate Region Name'].values[0]
             pred_country = self.country_list['Country'].iloc[torch.argmax(output).item()]
 
-            ohe = torch.eye(len(output))[ref_country_row.index.values[0]]
-            cross_entropy_loss = F.cross_entropy(output, ohe)
+            #ohe = torch.eye(len(output))[ref_country_row.index.values[0]]
+            #cross_entropy_loss = F.cross_entropy(output, ohe)
 
             pred_country_row = self.country_list[self.country_list['Country'] == pred_country]
             if pred_country_row.empty:
@@ -160,15 +169,14 @@ class Regional_Loss(torch.nn.Module):
             else:
                 accuracies.append(0)
                 region_accuracies.append(0)
+            #loss.append(cross_entropy_loss)
 
-            if ref_region == pred_region:
-                cross_entropy_loss -= 0.1
-            loss.append(cross_entropy_loss)
-
-        loss = torch.tensor(loss)
+        #loss = torch.tensor(loss)
         #loss.requires_grad = True
 
-        return loss.mean(), accuracies.mean(), region_accuracies.mean()
+        #return loss.mean(), float(np.mean(accuracies)), float(np.mean(region_accuracies))
+        return float(np.mean(accuracies)), float(np.mean(region_accuracies))
+
 
 
 
@@ -177,7 +185,7 @@ def create_and_train_model(REPO_PATH: str, training_dataset_name: str):
     training_directory = f'{REPO_PATH}/Embeddings/Training/{training_dataset_name}'
     validation_directory = f'{REPO_PATH}/Embeddings/Validation/{training_dataset_name}'
     testing_directory = f'{REPO_PATH}/Embeddings/Testing'
-    country_list = f'{REPO_PATH}/data_finding/country_list.csv'
+    country_list = f'{REPO_PATH}/data_finding/country_list_region.csv'
     region_list = f'{REPO_PATH}/data_finding/UNSD_Methodology.csv'
 
     # Get a list of all filenames in each directory
@@ -217,9 +225,9 @@ def create_and_train_model(REPO_PATH: str, training_dataset_name: str):
     val_dataset = load_dataset.EmbeddingDataset_from_df(validation_combined_df, "val")
     test_dataset = load_dataset.EmbeddingDataset_from_df(testing_combined_df, "test")
 
-    train_loader = DataLoader(train_dataset, batch_size=50, shuffle=True)
-    val_loader = DataLoader(val_dataset, batch_size=50, shuffle=True)
-    test_loader = DataLoader(test_dataset, batch_size=50, shuffle=True)
+    train_loader = DataLoader(train_dataset, batch_size=250, shuffle=True)
+    val_loader = DataLoader(val_dataset, batch_size=250, shuffle=True)
+    test_loader = DataLoader(test_dataset, batch_size=250, shuffle=True)
 
 
 
