@@ -75,34 +75,37 @@ class ModelTrainer():
             # Gather data and report
             running_loss += loss.item()
             print(f"batch {i} loss: {loss}")
-            if i % 10 == 9:
-                last_loss= (running_loss / 100) # loss per batch
-                tb_x = epoch_index * len(self.train_loader) + i + 1
-                self.writer.add_scalar('Loss/train', last_loss, tb_x)
-                running_loss = 0.
-                val_loss = 0.0
-                val_accuracy= 0.0
-                val_region_accuracy = 0.0
-                with torch.no_grad():
-                    for val_inputs, val_labels in self.val_loader:
-                        val_outputs = self.model(val_inputs)
-                        
-                        val_accuracy += geo_metrics.calculate_country_accuracy(self.country_list, val_outputs, val_labels)
-
-                        val_region_accuracy += geo_metrics.calculate_region_accuracy(self.country_list, val_outputs, val_labels)
-                        val_loss += self.criterion(val_outputs, val_labels).item()
-                avg_val_region_accuracy = val_region_accuracy / len(self.val_loader)
-                avg_vaccuracy = val_accuracy / len(self.val_loader)
-                avg_val_loss = val_loss / len(self.val_loader)
-                print('  batch {} validation accuracy: {}'.format(i + 1, avg_vaccuracy))
-                self.writer.add_scalar('Accuracy/Validation', avg_vaccuracy, tb_x)
-                self.writer.add_scalar('Accuracy/Region Validation', avg_val_region_accuracy, tb_x)
-                self.writer.add_scalar('Loss/Validation', avg_val_loss, tb_x)
-
-                torch.save(self.model.state_dict,f'model_epoch_{epoch_index}_batch_{i}')
+            if i % 100 == 99:
+                self.validate(epoch_index, i, running_loss)
+                running_loss = 0.0
 
         return sum(last_loss)/len(last_loss)
 
+    def validate(self, epoch_index, i, running_loss):
+        last_loss= (running_loss / 100) # loss per batch
+        tb_x = epoch_index * len(self.train_loader) + i + 1
+        self.writer.add_scalar('Loss/train', last_loss, tb_x)
+        val_loss = 0.0
+        val_accuracy= 0.0
+        val_region_accuracy = 0.0
+        with torch.no_grad():
+            for val_inputs, val_labels in self.val_loader:
+                val_outputs = self.model(val_inputs)
+
+                val_accuracy += geo_metrics.calculate_country_accuracy(self.country_list, val_outputs, val_labels)
+
+                val_region_accuracy += geo_metrics.calculate_region_accuracy(self.country_list, val_outputs, val_labels)
+                val_loss += self.criterion(val_outputs, val_labels).item()
+        avg_val_region_accuracy = val_region_accuracy / len(self.val_loader)
+        avg_vaccuracy = val_accuracy / len(self.val_loader)
+        avg_val_loss = val_loss / len(self.val_loader)
+        print('  batch {} validation accuracy: {}'.format(i + 1, avg_vaccuracy))
+        self.writer.add_scalar('Accuracy/Validation', avg_vaccuracy, epoch_index)
+        self.writer.add_scalar('Accuracy/Region Validation', avg_val_region_accuracy, epoch_index)
+        self.writer.add_scalar('Loss/Validation', avg_val_loss, epoch_index)
+
+        torch.save(self.model.state_dict(),f'model_epoch_{epoch_index}_batch_{i}')
+        
     def start_training(self):
         timestamp = datetime.datetime.now().strftime('%Y%m%d_%H%M%S')
         for epoch in range(self.num_epochs):
