@@ -75,7 +75,7 @@ class ModelTrainer():
             # Gather data and report
             running_loss += loss.item()
             print(f"batch {i} loss: {loss}")
-            if i % 100 == 99:
+            if i % 10 == 9:
                 self.validate(epoch_index, i, running_loss)
                 running_loss = 0.0
 
