@@ -95,9 +95,7 @@ class ImageDataset_from_df(Dataset):
     
 class EmbeddingDataset_from_df(Dataset):
     def __init__(self, df, name) -> None:
-        # self.prompt_embeddings = torch.load('./Embeddings/Prompt/prompt_image_shows_embedding.pt')
         self.labels = df['label'].tolist()
-        # self.image_embeddings = df['Embedding'].tolist()
         self.model_inputs = df['model_input'].tolist()
         self.name = name
 
@@ -110,20 +108,3 @@ class EmbeddingDataset_from_df(Dataset):
         model_input_array = np.frombuffer(model_input_str, dtype=np.float32) 
         model_input = torch.tensor(model_input_array)
         return model_input, label
-    
-    
-
-        # image_embedding_values = np.array(image_embedding.flatten().tolist()).reshape(1, -1)
-        # prompt_distances = []
-        # # Reshape the vectors to be 2D arrays for sklearn's cosine_similarity
-        # #image_embedding = image_embedding.reshape(1, -1)
-        # for prompt_embedding in self.prompt_embeddings:
-        #     prompt_embedding_values = np.array(prompt_embedding.flatten().tolist()).reshape(1, -1)
-        #     # Calculate Cosine Similarity         
-        #     prompt_distances.append(cosine_similarity(image_embedding_values, prompt_embedding_values)[0,0])
-
-        # embeddings = np.concatenate((image_embedding_values[0], np.array(prompt_distances))).astype(np.float32)
-
-
-        # #embeddings = torch.cat((image_embedding, self.prompt_embeddings), dim=0)
-        # return embeddings, label

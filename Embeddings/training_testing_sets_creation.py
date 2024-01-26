@@ -155,20 +155,10 @@ replace_df = balanced_train_and_val.drop(drop_indices)
 replace_train_and_val = pd.concat([replace_df,tourist_train_and_val, aerial_train_and_val], ignore_index=True, sort=False)
 assert(len(replace_train_and_val.index) == len(balanced_train_and_val.index))
 
-# Split validation from training for each database
-balanced_train, balanced_val = sklearn.model_selection.train_test_split(balanced_train_and_val, test_size=0.15, random_state=1234, shuffle=True)
-unbalanced_train, unbalanced_val = sklearn.model_selection.train_test_split(unbalanced_train_and_val, test_size=0.15, random_state=1234, shuffle=True)
-replace_train, replace_val = sklearn.model_selection.train_test_split(replace_train_and_val, test_size=0.15, random_state=1234, shuffle=True)
-
 #Save Training Embeddings
-save_batches('./Embeddings/Training/Balanced','balanced', balanced_train)
-save_batches('./Embeddings/Training/Unbalanced','unbalanced', unbalanced_train)
-save_batches('./Embeddings/Training/Replace','replace', replace_train)
-
-#Save Validation Embeddings
-save_batches('./Embeddings/Validation/Balanced','balanced', balanced_val)
-save_batches('./Embeddings/Validation/Unbalanced','unbalanced', unbalanced_val)
-save_batches('./Embeddings/Validation/Replace','replace', replace_val)
+save_batches('./Embeddings/Training/Balanced','balanced', balanced_train_and_val)
+save_batches('./Embeddings/Training/Unbalanced','unbalanced', unbalanced_train_and_val)
+save_batches('./Embeddings/Training/Replace','replace', replace_train_and_val)
 
 # Save Test Embeddings
 save_batches('./Embeddings/Testing/','geoguessr', balanced_test)

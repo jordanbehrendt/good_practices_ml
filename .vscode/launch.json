@@ -241,7 +241,7 @@
                 "--yaml_path",
                 "/home/kieran/Documents/Uni/WiSe23-24/Good_Practices_of_Machine_Learning/good_practices_ml/paths.yaml",
                 "--training_dataset_name",
-                "Unbalanced",
+                "Balanced",
             ]
         },
         {
