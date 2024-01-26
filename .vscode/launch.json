@@ -1,6 +1,7 @@
 {
     "version": "0.2.0",
     "configurations": [
+
             {
             "name": "Leon Laptop Current File",
             "type": "python",
@@ -254,7 +255,7 @@
                 "--yaml_path",
                 "/share/temp/bjordan/good_practices_in_machine_learning/good_practices_ml/paths.yaml",
                 "--training_dataset_name",
-                "Unbalanced",
+                "Balanced",
             ]
         },
         {

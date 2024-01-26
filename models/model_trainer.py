@@ -20,7 +20,7 @@ import yaml
 
 class ModelTrainer():
 
-    def __init__(self, model: torch.nn.Module, train_loader, val_loader, country_list, region_list, num_epochs = 10, learning_rate = 0.003, region_loss_portion = 0.5) -> None:
+    def __init__(self, model: torch.nn.Module, train_loader, val_loader, country_list, region_list, num_epochs = 10, learning_rate = 0.001, region_loss_portion = 0) -> None:
         self.model = model
         self.train_loader = train_loader
         self.val_loader = val_loader
@@ -76,10 +76,11 @@ class ModelTrainer():
             running_loss += loss.item()
             print(f"batch {i} loss: {loss}")
             if i % 10 == 9:
+                last_loss = running_loss/10
                 self.validate(epoch_index, i, running_loss)
                 running_loss = 0.0
 
-        return sum(last_loss)/len(last_loss)
+        return last_loss
 
     def validate(self, epoch_index, i, running_loss):
         last_loss= (running_loss / 100) # loss per batch
