@@ -20,8 +20,9 @@ import yaml
 
 class ModelTrainer():
 
-    def __init__(self, model: torch.nn.Module, train_loader, val_loader, country_list, region_list, num_epochs = 10, learning_rate = 0.001, region_loss_portion = 0) -> None:
+    def __init__(self, model: torch.nn.Module, train_loader, val_loader, country_list, region_list, num_epochs = 10, learning_rate = 0.001, region_loss_portion = 0.25, train_dataset_name="default") -> None:
         self.model = model
+        self.training_dataset_name = train_dataset_name
         self.train_loader = train_loader
         self.val_loader = val_loader
         self.num_epochs = num_epochs
@@ -100,12 +101,12 @@ class ModelTrainer():
         avg_val_region_accuracy = val_region_accuracy / len(self.val_loader)
         avg_vaccuracy = val_accuracy / len(self.val_loader)
         avg_val_loss = val_loss / len(self.val_loader)
-        print('  batch {} validation accuracy: {}'.format(i + 1, avg_vaccuracy))
-        self.writer.add_scalar('Accuracy/Validation', avg_vaccuracy, epoch_index)
-        self.writer.add_scalar('Accuracy/Region Validation', avg_val_region_accuracy, epoch_index)
-        self.writer.add_scalar('Loss/Validation', avg_val_loss, epoch_index)
+        print('  batch {} validation accuracy: {}, regional accuracy: {}'.format(i + 1, avg_vaccuracy, avg_val_region_accuracy))
+        self.writer.add_scalar('Accuracy/Validation', avg_vaccuracy, epoch_index*104+i)
+        self.writer.add_scalar('Accuracy/Region Validation', avg_val_region_accuracy, epoch_index*104+i)
+        self.writer.add_scalar('Loss/Validation', avg_val_loss, epoch_index*104+i)
 
-        torch.save(self.model.state_dict(),f'model_epoch_{epoch_index}_batch_{i}')
+        torch.save(self.model.state_dict(),f'saved_models/model_{self.training_dataset_name}_epoch_{epoch_index}_batch_{i}')
         
     def start_training(self):
         timestamp = datetime.datetime.now().strftime('%Y%m%d_%H%M%S')
@@ -227,7 +228,7 @@ def create_and_train_model(REPO_PATH: str, training_dataset_name: str):
 
 
     model = nn.FinetunedClip()
-    trainer = ModelTrainer(model, train_loader, val_loader, country_list, region_list)
+    trainer = ModelTrainer(model, train_loader, val_loader, country_list, region_list, train_dataset_name=training_dataset_name)
     trainer.test_model(test_loader)
     print("END")
 
