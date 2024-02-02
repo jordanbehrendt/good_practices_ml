@@ -143,7 +143,7 @@ class ModelTrainer():
                 #         epoch_index*self.num_folds + fold_index + 1)
                 # print(f"Epoch [{epoch_index+1}/{self.num_epochs}] - Fold [{fold_index+1}/{self.num_folds}] - Average Train Loss: {avg_training_loss:.4f} - Val Loss: {avg_validation_loss:.4f}")
                 self.writer.flush()
-            torch.save(self.model.state_dict,f'saved_models/model_{self.training_dataset_name}_{timestamp}_{epoch_index+1}')
+            torch.save(self.model.state_dict,f'saved_models/020224/model_{self.training_dataset_name}_{timestamp}_{epoch_index+1}')
 
     def test_model(self, test_loader):
         test_loss = 0.0
