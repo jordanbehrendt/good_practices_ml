@@ -11,12 +11,15 @@ sys.path.append('./scripts')
 from scripts import load_dataset, geo_metrics
 import ast
 import sklearn.model_selection
+from sklearn.metrics import confusion_matrix
+import seaborn as sn
 from torch.utils.data import DataLoader, TensorDataset
 from torch.utils.tensorboard import SummaryWriter
 import torch.nn.functional as F
 import argparse
 import yaml
 import math
+import matplotlib.pyplot as plt
  
 
 class ModelTrainer():
@@ -93,11 +96,18 @@ class ModelTrainer():
         validation_accuracy= 0.0
         validation_region_accuracy = 0.0
         with torch.no_grad():
+            predicted_countries = []
+            true_countries = []
             for validation_inputs, validation_labels in validation_loader:
                 validation_outputs = self.model(validation_inputs)
                 validation_accuracy += geo_metrics.calculate_country_accuracy(self.country_list, validation_outputs, validation_labels)
                 validation_region_accuracy += geo_metrics.calculate_region_accuracy(self.country_list, validation_outputs, validation_labels)
                 validation_loss += self.criterion(validation_outputs, validation_labels).item()
+                predicted_country_index = np.argmax(validation_outputs, axis=1).item()
+                predicted_countries.append(predicted_country_index)
+                true_country_index = self.country_list.index[self.country_list['Country'] == validation_labels[0]].tolist()[0]
+                true_countries.append(true_country_index)
+            self.writer.add_figure("Validation Confusion Matrix", self.createConfusionMatrix(true_countries,predicted_countries), epoch_index*self.num_folds + fold_index)
         avg_validation_region_accuracy = validation_region_accuracy / len(validation_loader)
         avg_validation_accuracy = validation_accuracy / len(validation_loader)
         avg_validation_loss = validation_loss / len(validation_loader)
@@ -151,11 +161,18 @@ class ModelTrainer():
         test_region_accuracy = 0.0
         self.model.eval()  # Set the model to evaluation mode
         with torch.no_grad():
+            predicted_countries = []
+            true_countries = []
             for test_inputs, test_labels in test_loader:
                 test_outputs = self.model(test_inputs)
                 test_accuracy += geo_metrics.calculate_country_accuracy(self.country_list, test_outputs, test_labels)
                 test_region_accuracy += geo_metrics.calculate_region_accuracy(self.country_list, test_outputs, test_labels)
                 test_loss += self.criterion(test_outputs, test_labels).item()
+                predicted_country_index = np.argmax(test_outputs, axis=1).item()
+                predicted_countries.append(predicted_country_index)
+                true_country_index = self.country_list.index[self.country_list['Country'] == test_labels[0]].tolist()[0]
+                true_countries.append(true_country_index)
+            self.writer.add_figure("Confusion Matrix", self.createConfusionMatrix(true_countries,predicted_countries))
         avg_test_region_accuracy = test_region_accuracy / len(test_loader)
         avg_test_accuracy = test_accuracy / len(test_loader)
         avg_test_loss = test_loss / len(test_loader)
@@ -165,6 +182,18 @@ class ModelTrainer():
         print('Training Dataset {} Test Accuracy: {}, Test Regional Accuracy: {}'.format(self.training_dataset_name, avg_test_accuracy, avg_test_region_accuracy))
 
         # print(f"Test Loss: {test_loss/len(test_loader):.4f}")
+    def createConfusionMatrix(self, true_countries, predicted_countries):
+        # constant for classes
+        classes = self.country_list['Country']
+
+        # Build confusion matrix
+        cf_matrix = confusion_matrix(true_countries, predicted_countries, labels=range(0,211))
+        df_cm = pd.DataFrame(cf_matrix, index=classes,columns=classes)
+
+        plt.figure(figsize=(120, 70))    
+        return sn.heatmap(df_cm, sn.cubehelix_palette(as_cmap=True)).get_figure()
+
+        
 
 class Regional_Loss(torch.nn.Module):
     def __init__(self, country_list, region_portion):
