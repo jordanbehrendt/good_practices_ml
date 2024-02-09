@@ -24,7 +24,7 @@ import matplotlib.pyplot as plt
 
 class ModelTrainer():
 
-    def __init__(self, model: torch.nn.Module, train_dataframe, country_list, region_list, num_folds = 10, num_epochs = 2, learning_rate = 0.001, region_loss_portion = 0.25, train_dataset_name="Balanced") -> None:
+    def __init__(self, model: torch.nn.Module, train_dataframe, country_list, region_list, num_folds = 10, num_epochs = 3, learning_rate = 0.001, starting_regional_loss_portion = 0.9, regional_loss_decline=0.2, train_dataset_name="Balanced") -> None:
         self.model = model
         self.training_dataset_name = train_dataset_name
         self.train_dataframe = train_dataframe
@@ -34,12 +34,15 @@ class ModelTrainer():
         self.country_list = pd.read_csv(country_list)
         self.region_list = pd.read_csv(region_list,delimiter=',')
         #self.criterion = torch.nn.CrossEntropyLoss()
-        self.criterion = Regional_Loss(self.country_list, region_loss_portion)
+        self.criterion = Regional_Loss(self.country_list)
         self.optimizer = optim.Adam(self.model.parameters(), lr=learning_rate)
         self.batch_count = 0
+        self.timestamp = datetime.datetime.now().strftime('%Y%m%d_%H%M%S')
+        self.regional_portion = starting_regional_loss_portion
+        self.regional_loss_decline = regional_loss_decline
 
         #self.region_criterion = Regional_Loss(self.country_list, self.region_list)
-        self.writer = SummaryWriter()
+        self.writer = SummaryWriter(log_dir=f'runs/{self.training_dataset_name}/starting_regional_loss_portion-{starting_regional_loss_portion}/regional_loss_decline-{regional_loss_decline}-{self.timestamp}')
         self.start_training()
 
     def get_ohe_labels(self, labels):
@@ -72,15 +75,14 @@ class ModelTrainer():
             # Make predictions for this batch
             outputs = self.model(inputs)
             # Compute the loss and its gradients
-            loss = self.criterion(outputs, labels)
-            
+            regional_loss, country_loss = self.criterion(outputs, labels)
+            loss = self.calculate_weighted_loss(regional_loss,country_loss)
+
             loss.backward()
             # Adjust learning weights
             self.optimizer.step()
             # Gather data and report
             running_loss += loss.item()
-
-            self.writer.add_scalar('Batch Loss', loss.item(), self.batch_count)
             self.batch_count += 1
             # print(f"batch {i} loss: {loss}")
             # if i % 10 == 9:
@@ -92,7 +94,7 @@ class ModelTrainer():
         return fold_mean_loss
 
     def validate(self, epoch_index, fold_index, validation_loader):
-        validation_loss = 0.0
+        # validation_loss = 0.0
         validation_accuracy= 0.0
         validation_region_accuracy = 0.0
         with torch.no_grad():
@@ -102,7 +104,8 @@ class ModelTrainer():
                 validation_outputs = self.model(validation_inputs)
                 validation_accuracy += geo_metrics.calculate_country_accuracy(self.country_list, validation_outputs, validation_labels)
                 validation_region_accuracy += geo_metrics.calculate_region_accuracy(self.country_list, validation_outputs, validation_labels)
-                validation_loss += self.criterion(validation_outputs, validation_labels).item()
+                # validation_regional_loss, validation_country_loss = self.criterion(validation_outputs, validation_labels)
+                # validation_loss += self.calculate_weighted_loss(validation_regional_loss,validation_country_loss).item()
                 predicted_country_index = np.argmax(validation_outputs, axis=1).item()
                 predicted_countries.append(predicted_country_index)
                 true_country_index = self.country_list.index[self.country_list['Country'] == validation_labels[0]].tolist()[0]
@@ -110,13 +113,13 @@ class ModelTrainer():
             self.writer.add_figure("Validation Confusion Matrix", self.createConfusionMatrix(true_countries,predicted_countries), epoch_index*self.num_folds + fold_index)
         avg_validation_region_accuracy = validation_region_accuracy / len(validation_loader)
         avg_validation_accuracy = validation_accuracy / len(validation_loader)
-        avg_validation_loss = validation_loss / len(validation_loader)
+        # avg_validation_loss = validation_loss / len(validation_loader)
 
 
         print('Epoch {} Fold {} Validation Accuracy: {}, Validation Regional Accuracy: {}'.format(epoch_index + 1, fold_index + 1, avg_validation_accuracy, avg_validation_region_accuracy))
         self.writer.add_scalar('Validation Accuracy', avg_validation_accuracy, epoch_index*self.num_folds + fold_index)
         self.writer.add_scalar('Validation Regional Accuracy', avg_validation_region_accuracy, epoch_index*self.num_folds + fold_index)
-        self.writer.add_scalar('Validation Loss', avg_validation_loss, epoch_index*self.num_folds + fold_index)
+        # self.writer.add_scalar('Validation Loss', avg_validation_loss, epoch_index*self.num_folds + fold_index)
 
         # torch.save(self.model.state_dict(),f'saved_models/model_{self.training_dataset_name}_epoch_{epoch_index}_batch_{i}')
         
@@ -125,6 +128,8 @@ class ModelTrainer():
         validation_size = math.floor(len(self.train_dataframe.index) / self.num_folds)
         
         for epoch_index in range(self.num_epochs):
+            if epoch_index > 0:
+                self.regional_portion = self.regional_loss_decline * self.regional_portion
             for fold_index in range(self.num_folds):
                 self.model.train()  # Set the model to training mode
                 fold_validation_df = pd.DataFrame()
@@ -146,17 +151,17 @@ class ModelTrainer():
                 
                 validation_dataset = load_dataset.EmbeddingDataset_from_df(fold_validation_df, 'validation')
                 validation_loader = DataLoader(validation_dataset, shuffle=False)              
-                avg_validation_loss = self.validate(epoch_index,fold_index,validation_loader)
+                self.validate(epoch_index,fold_index,validation_loader)
 
                 # self.writer.add_scalars('Training vs. Validation Loss',
                 #         { 'Training' : avg_training_loss, 'Validation' : avg_validation_loss },
                 #         epoch_index*self.num_folds + fold_index + 1)
                 # print(f"Epoch [{epoch_index+1}/{self.num_epochs}] - Fold [{fold_index+1}/{self.num_folds}] - Average Train Loss: {avg_training_loss:.4f} - Val Loss: {avg_validation_loss:.4f}")
                 self.writer.flush()
-            torch.save(self.model.state_dict,f'saved_models/020224/model_{self.training_dataset_name}_{timestamp}_{epoch_index+1}')
+            torch.save(self.model.state_dict,f'saved_models/model_{self.training_dataset_name}_{timestamp}_{epoch_index+1}')
 
     def test_model(self, test_loader):
-        test_loss = 0.0
+        # test_loss = 0.0
         test_accuracy= 0.0
         test_region_accuracy = 0.0
         self.model.eval()  # Set the model to evaluation mode
@@ -167,7 +172,8 @@ class ModelTrainer():
                 test_outputs = self.model(test_inputs)
                 test_accuracy += geo_metrics.calculate_country_accuracy(self.country_list, test_outputs, test_labels)
                 test_region_accuracy += geo_metrics.calculate_region_accuracy(self.country_list, test_outputs, test_labels)
-                test_loss += self.criterion(test_outputs, test_labels).item()
+                # test_regional_loss, test_country_loss = self.criterion(test_outputs, test_labels)
+                # test_loss += self.calculate_weighted_loss(test_regional_loss,test_country_loss).item()
                 predicted_country_index = np.argmax(test_outputs, axis=1).item()
                 predicted_countries.append(predicted_country_index)
                 true_country_index = self.country_list.index[self.country_list['Country'] == test_labels[0]].tolist()[0]
@@ -175,10 +181,10 @@ class ModelTrainer():
             self.writer.add_figure("Confusion Matrix", self.createConfusionMatrix(true_countries,predicted_countries))
         avg_test_region_accuracy = test_region_accuracy / len(test_loader)
         avg_test_accuracy = test_accuracy / len(test_loader)
-        avg_test_loss = test_loss / len(test_loader)
+        # avg_test_loss = test_loss / len(test_loader)
         self.writer.add_scalar('Test Accuracy', avg_test_accuracy)
         self.writer.add_scalar('Test Regional Accuracy', avg_test_region_accuracy)
-        self.writer.add_scalar('Test Loss', avg_test_loss)
+        # self.writer.add_scalar('Test Loss', avg_test_loss)
         print('Training Dataset {} Test Accuracy: {}, Test Regional Accuracy: {}'.format(self.training_dataset_name, avg_test_accuracy, avg_test_region_accuracy))
 
         # print(f"Test Loss: {test_loss/len(test_loader):.4f}")
@@ -191,22 +197,37 @@ class ModelTrainer():
         df_cm = pd.DataFrame(cf_matrix, index=classes,columns=classes)
 
         plt.figure(figsize=(120, 70))    
-        return sn.heatmap(df_cm, sn.cubehelix_palette(as_cmap=True)).get_figure()
-
+        return sn.heatmap(df_cm, cmap=sn.cubehelix_palette(as_cmap=True)).get_figure()
+    
+    def calculate_weighted_loss(self, regional_loss_mean, country_loss_mean):
+        loss = torch.tensor([], dtype=torch.float32)
+        loss.requires_grad = True
+        total_loss = (self.regional_portion * regional_loss_mean) + ((1-self.regional_portion) * country_loss_mean)
+        loss = torch.cat((loss, total_loss.unsqueeze(0)), dim=0)
+        self.writer.add_scalar('Batch Loss', loss.item(), self.batch_count)
+        self.writer.add_scalar('Unweighted Regional Batch Loss', regional_loss_mean.item(), self.batch_count)
+        self.writer.add_scalar('Unweighted Country Batch Loss', country_loss_mean.item(), self.batch_count)
+        self.writer.add_scalar('Weighted Regional Batch Loss', self.regional_portion * regional_loss_mean.item(), self.batch_count)
+        self.writer.add_scalar('Weighted Country Batch Loss', (1-self.regional_portion) * country_loss_mean.item(), self.batch_count)
+        return loss
         
 
 class Regional_Loss(torch.nn.Module):
-    def __init__(self, country_list, region_portion):
+    def __init__(self, country_list):
         super(Regional_Loss, self).__init__()
         self.country_list = country_list
         self.region_country_dict =  country_list.groupby('Intermediate Region Name')['Country'].apply(lambda x: list(x.index))
-        self.region_portion = region_portion
-        self.country_portion = 1 - region_portion
+        # self.regional_portion = regional_portion
+        # self.country_portion = 1 - regional_portion
 
 
     def forward(self, outputs, targets):
-        loss = torch.tensor([], dtype=torch.float32)
-        loss.requires_grad = True
+        region_loss = torch.tensor([], dtype=torch.float32)
+        region_loss.requires_grad = True
+        country_loss = torch.tensor([], dtype=torch.float32)
+        country_loss.requires_grad = True
+        # loss = torch.tensor([], dtype=torch.float32)
+        # loss.requires_grad = True
         for output, target in zip(outputs,targets):
             ref_country = target
             ref_country_row = self.country_list[self.country_list['Country'] == ref_country]
@@ -225,15 +246,19 @@ class Regional_Loss(torch.nn.Module):
             region_cross_entropy_loss = F.cross_entropy(output_region_enc, torch.argmax(target_region_enc))
             country_cross_entropy_loss = F.cross_entropy(output, torch.argmax(target_country_enc))
 
-            total_loss = (self.region_portion * region_cross_entropy_loss) + (self.country_portion * country_cross_entropy_loss)
-            loss = torch.cat((loss, total_loss.unsqueeze(0)), dim=0)
+            region_loss_calculated = region_cross_entropy_loss
+            region_loss = torch.cat((region_loss, region_loss_calculated.unsqueeze(0)), dim=0)
+            country_loss_calculated = country_cross_entropy_loss
+            country_loss = torch.cat((country_loss, country_loss_calculated.unsqueeze(0)), dim=0)
+            # total_loss = (self.regional_portion * region_cross_entropy_loss) + (self.country_portion * country_cross_entropy_loss)
+            # loss = torch.cat((loss, total_loss.unsqueeze(0)), dim=0)
 
-        return loss.mean()
+        return region_loss.mean(), country_loss.mean()
 
 
 
 
-def create_and_train_model(REPO_PATH: str, training_dataset_name: str):
+def create_and_train_model(REPO_PATH: str, training_dataset_name: str, starting_regional_loss_portion: float, regional_loss_decline: float):
     # Directory containing CSV files
     training_directory = f'{REPO_PATH}/Embeddings/Training/{training_dataset_name}'
     testing_directory = f'{REPO_PATH}/Embeddings/Testing'
@@ -269,7 +294,7 @@ def create_and_train_model(REPO_PATH: str, training_dataset_name: str):
     test_loader = DataLoader(test_dataset, shuffle=False)
 
     model = nn.FinetunedClip()
-    trainer = ModelTrainer(model, training_combined_df, country_list, region_list, train_dataset_name=training_dataset_name)
+    trainer = ModelTrainer(model, training_combined_df, country_list, region_list,starting_regional_loss_portion=starting_regional_loss_portion, regional_loss_decline=regional_loss_decline, train_dataset_name=training_dataset_name)
     trainer.test_model(test_loader)
     print("END")
 
@@ -281,11 +306,13 @@ if __name__ == "__main__":
     parser.add_argument('--yaml_path', metavar='str', required=True,
                         help='The path to the yaml file with the stored paths')
     parser.add_argument('--training_dataset_name', metavar='str', required=True, help='the name of the dataset')
+    parser.add_argument('--starting_regional_loss_portion', metavar='float', required=True, help='the starting regional loss portion')
+    parser.add_argument('--regional_loss_decline', metavar='float', required=True, help='the factor with which the regional loss portion is multiplied each epoch')
     args = parser.parse_args()
 
 
     with open(args.yaml_path) as file:
         paths = yaml.safe_load(file)
         REPO_PATH = paths['repo_path'][args.user]
-        create_and_train_model(REPO_PATH, args.training_dataset_name)
+        create_and_train_model(REPO_PATH, args.training_dataset_name, args.starting_regional_loss_portion, args.regional_loss_decline)
 
