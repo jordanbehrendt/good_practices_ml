@@ -230,7 +230,7 @@
             ]
         },
         {
-            "name": "Kieran Train Model Weakly Balanced",
+            "name": "Kieran Train all possible Models",
             "type": "python",
             "request": "launch",
             "program": "${file}",
@@ -240,72 +240,10 @@
                 "kieran",
                 "--yaml_path",
                 "/home/kieran/Documents/Uni/WiSe23-24/Good_Practices_of_Machine_Learning/good_practices_ml/paths.yaml",
-                "--training_dataset_name",
-                "Weakly_Balanced",
             ]
         },
         {
-            "name": "Kieran Train Model Unbalanced",
-            "type": "python",
-            "request": "launch",
-            "program": "${file}",
-            "console": "integratedTerminal",
-            "args": [
-                "--user",
-                "kieran",
-                "--yaml_path",
-                "/home/kieran/Documents/Uni/WiSe23-24/Good_Practices_of_Machine_Learning/good_practices_ml/paths.yaml",
-                "--training_dataset_name",
-                "Unbalanced",
-            ]
-        },
-        {
-            "name": "Kieran Train Model Weakly Balanced Replace",
-            "type": "python",
-            "request": "launch",
-            "program": "${file}",
-            "console": "integratedTerminal",
-            "args": [
-                "--user",
-                "kieran",
-                "--yaml_path",
-                "/home/kieran/Documents/Uni/WiSe23-24/Good_Practices_of_Machine_Learning/good_practices_ml/paths.yaml",
-                "--training_dataset_name",
-                "Weakly_Balanced_Replace",
-            ]
-        },
-        {
-            "name": "Kieran Train Model Strongly Balanced",
-            "type": "python",
-            "request": "launch",
-            "program": "${file}",
-            "console": "integratedTerminal",
-            "args": [
-                "--user",
-                "kieran",
-                "--yaml_path",
-                "/home/kieran/Documents/Uni/WiSe23-24/Good_Practices_of_Machine_Learning/good_practices_ml/paths.yaml",
-                "--training_dataset_name",
-                "Strongly_Balanced",
-            ]
-        },
-        {
-            "name": "Kieran Train Model Strongly Balanced Replace",
-            "type": "python",
-            "request": "launch",
-            "program": "${file}",
-            "console": "integratedTerminal",
-            "args": [
-                "--user",
-                "kieran",
-                "--yaml_path",
-                "/home/kieran/Documents/Uni/WiSe23-24/Good_Practices_of_Machine_Learning/good_practices_ml/paths.yaml",
-                "--training_dataset_name",
-                "Strongly_Balanced_Replace",
-            ]
-        },
-        {
-            "name": "Jordan Train Model Unbalanced",
+            "name": "Jordan Train all possible Models",
             "type": "python",
             "request": "launch",
             "program": "${file}",
@@ -315,12 +253,10 @@
                 "jordan",
                 "--yaml_path",
                 "/share/temp/bjordan/good_practices_in_machine_learning/good_practices_ml/paths.yaml",
-                "--training_dataset_name",
-                "Unbalanced",
             ]
         },
         {
-            "name": "Leon Train Model Unbalanced",
+            "name": "Leon Train all possible Models",
             "type": "python",
             "request": "launch",
             "program": "${file}",
@@ -330,8 +266,6 @@
                 "leon",
                 "--yaml_path",
                 "/home/leon/Documents/GPML/good_practices_ml/paths.yaml",
-                "--training_dataset_name",
-                "Unbalanced",
             ]
         },
     ]

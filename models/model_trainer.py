@@ -43,7 +43,7 @@ class ModelTrainer():
         self.regional_loss_decline = regional_loss_decline
 
         #self.region_criterion = Regional_Loss(self.country_list, self.region_list)
-        self.writer = SummaryWriter(log_dir=f'runs/{self.training_dataset_name}/starting_regional_loss_portion-{starting_regional_loss_portion}/regional_loss_decline-{regional_loss_decline}-{self.timestamp}')
+        self.writer = SummaryWriter(log_dir=f'runs/{self.training_dataset_name}/starting_regional_loss_portion-{starting_regional_loss_portion}/regional_loss_decline-{regional_loss_decline}/{self.timestamp}')
         self.start_training()
 
     def get_ohe_labels(self, labels):
@@ -312,53 +312,57 @@ class Regional_Loss(torch.nn.Module):
 
 
 
-def create_and_train_model(REPO_PATH: str, training_dataset_name: str):
-    # Directory containing CSV files
-    training_directory = f'{REPO_PATH}/Embeddings/Training/{training_dataset_name}'
-    testing_directory = f'{REPO_PATH}/Embeddings/Testing'
+def create_and_train_model(REPO_PATH: str):
+
     country_list = f'{REPO_PATH}/data_finding/country_list_region.csv'
     region_list = f'{REPO_PATH}/data_finding/UNSD_Methodology.csv'
 
-    # Get a list of all filenames in each directory
-    training_file_list = [file for file in os.listdir(training_directory)]
+    testing_directory = f'{REPO_PATH}/Embeddings/Testing'
     testing_file_list = [file for file in os.listdir(testing_directory)]
-
-    # Initialize an empty list to store DataFrames
-    training_dfs = []
     testing_dfs = []
-
-
-    # Iterate through the files, read them as DataFrames, and append to the list
-    for file in training_file_list:
-        file_path = os.path.join(training_directory, file)
-        df = pd.read_csv(file_path)
-        training_dfs.append(df)
     # Iterate through the files, read them as DataFrames, and append to the list
     for file in testing_file_list:
         file_path = os.path.join(testing_directory, file)
         df = pd.read_csv(file_path)
         testing_dfs.append(df)
-
-    # Concatenate all DataFrames in the list into a single DataFrame
-    training_combined_df = pd.concat(training_dfs, ignore_index=True)
     testing_combined_df = pd.concat(testing_dfs, ignore_index=True)
-
-
     test_dataset = load_dataset.EmbeddingDataset_from_df(testing_combined_df, "test")
     test_loader = DataLoader(test_dataset, shuffle=False)
 
-    model = nn.FinetunedClip()
-    hyperparameters = [
-        {'starting_regional_loss_portion': 0.0, 
-         'regional_loss_decline': 1.0},
-        {'starting_regional_loss_portion': 0.25, 
-         'regional_loss_decline': 1.0},
-        {'starting_regional_loss_portion': 0.9, 
-         'regional_loss_decline': 0.5}
+    training_datasets = [
+        'Unbalanced', 
+        'Weakly_Balanced', 
+        'Weakly_Balanced_Replace', 
+        'Strongly_Balanced',
+        'Strongly_Balanced_Replace'
     ]
-    for elem in hyperparameters:
-        trainer = ModelTrainer(model, training_combined_df, country_list, region_list,starting_regional_loss_portion=elem['starting_regional_loss_portion'], regional_loss_decline=elem['regional_loss_decline'], train_dataset_name=training_dataset_name)
-        trainer.test_model(test_loader)
+
+    for elem in training_datasets:
+        # Directory containing CSV files
+        training_directory = f'{REPO_PATH}/Embeddings/Training/{elem}'
+        # Get a list of all filenames in each directory
+        training_file_list = [file for file in os.listdir(training_directory)]
+        # Initialize an empty list to store DataFrames
+        training_dfs = []
+        # Iterate through the files, read them as DataFrames, and append to the list
+        for file in training_file_list:
+            file_path = os.path.join(training_directory, file)
+            df = pd.read_csv(file_path)
+            training_dfs.append(df)
+        # Concatenate all DataFrames in the list into a single DataFrame
+        training_combined_df = pd.concat(training_dfs, ignore_index=True)
+        hyperparameters = [
+            {'starting_regional_loss_portion': 0.0, 
+            'regional_loss_decline': 1.0},
+            {'starting_regional_loss_portion': 0.25, 
+            'regional_loss_decline': 1.0},
+            {'starting_regional_loss_portion': 0.8, 
+            'regional_loss_decline': 0.5}
+        ]
+        for i in range(0,len(hyperparameters)):
+            model = nn.FinetunedClip()
+            trained_model = ModelTrainer(model, training_combined_df, country_list, region_list, starting_regional_loss_portion=hyperparameters[i]['starting_regional_loss_portion'], regional_loss_decline=hyperparameters[i]['regional_loss_decline'], train_dataset_name=elem)
+            trained_model.test_model(test_loader)
     print("END")
 
 
@@ -368,7 +372,7 @@ if __name__ == "__main__":
                         help='The user of the gpml group')
     parser.add_argument('--yaml_path', metavar='str', required=True,
                         help='The path to the yaml file with the stored paths')
-    parser.add_argument('--training_dataset_name', metavar='str', required=True, help='the name of the dataset')
+    # parser.add_argument('--training_dataset_name', metavar='str', required=True, help='the name of the dataset')
     # parser.add_argument('--starting_regional_loss_portion', metavar='float', required=True, help='the starting regional loss portion')
     # parser.add_argument('--regional_loss_decline', metavar='float', required=True, help='the factor with which the regional loss portion is multiplied each epoch')
     args = parser.parse_args()
@@ -377,5 +381,5 @@ if __name__ == "__main__":
     with open(args.yaml_path) as file:
         paths = yaml.safe_load(file)
         REPO_PATH = paths['repo_path'][args.user]
-        create_and_train_model(REPO_PATH, args.training_dataset_name)
+        create_and_train_model(REPO_PATH)
 
