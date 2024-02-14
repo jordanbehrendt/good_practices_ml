@@ -230,7 +230,7 @@
             ]
         },
         {
-            "name": "Kieran Train Model Balanced",
+            "name": "Kieran Train Model Weakly Balanced",
             "type": "python",
             "request": "launch",
             "program": "${file}",
@@ -241,11 +241,7 @@
                 "--yaml_path",
                 "/home/kieran/Documents/Uni/WiSe23-24/Good_Practices_of_Machine_Learning/good_practices_ml/paths.yaml",
                 "--training_dataset_name",
-                "Balanced",
-                "--starting_regional_loss_portion",
-                "0.9",
-                "--regional_loss_decline",
-                "0.2",
+                "Weakly_Balanced",
             ]
         },
         {
@@ -261,14 +257,10 @@
                 "/home/kieran/Documents/Uni/WiSe23-24/Good_Practices_of_Machine_Learning/good_practices_ml/paths.yaml",
                 "--training_dataset_name",
                 "Unbalanced",
-                "--starting_regional_loss_portion",
-                "0.9",
-                "--regional_loss_decline",
-                "0.2",
             ]
         },
         {
-            "name": "Kieran Train Model Replace",
+            "name": "Kieran Train Model Weakly Balanced Replace",
             "type": "python",
             "request": "launch",
             "program": "${file}",
@@ -279,11 +271,7 @@
                 "--yaml_path",
                 "/home/kieran/Documents/Uni/WiSe23-24/Good_Practices_of_Machine_Learning/good_practices_ml/paths.yaml",
                 "--training_dataset_name",
-                "Replace",
-                "--starting_regional_loss_portion",
-                "0.9",
-                "--regional_loss_decline",
-                "0.2",
+                "Weakly_Balanced_Replace",
             ]
         },
         {
@@ -299,10 +287,6 @@
                 "/share/temp/bjordan/good_practices_in_machine_learning/good_practices_ml/paths.yaml",
                 "--training_dataset_name",
                 "Unbalanced",
-                "--starting_regional_loss_portion",
-                "0.9",
-                "--regional_loss_decline",
-                "0.2",
             ]
         },
         {
@@ -318,10 +302,6 @@
                 "/home/leon/Documents/GPML/good_practices_ml/paths.yaml",
                 "--training_dataset_name",
                 "Unbalanced",
-                "--starting_regional_loss_portion",
-                "0.9",
-                "--regional_loss_decline",
-                "0.2",
             ]
         },
     ]

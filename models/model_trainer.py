@@ -33,6 +33,7 @@ class ModelTrainer():
         self.learning_rate = learning_rate
         self.country_list = pd.read_csv(country_list)
         self.region_list = pd.read_csv(region_list,delimiter=',')
+        self.regional_ordering_index = [8, 11, 144, 3, 4, 12, 16, 26, 28, 44, 46, 51, 52, 66, 74, 83, 95, 101, 105, 109, 121, 128, 153, 180, 191, 201, 202, 32, 43, 77, 81, 134, 140, 146, 179, 99, 106, 185, 187, 198, 58, 98, 122, 131, 133, 136, 159, 163, 166, 177, 178, 193, 195, 209, 210, 41, 80, 97, 102, 103, 126, 127, 192, 20, 31, 48, 84, 119, 152, 160, 162, 173, 194, 60, 137, 149, 165, 204, 78, 156, 7, 34, 35, 40, 64, 53, 56, 116, 117, 167, 188, 23, 33, 72, 196, 13, 50, 55, 59, 62, 65, 69, 86, 88, 92, 94, 113, 115, 142, 168, 172, 38, 148, 189, 205, 9, 25, 27, 39, 42, 54, 61, 68, 76, 79, 147, 157, 197, 200, 24, 85, 100, 107, 125, 135, 150, 169, 184, 186, 203, 30, 138, 182, 208, 2, 17, 29, 89, 91, 111, 132, 143, 151, 0, 5, 15, 57, 71, 75, 82, 93, 120, 123, 130, 155, 161, 171, 175, 199, 206, 19, 22, 37, 45, 70, 73, 112, 124, 129, 139, 170, 174, 176, 183, 1, 6, 14, 21, 47, 67, 87, 90, 96, 104, 108, 145, 154, 158, 164, 181, 190, 207, 10, 18, 36, 49, 63, 110, 114, 118, 141]
         #self.criterion = torch.nn.CrossEntropyLoss()
         self.criterion = Regional_Loss(self.country_list)
         self.optimizer = optim.Adam(self.model.parameters(), lr=learning_rate)
@@ -110,7 +111,7 @@ class ModelTrainer():
                 predicted_countries.append(predicted_country_index)
                 true_country_index = self.country_list.index[self.country_list['Country'] == validation_labels[0]].tolist()[0]
                 true_countries.append(true_country_index)
-            self.writer.add_figure("Validation Confusion Matrix", self.createConfusionMatrix(true_countries,predicted_countries), epoch_index*self.num_folds + fold_index)
+            self.createConfusionMatrix(true_countries,predicted_countries,"Validation Confusion Matrix",epoch_index*self.num_folds + fold_index)
         avg_validation_region_accuracy = validation_region_accuracy / len(validation_loader)
         avg_validation_accuracy = validation_accuracy / len(validation_loader)
         # avg_validation_loss = validation_loss / len(validation_loader)
@@ -178,7 +179,7 @@ class ModelTrainer():
                 predicted_countries.append(predicted_country_index)
                 true_country_index = self.country_list.index[self.country_list['Country'] == test_labels[0]].tolist()[0]
                 true_countries.append(true_country_index)
-            self.writer.add_figure("Confusion Matrix", self.createConfusionMatrix(true_countries,predicted_countries))
+            self.createConfusionMatrix(true_countries,predicted_countries,"Confusion Matrix",None)
         avg_test_region_accuracy = test_region_accuracy / len(test_loader)
         avg_test_accuracy = test_accuracy / len(test_loader)
         # avg_test_loss = test_loss / len(test_loader)
@@ -188,16 +189,69 @@ class ModelTrainer():
         print('Training Dataset {} Test Accuracy: {}, Test Regional Accuracy: {}'.format(self.training_dataset_name, avg_test_accuracy, avg_test_region_accuracy))
 
         # print(f"Test Loss: {test_loss/len(test_loader):.4f}")
-    def createConfusionMatrix(self, true_countries, predicted_countries):
+    def createConfusionMatrix(self, true_countries, predicted_countries, figure_label, index):
         # constant for classes
         classes = self.country_list['Country']
+        np_classes = np.array(classes)
 
-        # Build confusion matrix
+
+        # Build country confusion matrix
         cf_matrix = confusion_matrix(true_countries, predicted_countries, labels=range(0,211))
-        df_cm = pd.DataFrame(cf_matrix, index=classes,columns=classes)
+        ordered_index = np.argsort(-cf_matrix.diagonal())
+        ordered_matrix = cf_matrix[ordered_index][:,ordered_index]
 
-        plt.figure(figsize=(120, 70))    
-        return sn.heatmap(df_cm, cmap=sn.cubehelix_palette(as_cmap=True)).get_figure()
+        regionally_ordered_matrix = cf_matrix[self.regional_ordering_index][:, self.regional_ordering_index]
+
+        ordered_classes = np_classes[ordered_index]
+        regionally_ordered_classes = np_classes[self.regional_ordering_index]
+
+        df_cm = pd.DataFrame(cf_matrix, index=classes,columns=classes)
+        ordered_df_cm = pd.DataFrame(ordered_matrix, index=ordered_classes,columns=ordered_classes)
+        regionally_ordered_df_cm = pd.DataFrame(regionally_ordered_matrix, index=regionally_ordered_classes,columns=regionally_ordered_classes)
+
+
+        np_regions = np.sort(np.array(list(set(self.country_list['Intermediate Region Name']))))
+        
+        # Build region confusion matrix
+        true_regions = []
+        predicted_regions = []
+        for i in range(0,len(true_countries)):
+            true_regions.append(ast.literal_eval(self.country_list.iloc[true_countries[i]]["One Hot Region"]).index(1))
+            predicted_regions.append(ast.literal_eval(self.country_list.iloc[predicted_countries[i]]["One Hot Region"]).index(1))
+
+        regions_cf_matrix = confusion_matrix(true_regions, predicted_regions, labels=range(0,len(np_regions)))
+        regions_ordered_index = np.argsort(-regions_cf_matrix.diagonal())
+        regions_ordered_matrix = regions_cf_matrix[regions_ordered_index][:,regions_ordered_index]
+
+        ordered_regions = np_regions[regions_ordered_index]
+
+        regions_df_cm = pd.DataFrame(regions_cf_matrix, index=np_regions,columns=np_regions)
+        regions_ordered_df_cm = pd.DataFrame(regions_ordered_matrix, index=ordered_regions,columns=ordered_regions)
+
+
+        plt.figure(1,figsize=(120, 70))
+        figure = sn.heatmap(df_cm, cmap=sn.cubehelix_palette(as_cmap=True)).get_figure()
+        plt.figure(2,figsize=(120, 70))
+        ordered_figure = sn.heatmap(ordered_df_cm, cmap=sn.cubehelix_palette(as_cmap=True)).get_figure()
+        plt.figure(3,figsize=(120, 70))
+        regionally_ordered_figure = sn.heatmap(regionally_ordered_df_cm, cmap=sn.cubehelix_palette(as_cmap=True)).get_figure()
+        plt.figure(4,figsize=(120, 70))
+        regions_figure = sn.heatmap(regions_df_cm, cmap=sn.cubehelix_palette(as_cmap=True)).get_figure()
+        plt.figure(5,figsize=(120, 70))
+        regions_ordered_figure = sn.heatmap(regions_ordered_df_cm, cmap=sn.cubehelix_palette(as_cmap=True)).get_figure()
+        if (index == None): 
+            self.writer.add_figure(f"{figure_label}-unordered", figure)
+            self.writer.add_figure(f"{figure_label}-ordered", ordered_figure)
+            self.writer.add_figure(f"{figure_label}-regionally_ordered", regionally_ordered_figure)
+            self.writer.add_figure(f"{figure_label}-regions", regions_figure)
+            self.writer.add_figure(f"{figure_label}-regions_ordered", regions_ordered_figure)
+        else:
+            self.writer.add_figure(f"{figure_label}-unordered", figure, index)
+            self.writer.add_figure(f"{figure_label}-ordered", ordered_figure, index)
+            self.writer.add_figure(f"{figure_label}-regionally_ordered", regionally_ordered_figure, index)
+            self.writer.add_figure(f"{figure_label}-regions", regions_figure, index)
+            self.writer.add_figure(f"{figure_label}-regions_ordered", regions_ordered_figure, index)
+        return 
     
     def calculate_weighted_loss(self, regional_loss_mean, country_loss_mean):
         loss = torch.tensor([], dtype=torch.float32)
@@ -258,7 +312,7 @@ class Regional_Loss(torch.nn.Module):
 
 
 
-def create_and_train_model(REPO_PATH: str, training_dataset_name: str, starting_regional_loss_portion: float, regional_loss_decline: float):
+def create_and_train_model(REPO_PATH: str, training_dataset_name: str):
     # Directory containing CSV files
     training_directory = f'{REPO_PATH}/Embeddings/Training/{training_dataset_name}'
     testing_directory = f'{REPO_PATH}/Embeddings/Testing'
@@ -294,8 +348,17 @@ def create_and_train_model(REPO_PATH: str, training_dataset_name: str, starting_
     test_loader = DataLoader(test_dataset, shuffle=False)
 
     model = nn.FinetunedClip()
-    trainer = ModelTrainer(model, training_combined_df, country_list, region_list,starting_regional_loss_portion=starting_regional_loss_portion, regional_loss_decline=regional_loss_decline, train_dataset_name=training_dataset_name)
-    trainer.test_model(test_loader)
+    hyperparameters = [
+        {'starting_regional_loss_portion': 0.0, 
+         'regional_loss_decline': 1.0},
+        {'starting_regional_loss_portion': 0.25, 
+         'regional_loss_decline': 1.0},
+        {'starting_regional_loss_portion': 0.9, 
+         'regional_loss_decline': 0.5}
+    ]
+    for elem in hyperparameters:
+        trainer = ModelTrainer(model, training_combined_df, country_list, region_list,starting_regional_loss_portion=elem['starting_regional_loss_portion'], regional_loss_decline=elem['regional_loss_decline'], train_dataset_name=training_dataset_name)
+        trainer.test_model(test_loader)
     print("END")
 
 
@@ -306,13 +369,13 @@ if __name__ == "__main__":
     parser.add_argument('--yaml_path', metavar='str', required=True,
                         help='The path to the yaml file with the stored paths')
     parser.add_argument('--training_dataset_name', metavar='str', required=True, help='the name of the dataset')
-    parser.add_argument('--starting_regional_loss_portion', metavar='float', required=True, help='the starting regional loss portion')
-    parser.add_argument('--regional_loss_decline', metavar='float', required=True, help='the factor with which the regional loss portion is multiplied each epoch')
+    # parser.add_argument('--starting_regional_loss_portion', metavar='float', required=True, help='the starting regional loss portion')
+    # parser.add_argument('--regional_loss_decline', metavar='float', required=True, help='the factor with which the regional loss portion is multiplied each epoch')
     args = parser.parse_args()
 
 
     with open(args.yaml_path) as file:
         paths = yaml.safe_load(file)
         REPO_PATH = paths['repo_path'][args.user]
-        create_and_train_model(REPO_PATH, args.training_dataset_name, args.starting_regional_loss_portion, args.regional_loss_decline)
+        create_and_train_model(REPO_PATH, args.training_dataset_name)
 
