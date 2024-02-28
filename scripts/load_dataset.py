@@ -95,8 +95,9 @@ class ImageDataset_from_df(Dataset):
     
 class EmbeddingDataset_from_df(Dataset):
     def __init__(self, df, name) -> None:
+        self.device = "cuda" if torch.cuda.is_available() else "cpu"
         self.labels = df['label'].tolist()
-        self.model_inputs = df['model_input'].tolist()
+        self.model_inputs = torch.tensor([np.frombuffer(eval(value),dtype=np.float32) for value in df['model_input']], dtype=torch.float32, device=self.device)
         self.name = name
 
     def __len__(self):
@@ -104,7 +105,5 @@ class EmbeddingDataset_from_df(Dataset):
     
     def __getitem__(self, index):
         label = self.labels[index]
-        model_input_str = eval(self.model_inputs[index])
-        model_input_array = np.frombuffer(model_input_str, dtype=np.float32) 
-        model_input = torch.tensor(model_input_array)
+        model_input = self.model_inputs[index]
         return model_input, label
