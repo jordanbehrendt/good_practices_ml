@@ -497,7 +497,7 @@ def create_and_train_model(REPO_PATH: str):
         for i in range(0, len(hyperparameters)):
             model = nn.FinetunedClip()
             trained_model = ModelTrainer(model, training_combined_df, country_list, region_list,
-                                         batch_size=bs, num_epochs=20,
+                                         batch_size=bs, num_epochs=15,
                                          starting_regional_loss_portion=hyperparameters[i]['starting_regional_loss_portion'], regional_loss_decline=hyperparameters[i]['regional_loss_decline'], train_dataset_name=elem)
             trained_model.test_model(test_loader)
     print("END")
