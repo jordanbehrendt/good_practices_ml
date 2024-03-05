@@ -1,27 +1,28 @@
 import sys
 sys.path.append('.')
 sys.path.append('./scripts')
-#----------------------------------------------
-import time
-import matplotlib.pyplot as plt
-import math
-import yaml
-import argparse
-import torch.nn.functional as F
-from torch.utils.tensorboard import SummaryWriter
-from torch.utils.data import DataLoader, TensorDataset
-import seaborn as sn
-from sklearn.metrics import confusion_matrix
-import sklearn.model_selection
-import ast
-from scripts import load_dataset, geo_metrics
-import os
-from models import nn
-import torch
-import torch.optim as optim
-import pandas as pd
-import numpy as np
+# ----------------------------------------------
 import datetime
+import numpy as np
+import pandas as pd
+import torch.optim as optim
+import torch
+from models import nn
+import os
+from scripts import load_dataset, geo_metrics
+from models.region_loss import Regional_Loss
+import ast
+import sklearn.model_selection
+from sklearn.metrics import confusion_matrix
+import seaborn as sn
+from torch.utils.data import DataLoader, TensorDataset
+from torch.utils.tensorboard import SummaryWriter
+import torch.nn.functional as F
+import argparse
+import yaml
+import math
+import matplotlib.pyplot as plt
+import time
 
 
 class ModelTrainer():
@@ -53,14 +54,6 @@ class ModelTrainer():
         self.writer = SummaryWriter(
             log_dir=f'runs/{self.training_dataset_name}/starting_regional_loss_portion-{starting_regional_loss_portion}/regional_loss_decline-{regional_loss_decline}/{self.timestamp}')
         self.start_training()
-
-    def get_ohe_labels(self, labels):
-        ohe_array = []
-        for label in labels:
-            ref_country_row = self.country_list[self.country_list['Country'] == label]
-            ohe_array.append(torch.eye(len(self.country_list))
-                             [ref_country_row.index.values[0]])
-        return torch.stack(ohe_array, dim=0)
 
     def train_one_fold(self, train_loader):
         """Train one Epoch of the model. Based on Pytorch Tutorial.
@@ -99,7 +92,7 @@ class ModelTrainer():
 
             # print(f"batch {i} loss: {loss}")
             # if i % 10 == 9:
-            #     last_loss = running_loss/            
+            #     last_loss = running_loss/
             # print(f"batch {i} loss: {loss}")
             # if i % 10 == 9:
             #     last_lo
@@ -108,8 +101,11 @@ class ModelTrainer():
 
     def validate(self, epoch_index, fold_index, validation_dataset):
         inputs, targets = validation_dataset[:]
-        # self.createConfusionMatrix(true_countries,predicted_countries,"Validation Confusion Matrix",epoch_index*self.num_folds + fold_index)
         outputs = self.model(inputs)
+        
+        predicitions = [self.country_list["country"].iloc[pred] for pred in torch.argmax(outputs, axis=1)]
+
+        
         avg_validation_region_accuracy = self.criterion.claculate_region_accuracy(
             outputs, targets)
         avg_validation_accuracy = self.criterion.calculate_country_accuracy(
@@ -122,7 +118,7 @@ class ModelTrainer():
             'Validation Accuracy', avg_validation_accuracy, epoch_index*self.num_folds + fold_index)
         self.writer.add_scalar('Validation Regional Accuracy',
                                avg_validation_region_accuracy, epoch_index*self.num_folds + fold_index)
-
+        return targets, predicitions
         # self.writer.add_scalar('Validation Loss', avg_validation_loss, epoch_index*self.num_folds + fold_index)
 
         # torch.save(self.model.state_dict(),f'saved_models/model_{self.training_dataset_name}_epoch_{epoch_index}_batch_{i}')
@@ -164,7 +160,11 @@ class ModelTrainer():
                     fold_validation_df, 'validation')
                 # validation_loader = DataLoader(validation_dataset, shuffle=False)
 
-                self.validate(epoch_index, fold_index, validation_dataset)
+                targets, predicitions = self.validate(epoch_index, fold_index, validation_dataset)
+                if fold_index == self.num_folds - 1:
+                    self.createConfusionMatrix(targets,predicitions,
+                                               "Validation Confusion Matrix",
+                                               epoch_index*self.num_folds + fold_index)
 
                 # self.writer.add_scalars('Training vs. Validation Loss',
                 #         { 'Training' : avg_training_loss, 'Validation' : avg_validation_loss },
@@ -325,115 +325,6 @@ class ModelTrainer():
         return loss
 
 
-class Regional_Loss(torch.nn.Module):
-    def __init__(self, country_list):
-        """
-        Initializes the Regional_Loss object.
-
-        Args:
-            country_list (pandas.DataFrame): A DataFrame containing the infromation of country_list_region_and_continent.csv.
-
-        Attributes:
-            device (torch.device): The device (CPU or GPU) on which the model will be trained.
-            country_list (pandas.DataFrame): The input country list DataFrame.
-            country_dict (dict): A dictionary mapping country names to indices in the country_list.
-            region_indices (list): A list of lists containing the indices of countries in each region.
-            regions (torch.Tensor): A tensor containing the region indices for each country.
-            regions_dict (dict): A dictionary mapping country indices to region indices.
-            selective_sum_operator (torch.Tensor): A tensor used for selective sum operation.
-
-        """
-
-        super(Regional_Loss, self).__init__()
-        self.device = torch.device(
-            "cuda:0" if torch.cuda.is_available() else "cpu")
-        self.country_list = country_list
-        self.country_dict = {country: index for index,
-                             country in enumerate(self.country_list["Country"])}
-        self.region_indices = country_list.groupby('Intermediate Region Name')[
-            'Country'].apply(lambda x: list(x.index)).to_list()
-        self.regions = self.country_list["One Hot Region"].apply(lambda x: torch.argmax(
-            torch.tensor(ast.literal_eval(x), dtype=torch.float32, device=self.device)))
-        self.regions_dict = {index: region for index,
-                             region in enumerate(self.regions)}
-        self.selective_sum_operator = torch.zeros(len(self.region_indices), len(
-            self.country_list), dtype=torch.float32, device=self.device)
-        for i, indices in enumerate(self.region_indices):
-            self.selective_sum_operator[i, indices] = 1
-        self.selective_sum_operator
-
-    def forward(self, outputs, targets):
-        """
-        Forward pass of the model.
-
-        Args:
-            outputs (torch.Tensor): The output tensor from the model.
-            targets (list): The list of target values.
-
-        Returns:
-            tuple: A tuple containing the mean region loss and mean country loss.
-        """
-        # get the indices of all targets for the country_list, which is the index of the one hot encoded country vector
-        target_countries_idxs = [self.country_dict[target]
-                                 for target in targets]
-        # get the indices of all targets, corrseponding to the region index of the one hot encoded region vector
-        target_region_enc = torch.tensor(
-            [self.regions_dict[target] for target in target_countries_idxs], device=self.device)
-        # sum the outputs of the countries in each region
-        region_outputs = torch.matmul(
-            outputs, self.selective_sum_operator.transpose(0, 1))
-
-        country_loss = F.cross_entropy(outputs, torch.tensor(
-            target_countries_idxs, device=self.device))
-        region_loss = F.cross_entropy(region_outputs, target_region_enc)
-
-        return region_loss.mean(), country_loss.mean()
-
-    def claculate_region_accuracy(self, outputs, targets):
-        """
-        Calculates the accuracy of region predictions.
-
-        Args:
-            outputs (torch.Tensor): The output tensor from the model.
-            targets (list): The list of target countries.
-
-        Returns:
-            torch.Tensor: The mean accuracy of region predictions.
-        """
-        # get the indices of all targets for the country_list, which is the index of the one hot encoded country vector
-        target_countries_idxs = [self.country_dict[target]
-                                 for target in targets]
-        # get the indices of all targets, corrseponding to the region index of the one hot encoded region vector
-        target_region_enc = torch.tensor(
-            [self.regions_dict[target] for target in target_countries_idxs], device=self.device)
-        # sum the outputs of the countries in each region
-        region_outputs = torch.matmul(
-            outputs, self.selective_sum_operator.transpose(0, 1))
-
-        region_predictions = torch.argmax(region_outputs, axis=1)
-        # calculate the accuracy of the region predictions
-        return torch.mean((region_predictions == target_region_enc).float())
-
-    def calculate_country_accuracy(self, outputs, targets):
-        """
-        Calculates the accuracy of country predictions.
-
-        Args:
-            outputs (torch.Tensor): The predicted outputs of the model.
-            targets (list): The target country labels.
-
-        Returns:
-            torch.Tensor: The mean accuracy of country predictions.
-        """
-        # get the indices of all targets for the country_list, which is the index of the one hot encoded country vector
-        target_countries_idxs = [self.country_dict[target]
-                                 for target in targets]
-        # get the index of the preidcted country
-        country_predictions = torch.argmax(outputs, axis=1)
-        # calculate the accuracy of the country predictions
-        return torch.mean((country_predictions == torch.tensor(target_countries_idxs, device=self.device)).float())
-
-
 def create_and_train_model(REPO_PATH: str):
     """
     Creates and trains a model using the specified repository path.
@@ -462,27 +353,17 @@ def create_and_train_model(REPO_PATH: str):
     test_loader = DataLoader(test_dataset, shuffle=False)
 
     training_datasets = [
-        'Unbalanced',
-        'Weakly_Balanced',
-        'Weakly_Balanced_Replace',
-        'Strongly_Balanced',
-        'Strongly_Balanced_Replace'
+        'geo_weakly_balanced.csv',
+        'geo_unbalanced.csv',
+        'geo_strongly_balanced.csv',
+        'mixed_weakly_balanced.csv',
+        'mixed_strongly_balanced.csv'
     ]
 
     for elem in training_datasets:
-        # Directory containing CSV files
-        training_directory = f'{REPO_PATH}/Embeddings/Training/{elem}'
-        # Get a list of all filenames in each directory
-        training_file_list = [file for file in os.listdir(training_directory)]
-        # Initialize an empty list to store DataFrames
-        training_dfs = []
-        # Iterate through the files, read them as DataFrames, and append to the list
-        for file in training_file_list:
-            file_path = os.path.join(training_directory, file)
-            df = pd.read_csv(file_path)
-            training_dfs.append(df)
-        # Concatenate all DataFrames in the list into a single DataFrame
-        training_combined_df = pd.concat(training_dfs, ignore_index=True)
+        train_df = pd.read_csv(
+            f'{REPO_PATH}/Embeddings/Training/{elem}')
+
         hyperparameters = [
             {'starting_regional_loss_portion': 0.0,
              'regional_loss_decline': 1.0},
@@ -492,13 +373,16 @@ def create_and_train_model(REPO_PATH: str):
              'regional_loss_decline': 0.5}
         ]
         bs = 260
-        if elem == 'Strongly_Balanced' or elem == 'Strongly_Balanced_Replace':
+        if elem == 'geo_strongly_balanced.csv' or elem == 'mixed_strongly_balanced.csv':
             bs = 110
         for i in range(0, len(hyperparameters)):
             model = nn.FinetunedClip()
-            trained_model = ModelTrainer(model, training_combined_df, country_list, region_list,
+            trained_model = ModelTrainer(model, train_df, country_list, region_list,
                                          batch_size=bs, num_epochs=15,
-                                         starting_regional_loss_portion=hyperparameters[i]['starting_regional_loss_portion'], regional_loss_decline=hyperparameters[i]['regional_loss_decline'], train_dataset_name=elem)
+                                         starting_regional_loss_portion=hyperparameters[
+                                             i]['starting_regional_loss_portion'],
+                                         regional_loss_decline=hyperparameters[i]['regional_loss_decline'],
+                                         train_dataset_name=elem)
             trained_model.test_model(test_loader)
     print("END")
 
