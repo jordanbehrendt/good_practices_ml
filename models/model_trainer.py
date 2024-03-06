@@ -103,8 +103,7 @@ class ModelTrainer():
         inputs, targets = validation_dataset[:]
         outputs = self.model(inputs)
         
-        predicitions = [self.country_list.iloc[pred.item()]["Country"] for pred in torch.argmax(outputs, axis=1)]
-
+        predicitions_idx = torch.argmax(outputs, axis=1).tolist()
         
         avg_validation_region_accuracy = self.criterion.claculate_region_accuracy(
             outputs, targets)
@@ -118,7 +117,8 @@ class ModelTrainer():
             'Validation Accuracy', avg_validation_accuracy, epoch_index*self.num_folds + fold_index)
         self.writer.add_scalar('Validation Regional Accuracy',
                                avg_validation_region_accuracy, epoch_index*self.num_folds + fold_index)
-        return targets, predicitions
+        target_idx = [self.country_list[self.country_list['Country'] == target].index[0] for target in targets]
+        return target_idx, predicitions_idx
         # self.writer.add_scalar('Validation Loss', avg_validation_loss, epoch_index*self.num_folds + fold_index)
 
         # torch.save(self.model.state_dict(),f'saved_models/model_{self.training_dataset_name}_epoch_{epoch_index}_batch_{i}')
@@ -129,6 +129,8 @@ class ModelTrainer():
             len(self.train_dataframe.index) / self.num_folds)
 
         for epoch_index in range(self.num_epochs):
+            validation_targets = []
+            validation_predictions = []
             if epoch_index > 0:
                 self.regional_portion = self.regional_loss_decline * self.regional_portion
             for fold_index in range(self.num_folds):
@@ -171,8 +173,9 @@ class ModelTrainer():
                 #         epoch_index*self.num_folds + fold_index + 1)
                 # print(f"Epoch [{epoch_index+1}/{self.num_epochs}] - Fold [{fold_index+1}/{self.num_folds}] - Average Train Loss: {avg_training_loss:.4f} - Val Loss: {avg_validation_loss:.4f}")
                 self.writer.flush()
+
             torch.save(self.model.state_dict,
-                       f'saved_models/model_{self.training_dataset_name}_{timestamp}_{epoch_index+1}')
+                       f'saved_models/model_{self.training_dataset_name}_{timestamp}_epoch_{epoch_index+1}')
 
     def test_model(self, test_loader):
         # test_loss = 0.0

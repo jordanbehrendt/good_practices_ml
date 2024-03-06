@@ -57,7 +57,7 @@ if __name__ == "__main__":
     This script uses the model inputs created using the "generate_image_embeddings.py".
     """
     parser = argparse.ArgumentParser()
-    parser.add_argument("--repo_path", type=str, help="Path to the repository")
+    parser.add_argument("--repo_path",  default="/home/lbrenig/Documents/Uni/GPML/good_practices_ml", type=str, help="Path to the repository")
     args = parser.parse_args()
 
     REPO_PATH = args.repo_path
