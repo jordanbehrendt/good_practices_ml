@@ -1,15 +1,16 @@
+import sys
+sys.path.append("./../")
+sys.path.append(".")
 import argparse
 from scripts import load_dataset
 import clip
 import torch
 import pandas as pd
-import sys
 import os
 import PIL
 import sklearn.model_selection
 import numpy as np
-sys.path.append("./../")
-sys.path.append(".")
+
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
 model, preprocessor = clip.load("ViT-B/32", device=device)
@@ -140,8 +141,14 @@ if __name__ == "__main__":
         mixed_weakly_balanced_df.to_csv(os.path.join(
             REPO_PATH, "Embeddings/Training/mixed_weakly_balanced.csv"), index=False)
 
+        print(len(tourist_train_and_val)/len(weakly_balanced_geo_df))
+        tourist_percentage = len(tourist_train_and_val)/len(weakly_balanced_geo_df)
+        number_of_strongly_balanced_images = len(strongley_balanced_geo_df)*tourist_percentage
+        _, small_tourist_df = sklearn.model_selection.train_test_split(
+            tourist_train_and_val, test_size=int(number_of_strongly_balanced_images), random_state=1234, shuffle=True, stratify=tourist_train_and_val["label"])
         # add aerial and tourist images to create a strongly balanced mixed dataset
+        print(len(small_tourist_df)/len(strongley_balanced_geo_df))
         mixed_strongly_balanced_df = pd.concat(
-            [strongley_balanced_geo_df, aerial_train_and_val, tourist_train_and_val]).sample(frac=1, random_state=1234)
+            [strongley_balanced_geo_df, aerial_train_and_val, small_tourist_df]).sample(frac=1, random_state=1234)
         mixed_strongly_balanced_df.to_csv(os.path.join(
             REPO_PATH, "Embeddings/Training/mixed_strongly_balanced.csv"), index=False)
