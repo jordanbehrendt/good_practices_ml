@@ -1,4 +1,7 @@
 import torch
+import ast
+import torch.nn.functional as F
+
 class Regional_Loss(torch.nn.Module):
     def __init__(self, country_list):
         """

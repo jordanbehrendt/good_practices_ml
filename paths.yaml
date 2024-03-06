@@ -1,8 +1,8 @@
 data_path:
   jordan: '/share/temp/bjordan/good_practices_in_machine_learning/compressed_dataset/'
   kieran: '/home/kieran/Documents/Uni/WiSe23-24/Good_Practices_of_Machine_Learning/good_practices_ml/data/compressed_dataset'
-  leon: '/home/leon/Documents/GPML/good_practices_ml/data/raw_data/compressed_dataset'
+  leon: '/home/lbrenig/Documents/Uni/GPML/good_practices_ml//data/raw_data/compressed_dataset'
 repo_path:
   jordan: '/share/temp/bjordan/good_practices_in_machine_learning/good_practices_ml/'
   kieran: '/home/kieran/Documents/Uni/WiSe23-24/Good_Practices_of_Machine_Learning/good_practices_ml/'
-  leon: '/home/leon/Documents/GPML/good_practices_ml/'
+  leon: '/home/lbrenig/Documents/Uni/GPML/good_practices_ml/'

@@ -265,7 +265,7 @@
                 "--user",
                 "leon",
                 "--yaml_path",
-                "/home/leon/Documents/GPML/good_practices_ml/paths.yaml",
+                "/home/lbrenig/Documents/Uni/GPML/good_practices_ml/paths.yaml",
             ]
         },
     ]

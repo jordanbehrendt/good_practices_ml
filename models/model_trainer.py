@@ -103,7 +103,7 @@ class ModelTrainer():
         inputs, targets = validation_dataset[:]
         outputs = self.model(inputs)
         
-        predicitions = [self.country_list["country"].iloc[pred] for pred in torch.argmax(outputs, axis=1)]
+        predicitions = [self.country_list.iloc[pred.item()]["Country"] for pred in torch.argmax(outputs, axis=1)]
 
         
         avg_validation_region_accuracy = self.criterion.claculate_region_accuracy(
@@ -340,16 +340,9 @@ def create_and_train_model(REPO_PATH: str):
     region_list = f'{REPO_PATH}/data_finding/UNSD_Methodology.csv'
 
     testing_directory = f'{REPO_PATH}/Embeddings/Testing'
-    testing_file_list = [file for file in os.listdir(testing_directory)]
-    testing_dfs = []
-    # Iterate through the files, read them as DataFrames, and append to the list4
-    for file in testing_file_list:
-        file_path = os.path.join(testing_directory, file)
-        df = pd.read_csv(file_path)
-        testing_dfs.append(df)
-    testing_combined_df = pd.concat(testing_dfs, ignore_index=True)
+    test_df = pd.read_csv(f'{testing_directory}/test_data.csv')
     test_dataset = load_dataset.EmbeddingDataset_from_df(
-        testing_combined_df, "test")
+        test_df, "test")
     test_loader = DataLoader(test_dataset, shuffle=False)
 
     training_datasets = [
