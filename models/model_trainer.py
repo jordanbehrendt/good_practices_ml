@@ -22,7 +22,10 @@ import argparse
 import yaml
 import math
 import matplotlib.pyplot as plt
+from matplotlib.colors import LogNorm, Normalize
 import time
+import threading
+
 
 
 class ModelTrainer():
@@ -52,7 +55,7 @@ class ModelTrainer():
 
         # self.region_criterion = Regional_Loss(self.country_list, self.region_list)
         self.writer = SummaryWriter(
-            log_dir=f'runs/{self.training_dataset_name}/starting_regional_loss_portion-{starting_regional_loss_portion}/regional_loss_decline-{regional_loss_decline}/{self.timestamp}')
+            log_dir=f'runs/{self.training_dataset_name[:-4]}/starting_regional_loss_portion-{starting_regional_loss_portion}/regional_loss_decline-{regional_loss_decline}/{self.timestamp}')
         self.start_training()
 
     def train_one_fold(self, train_loader):
@@ -103,21 +106,33 @@ class ModelTrainer():
         inputs, targets = validation_dataset[:]
         outputs = self.model(inputs)
         
-        predicitions_idx = torch.argmax(outputs, axis=1).tolist()
-        
         avg_validation_region_accuracy = self.criterion.claculate_region_accuracy(
             outputs, targets)
         avg_validation_accuracy = self.criterion.calculate_country_accuracy(
             outputs, targets)
-        # avg_validation_loss = validation_loss / len(validation_loader)
+        
 
+        # avg_validation_loss = validation_loss / len(validation_loader)
         print('Epoch {} Fold {} Validation Accuracy: {}, Validation Regional Accuracy: {}'.format(
             epoch_index + 1, fold_index + 1, avg_validation_accuracy, avg_validation_region_accuracy))
         self.writer.add_scalar(
             'Validation Accuracy', avg_validation_accuracy, epoch_index*self.num_folds + fold_index)
         self.writer.add_scalar('Validation Regional Accuracy',
                                avg_validation_region_accuracy, epoch_index*self.num_folds + fold_index)
-        target_idx = [self.country_list[self.country_list['Country'] == target].index[0] for target in targets]
+        
+        per_class_precision, per_class_recall,per_class_f1, _ = self.criterion.calculate_metrics_per_class(outputs, targets)
+        self.writer.add_scalar('Validation avg Class Precision', per_class_precision.mean(), epoch_index*self.num_folds + fold_index)
+        self.writer.add_scalar('Validation avg Class Recall', per_class_recall.mean(), epoch_index*self.num_folds + fold_index)
+        self.writer.add_scalar('Validation avg Class F1', per_class_f1.mean(), epoch_index*self.num_folds + fold_index)
+
+        per_region_precision, per_region_recall, per_region_f1, _ = self.criterion.calculate_metrics_per_region(outputs, targets)
+        self.writer.add_scalar('Validation avg Region Precision', per_region_precision.mean(), epoch_index*self.num_folds + fold_index)
+        self.writer.add_scalar('Validation avg Region Recall', per_region_recall.mean(), epoch_index*self.num_folds + fold_index)
+        self.writer.add_scalar('Validation avg Region F1', per_region_f1.mean(), epoch_index*self.num_folds + fold_index)
+
+        with torch.no_grad():
+            predicitions_idx = torch.argmax(outputs, axis=1).tolist()
+            target_idx = [self.country_list[self.country_list['Country'] == target].index[0] for target in targets]
         return target_idx, predicitions_idx
         # self.writer.add_scalar('Validation Loss', avg_validation_loss, epoch_index*self.num_folds + fold_index)
 
@@ -127,7 +142,6 @@ class ModelTrainer():
         timestamp = datetime.datetime.now().strftime('%Y%m%d_%H%M%S')
         validation_size = math.floor(
             len(self.train_dataframe.index) / self.num_folds)
-
         for epoch_index in range(self.num_epochs):
             validation_targets = []
             validation_predictions = []
@@ -151,7 +165,7 @@ class ModelTrainer():
                 train_dataset = load_dataset.EmbeddingDataset_from_df(
                     fold_training_df, 'train')
                 train_loader = DataLoader(
-                    train_dataset, batch_size=250, shuffle=False)
+                    train_dataset,batch_size=self.batch_size, shuffle=False)
                 avg_training_loss = self.train_one_fold(train_loader)
                 self.writer.add_scalar(
                     'Training Loss', avg_training_loss, epoch_index*self.num_folds + fold_index)
@@ -161,23 +175,27 @@ class ModelTrainer():
                 validation_dataset = load_dataset.EmbeddingDataset_from_df(
                     fold_validation_df, 'validation')
                 # validation_loader = DataLoader(validation_dataset, shuffle=False)
+                target, prediction = self.validate(epoch_index, fold_index, validation_dataset)
+                validation_targets.extend(target)
+                validation_predictions.extend(prediction)
 
-                targets, predicitions = self.validate(epoch_index, fold_index, validation_dataset)
-                if fold_index == self.num_folds - 1:
-                    self.createConfusionMatrix(targets,predicitions,
-                                               "Validation Confusion Matrix",
-                                               epoch_index*self.num_folds + fold_index)
-
+                
                 # self.writer.add_scalars('Training vs. Validation Loss',
                 #         { 'Training' : avg_training_loss, 'Validation' : avg_validation_loss },
                 #         epoch_index*self.num_folds + fold_index + 1)
                 # print(f"Epoch [{epoch_index+1}/{self.num_epochs}] - Fold [{fold_index+1}/{self.num_folds}] - Average Train Loss: {avg_training_loss:.4f} - Val Loss: {avg_validation_loss:.4f}")
                 self.writer.flush()
+            if fold_index == self.num_folds - 1:
+              self.createConfusionMatrix(validation_targets, validation_predictions, "Validation Confusion Matrix", None)
+
 
             torch.save(self.model.state_dict,
                        f'saved_models/model_{self.training_dataset_name}_{timestamp}_epoch_{epoch_index+1}')
+        validation_targets = []
+        validation_predictions = []
 
-    def test_model(self, test_loader):
+
+    def test_model(self, test_data_df):
         # test_loss = 0.0
         test_accuracy = 0.0
         test_region_accuracy = 0.0
@@ -306,6 +324,8 @@ class ModelTrainer():
                 f"{figure_label}-regions", regions_figure, index)
             self.writer.add_figure(
                 f"{figure_label}-regions_ordered", regions_ordered_figure, index)
+        self.writer.flush()
+        plt.close("all")
         return
 
     def calculate_weighted_loss(self, regional_loss_mean, country_loss_mean):
@@ -366,7 +386,9 @@ def create_and_train_model(REPO_PATH: str):
             {'starting_regional_loss_portion': 0.25,
              'regional_loss_decline': 1.0},
             {'starting_regional_loss_portion': 0.8,
-             'regional_loss_decline': 0.5}
+             'regional_loss_decline': 0.75},
+             {'starting_regional_loss_portion': 0.5,
+             'regional_loss_decline': 1.0}
         ]
         bs = 260
         if elem == 'geo_strongly_balanced.csv' or elem == 'mixed_strongly_balanced.csv':

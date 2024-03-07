@@ -1,6 +1,7 @@
 import torch
 import ast
 import torch.nn.functional as F
+from sklearn.metrics import precision_recall_fscore_support as score
 
 class Regional_Loss(torch.nn.Module):
     def __init__(self, country_list):
@@ -87,9 +88,9 @@ class Regional_Loss(torch.nn.Module):
         region_outputs = torch.matmul(
             outputs, self.selective_sum_operator.transpose(0, 1))
 
-        region_predictions = torch.argmax(region_outputs, axis=1)
+        region_predictions_idxs = torch.argmax(region_outputs, axis=1)
         # calculate the accuracy of the region predictions
-        return torch.mean((region_predictions == target_region_enc).float())
+        return torch.mean((region_predictions_idxs == target_region_enc).float())
 
     def calculate_country_accuracy(self, outputs, targets):
         """
@@ -106,6 +107,51 @@ class Regional_Loss(torch.nn.Module):
         target_countries_idxs = [self.country_dict[target]
                                  for target in targets]
         # get the index of the preidcted country
-        country_predictions = torch.argmax(outputs, axis=1)
+        country_predictions_idxs = torch.argmax(outputs, axis=1)
         # calculate the accuracy of the country predictions
-        return torch.mean((country_predictions == torch.tensor(target_countries_idxs, device=self.device)).float())
+        return torch.mean((country_predictions_idxs == torch.tensor(target_countries_idxs, device=self.device)).float())
+    
+    def calculate_metrics_per_class(self, outputs, targets):
+        """
+        Calculates precision, recall, F1-score, and support for country predictions for each class.
+
+        Args:
+            outputs (torch.Tensor): The predicted outputs of the model.
+            targets (list): The target country labels.
+
+        Returns:
+            tuple: A tuple containing precision, recall, F1-score, and support for each class.
+        """
+        # get the indices of all targets for the country_list, which is the index of the one hot encoded country vector
+        target_countries_idxs = [self.country_dict[target]
+                                 for target in targets]
+        # get the index of the predicted country
+        country_predictions_idxs = torch.argmax(outputs, axis=1).tolist()
+        # calculate the precision, recall, F1-score, and support of the country predictions
+        precision, recall, fscore, support = score(target_countries_idxs, country_predictions_idxs)
+        return precision, recall, fscore, support
+
+    def calculate_metrics_per_region(self, outputs, targets):
+        """
+        Calculates precision, recall, F1-score, and support for region predictions for each class.
+
+        Args:
+            outputs (torch.Tensor): The predicted outputs of the model.
+            targets (list): The target country labels.
+
+        Returns:
+            tuple: A tuple containing precision, recall, F1-score, and support for each class.
+        """
+        # get the indices of all targets for the country_list, which is the index of the one hot encoded country vector
+        target_countries_idxs = [self.country_dict[target]
+                                 for target in targets]
+        # get the indices of all targets, corrseponding to the region index of the one hot encoded region vector
+        target_region_enc = torch.tensor(
+            [self.regions_dict[target] for target in target_countries_idxs], device=self.device)
+        # sum the outputs of the countries in each region
+        region_outputs = torch.matmul(
+            outputs, self.selective_sum_operator.transpose(0, 1))
+        region_predictions_idxs = torch.argmax(region_outputs, axis=1).tolist()
+        # calculate the precision, recall, F1-score, and support of the region predictions
+        precision, recall, fscore, support = score(target_region_enc.tolist(), region_predictions_idxs)
+        return precision, recall, fscore, support
