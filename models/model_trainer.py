@@ -196,41 +196,45 @@ class ModelTrainer():
 
 
     def test_model(self, test_data_df):
-        # test_loss = 0.0
-        test_accuracy = 0.0
-        test_region_accuracy = 0.0
-        self.model.eval()  # Set the model to evaluation mode
-        with torch.no_grad():
-            predicted_countries = []
-            true_countries = []
-            for test_inputs, test_labels in test_loader:
-                test_outputs = self.model(test_inputs)
-                test_outputs = test_outputs.to("cpu")
-                test_accuracy += geo_metrics.calculate_country_accuracy(
-                    self.country_list, test_outputs, test_labels)
-                test_region_accuracy += geo_metrics.calculate_region_accuracy(
-                    self.country_list, test_outputs, test_labels)
-                # test_regional_loss, test_country_loss = self.criterion(test_outputs, test_labels)
-                # test_loss += self.calculate_weighted_loss(test_regional_loss,test_country_loss).item()
-                predicted_country_index = np.argmax(
-                    test_outputs, axis=1).item()
-                predicted_countries.append(predicted_country_index)
-                true_country_index = self.country_list.index[self.country_list['Country'] == test_labels[0]].tolist()[
-                    0]
-                true_countries.append(true_country_index)
-            self.createConfusionMatrix(
-                true_countries, predicted_countries, "Confusion Matrix", None)
-        avg_test_region_accuracy = test_region_accuracy / len(test_loader)
-        avg_test_accuracy = test_accuracy / len(test_loader)
-        # avg_test_loss = test_loss / len(test_loader)
-        self.writer.add_scalar('Test Accuracy', avg_test_accuracy)
+        test_dataset = load_dataset.EmbeddingDataset_from_df(
+                    test_data_df, 'test')
+        inputs, targets = test_dataset[:]
+        outputs = self.model(inputs)
+        
+        avg_test_region_accuracy = self.criterion.claculate_region_accuracy(
+            outputs, targets)
+        avg_test_accuracy = self.criterion.calculate_country_accuracy(
+            outputs, targets)
+        
+        self.writer.add_scalar(
+            'Test Accuracy', avg_test_accuracy, )
         self.writer.add_scalar('Test Regional Accuracy',
                                avg_test_region_accuracy)
-        # self.writer.add_scalar('Test Loss', avg_test_loss)
+        
+        per_class_precision, per_class_recall,per_class_f1, _ = self.criterion.calculate_metrics_per_class(outputs, targets)
+        self.writer.add_scalar('Test avg Class Precision', per_class_precision.mean())
+        self.writer.add_scalar('Test avg Class Recall', per_class_recall.mean())
+        self.writer.add_scalar('Test avg Class F1', per_class_f1.mean())
+        per_region_precision, per_region_recall, per_region_f1, _ = self.criterion.calculate_metrics_per_region(outputs, targets)
+        self.writer.add_scalar('Test avg Region Precision', per_region_precision.mean())
+        self.writer.add_scalar('Test avg Region Recall', per_region_recall.mean())
+        self.writer.add_scalar('Test avg Region F1', per_region_f1.mean())
+
+
+        metrics_df = pd.DataFrame({'Precision': per_class_precision, 'Recall': per_class_recall, 'Fscore': per_class_f1})
+        metrics_df.index = self.country_list['Country']
+        metrics_df.plot(kind='bar', xlabel='Class', ylabel='Metrics', title='Metrics per Country')
+        self.writer.add_figure('Metrics per Class', self.plot_metrics_per_class(per_class_precision, per_class_recall, per_class_f1), global_step=0)
+
+        with torch.no_grad():
+            predicitions_idx = torch.argmax(outputs, axis=1).tolist()
+            target_idx = [self.country_list[self.country_list['Country'] == target].index[0] for target in targets]
+            self.createConfusionMatrix(
+                target_idx, predicitions_idx, "Confusion Matrix", None)
         print('Training Dataset {} Test Accuracy: {}, Test Regional Accuracy: {}'.format(
             self.training_dataset_name, avg_test_accuracy, avg_test_region_accuracy))
 
-        # print(f"Test Loss: {test_loss/len(test_loader):.4f}")
+
 
     def createConfusionMatrix(self, true_countries, predicted_countries, figure_label, index):
         """
