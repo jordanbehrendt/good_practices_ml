@@ -162,8 +162,8 @@ def create_confusion_matrices(REPO_PATH):
         regional_ordering_index = [8, 11, 144, 3, 4, 12, 16, 26, 28, 44, 46, 51, 52, 66, 74, 83, 95, 101, 105, 109, 121, 128, 153, 180, 191, 201, 202, 32, 43, 77, 81, 134, 140, 146, 179, 99, 106, 185, 187, 198, 58, 98, 122, 131, 133, 136, 159, 163, 166, 177, 178, 193, 195, 209, 210, 41, 80, 97, 102, 103, 126, 127, 192, 20, 31, 48, 84, 119, 152, 160, 162, 173, 194, 60, 137, 149, 165, 204, 78, 156, 7, 34, 35, 40, 64, 53, 56, 116, 117, 167, 188, 23, 33, 72, 196, 13, 50, 55, 59, 62, 65, 69,
                                         86, 88, 92, 94, 113, 115, 142, 168, 172, 38, 148, 189, 205, 9, 25, 27, 39, 42, 54, 61, 68, 76, 79, 147, 157, 197, 200, 24, 85, 100, 107, 125, 135, 150, 169, 184, 186, 203, 30, 138, 182, 208, 2, 17, 29, 89, 91, 111, 132, 143, 151, 0, 5, 15, 57, 71, 75, 82, 93, 120, 123, 130, 155, 161, 171, 175, 199, 206, 19, 22, 37, 45, 70, 73, 112, 124, 129, 139, 170, 174, 176, 183, 1, 6, 14, 21, 47, 67, 87, 90, 96, 104, 108, 145, 154, 158, 164, 181, 190, 207, 10, 18, 36, 49, 63, 110, 114, 118, 141]
         create_confusion_matrix(REPO_PATH, country_list, regional_ordering_index, 'geoguessr')
-        # create_confusion_matrix(REPO_PATH, country_list, regional_ordering_index, 'aerial')
-        # create_confusion_matrix(REPO_PATH, country_list, regional_ordering_index, 'tourist')
+        create_confusion_matrix(REPO_PATH, country_list, regional_ordering_index, 'aerial')
+        create_confusion_matrix(REPO_PATH, country_list, regional_ordering_index, 'tourist')
 
 def create_confusion_matrix(REPO_PATH, country_list, regional_ordering_index, dataset_name):
               
@@ -269,10 +269,10 @@ def run_analysis_of_experiments(REPO_PATH):
         f"{REPO_PATH}/CLIP_Experiment/clip_results/image_from_prompt/aerial",
     ]
 
-    # # Run comparison of prompts for each dataset
-    main(REPO_PATH, [experiment_dirs[0], experiment_dirs[3]], ['geoguessr with default prompt', 'geoguessr with image prompt'], 'mixed', True, 'geoguessr_prompts_mixed')
-    # main(REPO_PATH, [experiment_dirs[1], experiment_dirs[4]], ['tourist with default prompt', 'tourist with image prompt'], 'mixed', True, 'tourist_prompts_mixed')
-    # main(REPO_PATH, [experiment_dirs[2], experiment_dirs[5]], ['aerial with default prompt', 'aerial with image prompt'], 'mixed', True, 'aerial_prompts_mixed')
+    # Run comparison of prompts for each dataset
+    main(REPO_PATH, [experiment_dirs[0], experiment_dirs[3]], ['default prompt', 'extended prompt'], 'mixed', True, 'geoguessr_prompts_mixed')
+    main(REPO_PATH, [experiment_dirs[1], experiment_dirs[4]], ['default prompt', 'extended prompt'], 'mixed', True, 'tourist_prompts_mixed')
+    main(REPO_PATH, [experiment_dirs[2], experiment_dirs[5]], ['default prompt', 'extended prompt'], 'mixed', True, 'aerial_prompts_mixed')
 
     # # Run comparison of datasets for image_from_prompt
     main(REPO_PATH, [experiment_dirs[3], experiment_dirs[4], experiment_dirs[5]], ['geoguessr', 'tourist', 'aerial'], 'mixed', False, 'datasets_image_prompt_mixed')

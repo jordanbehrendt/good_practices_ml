@@ -8,7 +8,7 @@ import ast
 import sys
 sys.path.append('.')
 
-def calculate_country_accuracy(batch_df: pd.DataFrame) -> float:
+def calculate_country_accuracy_clip(batch_df: pd.DataFrame) -> float:
     """
     Calculate accuracy score based on country labels.
 
@@ -36,7 +36,7 @@ def calculate_country_accuracy(country_list: pd.DataFrame, predictions: torch.Te
     predictions = country_list['Country'].iloc[index_predictions].tolist()
     return metrics.accuracy_score(labels, predictions)
 
-def calculate_region_accuracy(repo_path: str, batch_df: pd.DataFrame) -> float:
+def calculate_region_accuracy_clip(repo_path: str, batch_df: pd.DataFrame) -> float:
     """
     Calculate accuracy score based on region labels.
 
@@ -47,7 +47,7 @@ def calculate_region_accuracy(repo_path: str, batch_df: pd.DataFrame) -> float:
     Returns:
         float: Accuracy score based on region labels.
     """
-    unsd_regions = pd.read_csv(os.path.join(repo_path, 'data', 'UNSD_Methodology.csv'))[['Intermediate Region Name','Country or Area']]
+    unsd_regions = pd.read_csv(os.path.join(repo_path, 'data_finding', 'UNSD_Methodology.csv'))[['Intermediate Region Name','Country or Area']]
     merged_df = pd.merge(batch_df, unsd_regions, left_on='Predicted labels', right_on='Country or Area', how='inner')
     merged_df = merged_df.rename(columns={'Intermediate Region Name': 'predicted_region'})
     del merged_df['Country or Area']
@@ -92,11 +92,11 @@ def calculate_metric(repo_path: str, batch_df: pd.DataFrame, metric_name: str) -
     batch_df['Predicted labels'] = batch_df['Probs-Array'].apply(lambda x: country_list['Country'].iloc[np.argmax(np.array(x))])
 
     if metric_name == 'country_acc':
-        return calculate_country_accuracy(batch_df)
+        return calculate_country_accuracy_clip(batch_df)
     elif metric_name == 'region_acc':
-        return calculate_region_accuracy(repo_path, batch_df)
+        return calculate_region_accuracy_clip(repo_path, batch_df)
     elif metric_name == 'mixed':
-        return calculate_country_accuracy(batch_df) * 0.5 + calculate_region_accuracy(repo_path, batch_df) * 0.5
+        return calculate_country_accuracy_clip(batch_df) * 0.5 + calculate_region_accuracy_clip(repo_path, batch_df) * 0.5
     else:
         raise ValueError(f"The metric {metric_name} is not known.")
     
