@@ -52,15 +52,7 @@ def balance_data(df: pd.DataFrame, max_images: int = 1000, min_images: int = 10,
     return balanced_df
 
 
-if __name__ == "__main__":
-    """Creates the test set and the diffrent train/valdiation sets.
-    This script uses the model inputs created using the "generate_image_embeddings.py".
-    """
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--repo_path",  default="/home/lbrenig/Documents/Uni/GPML/good_practices_ml", type=str, help="Path to the repository")
-    args = parser.parse_args()
-
-    REPO_PATH = args.repo_path
+def create_datasets_from_embddings(REPO_PATH, seed=1234):
     with torch.no_grad():
         # read in and balance each dataset
         geo_embed = pd.read_csv(os.path.join(
@@ -72,19 +64,19 @@ if __name__ == "__main__":
 
         # Balance the datasets
         balanced_geo_df = balance_data(
-            df=geo_embed, max_images=2000, min_images=10, seed=1234)
+            df=geo_embed, max_images=2000, min_images=10, seed=seed)
         balanced_aerial_df = balance_data(
-            df=aerial_df, max_images=2000, min_images=2, seed=1234)
+            df=aerial_df, max_images=2000, min_images=2, seed=seed)
         balanced_tourist_df = balance_data(
-            df=tourist_df, max_images=2000, min_images=10, seed=1234)
+            df=tourist_df, max_images=2000, min_images=10, seed=seed)
 
         # Split the datasets into train, validation and test sets
         geo_train_and_val, geo_test = sklearn.model_selection.train_test_split(
-            balanced_geo_df, test_size=0.15, random_state=1234, shuffle=True, stratify=balanced_geo_df["label"])
+            balanced_geo_df, test_size=0.15, random_state=seed, shuffle=True, stratify=balanced_geo_df["label"])
         aerial_train_and_val, aerial_test = sklearn.model_selection.train_test_split(
-            balanced_aerial_df, test_size=0.15, random_state=1234, shuffle=True, stratify=balanced_aerial_df["label"])
+            balanced_aerial_df, test_size=0.15, random_state=seed, shuffle=True, stratify=balanced_aerial_df["label"])
         tourist_train_and_val, tourist_test = sklearn.model_selection.train_test_split(
-            balanced_tourist_df, test_size=0.15, random_state=1234, shuffle=True, stratify=balanced_tourist_df["label"])
+            balanced_tourist_df, test_size=0.15, random_state=seed, shuffle=True, stratify=balanced_tourist_df["label"])
 
         # Get all images of labels not present in the training and validation sets
         geo_labels_with_few_images = geo_train_and_val["label"].value_counts(
@@ -107,13 +99,13 @@ if __name__ == "__main__":
         zero_shot_data = pd.concat(
             [geo_zero_shot_df, aerial_zero_shot_df, tourist_zero_shot_df])
         test_data = pd.concat([test_data, zero_shot_data]).sample(
-            frac=1, random_state=1234)
+            frac=1, random_state=seed)
 
         test_data.to_csv(os.path.join(
             REPO_PATH, "Embeddings/Testing/test_data.csv"), index=False)
 
         weakly_balanced_geo_df = geo_train_and_val.sample(
-            frac=1, random_state=1234)
+            frac=1, random_state=seed)
         weakly_balanced_geo_df.to_csv(os.path.join(
             REPO_PATH, "Embeddings/Training/geo_weakly_balanced.csv"), index=False)
 
@@ -125,19 +117,19 @@ if __name__ == "__main__":
 
         # add the additional images to recreate the class imbalance
         unbalanced_geo_df = pd.concat(
-            [geo_train_and_val, geo_additional_images]).sample(frac=1, random_state=1234)
+            [geo_train_and_val, geo_additional_images]).sample(frac=1, random_state=seed)
         unbalanced_geo_df.to_csv(os.path.join(
             REPO_PATH, "Embeddings/Training/geo_unbalanced.csv"), index=False)
 
         # remove image of classes to have a maximum of 200 images
         strongley_balanced_geo_df = balance_data(
-            df=unbalanced_geo_df, max_images=200, min_images=10, seed=1234).sample(frac=1, random_state=1234)
+            df=unbalanced_geo_df, max_images=200, min_images=10, seed=seed).sample(frac=1, random_state=seed)
         strongley_balanced_geo_df.to_csv(os.path.join(
             REPO_PATH, "Embeddings/Training/geo_strongly_balanced.csv"), index=False)
 
         # add aerial and tourist images to create a weakly balanced mixed dataset
         mixed_weakly_balanced_df = pd.concat(
-            [weakly_balanced_geo_df, aerial_train_and_val, tourist_train_and_val]).sample(frac=1, random_state=1234)
+            [weakly_balanced_geo_df, aerial_train_and_val, tourist_train_and_val]).sample(frac=1, random_state=seed)
         mixed_weakly_balanced_df.to_csv(os.path.join(
             REPO_PATH, "Embeddings/Training/mixed_weakly_balanced.csv"), index=False)
 
@@ -145,10 +137,19 @@ if __name__ == "__main__":
         tourist_percentage = len(tourist_train_and_val)/len(weakly_balanced_geo_df)
         number_of_strongly_balanced_images = len(strongley_balanced_geo_df)*tourist_percentage
         _, small_tourist_df = sklearn.model_selection.train_test_split(
-            tourist_train_and_val, test_size=int(number_of_strongly_balanced_images), random_state=1234, shuffle=True, stratify=tourist_train_and_val["label"])
+            tourist_train_and_val, test_size=int(number_of_strongly_balanced_images), random_state=seed, shuffle=True, stratify=tourist_train_and_val["label"])
         # add aerial and tourist images to create a strongly balanced mixed dataset
         print(len(small_tourist_df)/len(strongley_balanced_geo_df))
         mixed_strongly_balanced_df = pd.concat(
-            [strongley_balanced_geo_df, aerial_train_and_val, small_tourist_df]).sample(frac=1, random_state=1234)
+            [strongley_balanced_geo_df, aerial_train_and_val, small_tourist_df]).sample(frac=1, random_state=seed)
         mixed_strongly_balanced_df.to_csv(os.path.join(
             REPO_PATH, "Embeddings/Training/mixed_strongly_balanced.csv"), index=False)
+
+if __name__ == "__main__":
+    """Creates the test set and the diffrent train/valdiation sets.
+    This script uses the model inputs created using the "generate_image_embeddings.py".
+    """
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--repo_path",  default="/home/lbrenig/Documents/Uni/GPML/good_practices_ml", type=str, help="Path to the repository")
+    args = parser.parse_args()
+    create_datasets_from_embddings(args.repo_path)

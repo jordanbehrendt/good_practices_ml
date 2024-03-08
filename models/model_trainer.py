@@ -24,17 +24,18 @@ import math
 import matplotlib.pyplot as plt
 from matplotlib.colors import LogNorm, Normalize
 import time
-import threading
+import multiprocessing
 
 
 
 class ModelTrainer():
 
-    def __init__(self, model: torch.nn.Module, train_dataframe, country_list, region_list, num_folds=10, num_epochs=3, learning_rate=0.001, starting_regional_loss_portion=0.9, regional_loss_decline=0.2, train_dataset_name="Balanced", batch_size=260) -> None:
+    def __init__(self, model: torch.nn.Module, train_dataframe, country_list, region_list, num_folds=10, num_epochs=3, learning_rate=0.001, starting_regional_loss_portion=0.9, regional_loss_decline=0.2, train_dataset_name="Balanced", batch_size=260, seed=123) -> None:
         self.model = model
         self.device = torch.device(
             "cuda:0" if torch.cuda.is_available() else "cpu")
         self.model.to(self.device)
+        torch.manual_seed(seed)
         self.training_dataset_name = train_dataset_name
         self.train_dataframe = train_dataframe
         self.num_folds = num_folds
@@ -55,8 +56,44 @@ class ModelTrainer():
 
         # self.region_criterion = Regional_Loss(self.country_list, self.region_list)
         self.writer = SummaryWriter(
-            log_dir=f'runs/{self.training_dataset_name[:-4]}/starting_regional_loss_portion-{starting_regional_loss_portion}/regional_loss_decline-{regional_loss_decline}/{self.timestamp}')
+            log_dir=f'runs/seed_{seed}/{self.training_dataset_name[:-4]}/starting_regional_loss_portion-{starting_regional_loss_portion}/regional_loss_decline-{regional_loss_decline}/{self.timestamp}')
         self.start_training()
+
+    def add_metrics_and_plot_tb(self, outputs, targets, name, step_index, target_idx):
+        per_class_precision, per_class_recall, per_class_f1, _ = self.criterion.calculate_metrics_per_class(outputs, targets)
+        self.writer.add_scalar(f'{name} avg Class Precision', per_class_precision.mean(), step_index)
+        self.writer.add_scalar(f'{name} avg Class Recall', per_class_recall.mean(), step_index)
+        self.writer.add_scalar(f'{name} avg Class F1', per_class_f1.mean(), step_index)
+
+        metrics_df = pd.DataFrame({'Precision': per_class_precision, 'Recall': per_class_recall, 'Fscore': per_class_f1})
+        metrics_df.index = self.country_list.loc[list(set(target_idx)),'Country']
+        
+        ignored_classes = metrics_df[(metrics_df['Precision'] == 0) & (metrics_df['Recall'] == 0)]
+        metrics_df = metrics_df.drop(ignored_classes.index)
+
+        bar_plot = metrics_df.plot(kind='bar', xlabel='Class', ylabel='Metrics', title='Metrics per Country, {len(ignored_classes)} ignored countries.').get_figure()
+        self.writer.add_figure(f'{name} Metrics per Country', bar_plot, step_index)
+        self.writer.add_scalar(f'{name} Number of Ignored Classes', len(ignored_classes), step_index)
+
+        # Calculate metrics per region
+        per_region_precision, per_region_recall, per_region_f1, _, region_index = self.criterion.calculate_metrics_per_region(outputs, targets)
+        self.writer.add_scalar(f'{name} avg Region Precision', per_region_precision.mean(), step_index)
+        self.writer.add_scalar(f'{name} avg Region Recall', per_region_recall.mean(), step_index)
+        self.writer.add_scalar(f'{name} avg Region F1', per_region_f1.mean(), step_index)
+        region_metrics_df = pd.DataFrame({'Precision': per_region_precision, 'Recall': per_region_recall, 'Fscore': per_region_f1})
+
+
+        region_metrics_df.index = region_index
+        
+        ignored_regions = region_metrics_df[(region_metrics_df['Precision'] == 0) & (region_metrics_df['Recall'] == 0)]
+        region_metrics_df = region_metrics_df.drop(ignored_regions.index)
+
+        region_bar_plot = region_metrics_df.plot(kind='bar', xlabel='Region', ylabel='Metrics', title=f'Metrics per Region, {len(ignored_regions)} ignored regions.').get_figure()
+        self.writer.add_figure(f'{name} Metrics per Region', region_bar_plot, step_index)
+        self.writer.add_scalar(f'{name} Number of Ignored Regions', len(ignored_regions), step_index)
+        self.writer.add_text(f'{name} List of Ignored Regions', ';'.join(ignored_regions.index.to_list()), step_index)
+        self.writer.flush()
+
 
     def train_one_fold(self, train_loader):
         """Train one Epoch of the model. Based on Pytorch Tutorial.
@@ -119,21 +156,10 @@ class ModelTrainer():
             'Validation Accuracy', avg_validation_accuracy, epoch_index*self.num_folds + fold_index)
         self.writer.add_scalar('Validation Regional Accuracy',
                                avg_validation_region_accuracy, epoch_index*self.num_folds + fold_index)
+        target_idx = [self.country_list[self.country_list['Country'] == target].index[0] for target in targets]
+        self.add_metrics_and_plot_tb(outputs, targets, "Epoch Validation", epoch_index*self.num_folds + fold_index, target_idx)
         
-        per_class_precision, per_class_recall,per_class_f1, _ = self.criterion.calculate_metrics_per_class(outputs, targets)
-        self.writer.add_scalar('Validation avg Class Precision', per_class_precision.mean(), epoch_index*self.num_folds + fold_index)
-        self.writer.add_scalar('Validation avg Class Recall', per_class_recall.mean(), epoch_index*self.num_folds + fold_index)
-        self.writer.add_scalar('Validation avg Class F1', per_class_f1.mean(), epoch_index*self.num_folds + fold_index)
-
-        per_region_precision, per_region_recall, per_region_f1, _ = self.criterion.calculate_metrics_per_region(outputs, targets)
-        self.writer.add_scalar('Validation avg Region Precision', per_region_precision.mean(), epoch_index*self.num_folds + fold_index)
-        self.writer.add_scalar('Validation avg Region Recall', per_region_recall.mean(), epoch_index*self.num_folds + fold_index)
-        self.writer.add_scalar('Validation avg Region F1', per_region_f1.mean(), epoch_index*self.num_folds + fold_index)
-
-        with torch.no_grad():
-            predicitions_idx = torch.argmax(outputs, axis=1).tolist()
-            target_idx = [self.country_list[self.country_list['Country'] == target].index[0] for target in targets]
-        return target_idx, predicitions_idx
+        return targets, outputs
         # self.writer.add_scalar('Validation Loss', avg_validation_loss, epoch_index*self.num_folds + fold_index)
 
         # torch.save(self.model.state_dict(),f'saved_models/model_{self.training_dataset_name}_epoch_{epoch_index}_batch_{i}')
@@ -143,8 +169,8 @@ class ModelTrainer():
         validation_size = math.floor(
             len(self.train_dataframe.index) / self.num_folds)
         for epoch_index in range(self.num_epochs):
-            validation_targets = []
-            validation_predictions = []
+            targets = []
+            outputs = torch.tensor([], dtype=torch.float32, device=self.device)
             if epoch_index > 0:
                 self.regional_portion = self.regional_loss_decline * self.regional_portion
             for fold_index in range(self.num_folds):
@@ -176,8 +202,8 @@ class ModelTrainer():
                     fold_validation_df, 'validation')
                 # validation_loader = DataLoader(validation_dataset, shuffle=False)
                 target, prediction = self.validate(epoch_index, fold_index, validation_dataset)
-                validation_targets.extend(target)
-                validation_predictions.extend(prediction)
+                targets.extend(target)
+                outputs = torch.cat((outputs, prediction), dim=0)
 
                 
                 # self.writer.add_scalars('Training vs. Validation Loss',
@@ -186,18 +212,17 @@ class ModelTrainer():
                 # print(f"Epoch [{epoch_index+1}/{self.num_epochs}] - Fold [{fold_index+1}/{self.num_folds}] - Average Train Loss: {avg_training_loss:.4f} - Val Loss: {avg_validation_loss:.4f}")
                 self.writer.flush()
             if fold_index == self.num_folds - 1:
-              self.createConfusionMatrix(validation_targets, validation_predictions, "Validation Confusion Matrix", None)
-
-
+                with torch.no_grad():
+                    predicitions_idx = torch.argmax(outputs, axis=1).tolist()
+                    target_idx = [self.country_list[self.country_list['Country'] == target].index[0] for target in targets]
+                    self.add_metrics_and_plot_tb(outputs, targets, "Epoch Validation", epoch_index*self.num_folds, target_idx)
+                    self.createConfusionMatrix(target_idx, predicitions_idx, "Validation Confusion Matrix", epoch_index*self.num_folds)
+        
             torch.save(self.model.state_dict,
                        f'saved_models/model_{self.training_dataset_name}_{timestamp}_epoch_{epoch_index+1}')
-        validation_targets = []
-        validation_predictions = []
 
 
-    def test_model(self, test_data_df):
-        test_dataset = load_dataset.EmbeddingDataset_from_df(
-                    test_data_df, 'test')
+    def test_model(self, test_dataset):
         inputs, targets = test_dataset[:]
         outputs = self.model(inputs)
         
@@ -210,27 +235,12 @@ class ModelTrainer():
             'Test Accuracy', avg_test_accuracy, )
         self.writer.add_scalar('Test Regional Accuracy',
                                avg_test_region_accuracy)
-        
-        per_class_precision, per_class_recall,per_class_f1, _ = self.criterion.calculate_metrics_per_class(outputs, targets)
-        self.writer.add_scalar('Test avg Class Precision', per_class_precision.mean())
-        self.writer.add_scalar('Test avg Class Recall', per_class_recall.mean())
-        self.writer.add_scalar('Test avg Class F1', per_class_f1.mean())
-        per_region_precision, per_region_recall, per_region_f1, _ = self.criterion.calculate_metrics_per_region(outputs, targets)
-        self.writer.add_scalar('Test avg Region Precision', per_region_precision.mean())
-        self.writer.add_scalar('Test avg Region Recall', per_region_recall.mean())
-        self.writer.add_scalar('Test avg Region F1', per_region_f1.mean())
-
-
-        metrics_df = pd.DataFrame({'Precision': per_class_precision, 'Recall': per_class_recall, 'Fscore': per_class_f1})
-        metrics_df.index = self.country_list['Country']
-        metrics_df.plot(kind='bar', xlabel='Class', ylabel='Metrics', title='Metrics per Country')
-        self.writer.add_figure('Metrics per Class', self.plot_metrics_per_class(per_class_precision, per_class_recall, per_class_f1), global_step=0)
 
         with torch.no_grad():
             predicitions_idx = torch.argmax(outputs, axis=1).tolist()
             target_idx = [self.country_list[self.country_list['Country'] == target].index[0] for target in targets]
-            self.createConfusionMatrix(
-                target_idx, predicitions_idx, "Confusion Matrix", None)
+            self.createConfusionMatrix(target_idx, predicitions_idx, "Test Confusion Matrix", None)
+            self.add_metrics_and_plot_tb(outputs, targets, "Test", None, target_idx)
         print('Training Dataset {} Test Accuracy: {}, Test Regional Accuracy: {}'.format(
             self.training_dataset_name, avg_test_accuracy, avg_test_region_accuracy))
 
@@ -352,7 +362,7 @@ class ModelTrainer():
         return loss
 
 
-def create_and_train_model(REPO_PATH: str):
+def create_and_train_model(REPO_PATH: str, seed: int = 1234):
     """
     Creates and trains a model using the specified repository path.
 
@@ -400,14 +410,13 @@ def create_and_train_model(REPO_PATH: str):
         for i in range(0, len(hyperparameters)):
             model = nn.FinetunedClip()
             trained_model = ModelTrainer(model, train_df, country_list, region_list,
-                                         batch_size=bs, num_epochs=15,
+                                         batch_size=bs, num_epochs=1,
                                          starting_regional_loss_portion=hyperparameters[
                                              i]['starting_regional_loss_portion'],
                                          regional_loss_decline=hyperparameters[i]['regional_loss_decline'],
-                                         train_dataset_name=elem)
-            trained_model.test_model(test_loader)
+                                         train_dataset_name=elem, seed=seed)
+            trained_model.test_model(test_dataset)
     print("END")
-
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Pretrained Model')
