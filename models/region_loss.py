@@ -131,7 +131,9 @@ class Regional_Loss(torch.nn.Module):
         # calculate the precision, recall, F1-score, and support of the country predictions
         precision, recall, fscore, support = score(target_countries_idxs, country_predictions_idxs, zero_division=0)
         
-        return precision, recall, fscore, support
+        country_metrics_index = np.take(self.country_list["Country"].unique(), np.unique(target_countries_idxs))
+
+        return precision, recall, fscore, support, country_metrics_index
 
     def calculate_metrics_per_region(self, outputs, targets):
         """

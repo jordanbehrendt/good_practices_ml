@@ -59,27 +59,27 @@ class ModelTrainer():
             log_dir=f'runs/seed_{seed}/{self.training_dataset_name[:-4]}/starting_regional_loss_portion-{starting_regional_loss_portion}/regional_loss_decline-{regional_loss_decline}/{self.timestamp}')
         self.start_training()
 
-    def add_metrics_and_plot_tb(self, outputs, targets, name, step_index, target_idx):
-        per_class_precision, per_class_recall, per_class_f1, _ = self.criterion.calculate_metrics_per_class(outputs, targets)
-        self.writer.add_scalar(f'{name} avg Class Precision', per_class_precision.mean(), step_index)
-        self.writer.add_scalar(f'{name} avg Class Recall', per_class_recall.mean(), step_index)
-        self.writer.add_scalar(f'{name} avg Class F1', per_class_f1.mean(), step_index)
+    def add_metrics_and_plot_tb(self, outputs, targets, name, step):
+        per_class_precision, per_class_recall, per_class_f1, _, target_idx = self.criterion.calculate_metrics_per_class(outputs, targets)
+        self.writer.add_scalar(f'{name} avg Class Precision', per_class_precision.mean(), step)
+        self.writer.add_scalar(f'{name} avg Class Recall', per_class_recall.mean(), step)
+        self.writer.add_scalar(f'{name} avg Class F1', per_class_f1.mean(), step)
 
         metrics_df = pd.DataFrame({'Precision': per_class_precision, 'Recall': per_class_recall, 'Fscore': per_class_f1})
-        metrics_df.index = self.country_list.loc[list(set(target_idx)),'Country']
+        metrics_df.index = target_idx
         
         ignored_classes = metrics_df[(metrics_df['Precision'] == 0) & (metrics_df['Recall'] == 0)]
         metrics_df = metrics_df.drop(ignored_classes.index)
 
         bar_plot = metrics_df.plot(kind='bar', xlabel='Class', ylabel='Metrics', title='Metrics per Country, {len(ignored_classes)} ignored countries.').get_figure()
-        self.writer.add_figure(f'{name} Metrics per Country', bar_plot, step_index)
-        self.writer.add_scalar(f'{name} Number of Ignored Classes', len(ignored_classes), step_index)
+        self.writer.add_figure(f'{name} Metrics per Country', bar_plot, step)
+        self.writer.add_scalar(f'{name} Number of Ignored Classes', len(ignored_classes), step)
 
         # Calculate metrics per region
         per_region_precision, per_region_recall, per_region_f1, _, region_index = self.criterion.calculate_metrics_per_region(outputs, targets)
-        self.writer.add_scalar(f'{name} avg Region Precision', per_region_precision.mean(), step_index)
-        self.writer.add_scalar(f'{name} avg Region Recall', per_region_recall.mean(), step_index)
-        self.writer.add_scalar(f'{name} avg Region F1', per_region_f1.mean(), step_index)
+        self.writer.add_scalar(f'{name} avg Region Precision', per_region_precision.mean(), step)
+        self.writer.add_scalar(f'{name} avg Region Recall', per_region_recall.mean(), step)
+        self.writer.add_scalar(f'{name} avg Region F1', per_region_f1.mean(), step)
         region_metrics_df = pd.DataFrame({'Precision': per_region_precision, 'Recall': per_region_recall, 'Fscore': per_region_f1})
 
 
@@ -89,9 +89,9 @@ class ModelTrainer():
         region_metrics_df = region_metrics_df.drop(ignored_regions.index)
 
         region_bar_plot = region_metrics_df.plot(kind='bar', xlabel='Region', ylabel='Metrics', title=f'Metrics per Region, {len(ignored_regions)} ignored regions.').get_figure()
-        self.writer.add_figure(f'{name} Metrics per Region', region_bar_plot, step_index)
-        self.writer.add_scalar(f'{name} Number of Ignored Regions', len(ignored_regions), step_index)
-        self.writer.add_text(f'{name} List of Ignored Regions', ';'.join(ignored_regions.index.to_list()), step_index)
+        self.writer.add_figure(f'{name} Metrics per Region', region_bar_plot, step)
+        self.writer.add_scalar(f'{name} Number of Ignored Regions', len(ignored_regions), step)
+        self.writer.add_text(f'{name} List of Ignored Regions', ';'.join(ignored_regions.index.to_list()), step)
         self.writer.flush()
 
 
@@ -156,8 +156,10 @@ class ModelTrainer():
             'Validation Accuracy', avg_validation_accuracy, epoch_index*self.num_folds + fold_index)
         self.writer.add_scalar('Validation Regional Accuracy',
                                avg_validation_region_accuracy, epoch_index*self.num_folds + fold_index)
-        target_idx = [self.country_list[self.country_list['Country'] == target].index[0] for target in targets]
-        self.add_metrics_and_plot_tb(outputs, targets, "Epoch Validation", epoch_index*self.num_folds + fold_index, target_idx)
+        try:
+            self.add_metrics_and_plot_tb(outputs, targets, "Epoch Validation", epoch_index*self.num_folds + fold_index)
+        except Exception as e:
+            print(e)
         
         return targets, outputs
         # self.writer.add_scalar('Validation Loss', avg_validation_loss, epoch_index*self.num_folds + fold_index)
@@ -215,10 +217,13 @@ class ModelTrainer():
                 with torch.no_grad():
                     predicitions_idx = torch.argmax(outputs, axis=1).tolist()
                     target_idx = [self.country_list[self.country_list['Country'] == target].index[0] for target in targets]
-                    self.add_metrics_and_plot_tb(outputs, targets, "Epoch Validation", epoch_index*self.num_folds, target_idx)
+                    try:
+                        self.add_metrics_and_plot_tb(outputs, targets, "Epoch Validation", epoch_index*self.num_folds)
+                    except Exception as e:
+                        print(e)
                     self.createConfusionMatrix(target_idx, predicitions_idx, "Validation Confusion Matrix", epoch_index*self.num_folds)
         
-            torch.save(self.model.state_dict,
+            torch.save(self.model.state_dict(),
                        f'saved_models/model_{self.training_dataset_name}_{timestamp}_epoch_{epoch_index+1}')
 
 
@@ -240,7 +245,10 @@ class ModelTrainer():
             predicitions_idx = torch.argmax(outputs, axis=1).tolist()
             target_idx = [self.country_list[self.country_list['Country'] == target].index[0] for target in targets]
             self.createConfusionMatrix(target_idx, predicitions_idx, "Test Confusion Matrix", None)
-            self.add_metrics_and_plot_tb(outputs, targets, "Test", None, target_idx)
+            try:
+                self.add_metrics_and_plot_tb(outputs, targets, "Test", None)
+            except Exception as e:
+                print(e)
         print('Training Dataset {} Test Accuracy: {}, Test Regional Accuracy: {}'.format(
             self.training_dataset_name, avg_test_accuracy, avg_test_region_accuracy))
 
