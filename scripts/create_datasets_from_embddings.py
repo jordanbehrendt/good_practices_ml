@@ -95,9 +95,16 @@ def create_datasets_from_embddings(REPO_PATH, seed=1234):
             tourist_labels_with_few_images)]
 
         # Concatenate and shuffle all test and zero_shot datasets
-        test_data = pd.concat([geo_test, aerial_test, tourist_test])
+        test_data = pd.concat([geo_test, aerial_test, tourist_test]).sample(
+            frac=1, random_state=seed)
         zero_shot_data = pd.concat(
-            [geo_zero_shot_df, aerial_zero_shot_df, tourist_zero_shot_df])
+            [geo_zero_shot_df, aerial_zero_shot_df, tourist_zero_shot_df]).sample(
+            frac=1, random_state=seed)
+        
+        test_data.to_csv(os.path.join(
+            REPO_PATH, "Embeddings/Testing/knwon_test_data.csv"), index=False)
+        zero_shot_data.to_csv(os.path.join(
+            REPO_PATH, "Embeddings/Testing/zero_shot_test_data.csv"), index=False)
         test_data = pd.concat([test_data, zero_shot_data]).sample(
             frac=1, random_state=seed)
 

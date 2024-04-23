@@ -1,8 +1,8 @@
 #!/bin/bash
 
 # Set the source and destination directories
-source_dir="/home/lbrenig/Documents/Uni/GPML/good_practices_ml/runs"
-destination_dir="/home/lbrenig/Documents/Uni/GPML/good_practices_ml/runs/experiment1"
+source_dir="/media/leon/Samsung_T5/Uni/good_practices_ml/runs/all_seeds"
+destination_dir="/media/leon/Samsung_T5/Uni/good_practices_ml/runs/merged_seeeds"
 
 # Loop through all the files in the source directory
 for file in "$source_dir"/*/*/*/*/*; do
