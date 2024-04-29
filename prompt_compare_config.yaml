@@ -1,5 +1,0 @@
-min_img: 20
-max_img: 5000
-batch_size: 450
-test_size: 0.2
-random_seed: 1234
