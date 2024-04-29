@@ -23,12 +23,12 @@ def run_experiments(DATA_PATH: str, REPO_PATH: str):
     geoguessr = geoguessr.head(int(len(geoguessr)*0.2))
     geoguessr = load_dataset.ImageDataset_from_df(geoguessr, preprocessor, name= "geoguessr")
     datasets.append(geoguessr)
-    # bigfoto = load_dataset.load_data(f'{DATA_PATH}/bigfoto/', 0, 5000, False, False, seed)
-    # bigfoto = load_dataset.ImageDataset_from_df(bigfoto, preprocessor, name= "tourist")
-    # datasets.append(bigfoto)
-    # aerialmap = load_dataset.load_data(f'{DATA_PATH}/open_aerial_map/', 0, 5000, False, False, seed)
-    # aerialmap = load_dataset.ImageDataset_from_df(aerialmap, preprocessor, name= "aerial")
-    # datasets.append(aerialmap)
+    # tourist = load_dataset.load_data(f'{DATA_PATH}/tourist/', 0, 5000, False, False, seed)
+    # tourist = load_dataset.ImageDataset_from_df(tourist, preprocessor, name= "tourist")
+    # datasets.append(tourist)
+    # aerial = load_dataset.load_data(f'{DATA_PATH}/aerial/', 0, 5000, False, False, seed)
+    # aerial = load_dataset.ImageDataset_from_df(aerial, preprocessor, name= "aerial")
+    # datasets.append(aerial)
 
     default_prompt = lambda x: f"{x}"
     image_from_prompt = lambda x: f"This image shows the country {x}"
@@ -37,12 +37,12 @@ def run_experiments(DATA_PATH: str, REPO_PATH: str):
 
     geoguessr_batch_size = 430
     batch_sizes.append(geoguessr_batch_size)
-    # bigfoto_batch_size = 115
-    # batch_sizes.append(bigfoto_batch_size)
-    # aerialmap_batch_size = 14
-    # batch_sizes.append(aerialmap_batch_size)
+    # tourist_batch_size = 115
+    # batch_sizes.append(tourist_batch_size)
+    # aerial_batch_size = 14
+    # batch_sizes.append(aerial_batch_size)
 
-    country_list = pd.read_csv(f'{REPO_PATH}/data_finding/country_list.csv')["Country"].to_list()
+    country_list = pd.read_csv(f'{REPO_PATH}/country_list/country_list_region_and_continent.csv')["Country"].to_list()
 
     folder_path = f'{REPO_PATH}/CLIP_Experiment'
     model_name = 'clip_results'

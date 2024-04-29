@@ -120,7 +120,7 @@
                 "--yaml_path",
                 "/home/kieran/Documents/Uni/WiSe23-24/Good_Practices_of_Machine_Learning/good_practices_ml/paths.yaml",
                 "--dataset_dir",
-                "/home/kieran/Documents/Uni/WiSe23-24/Good_Practices_of_Machine_Learning/good_practices_ml/data/open_aerial_map",
+                "/home/kieran/Documents/Uni/WiSe23-24/Good_Practices_of_Machine_Learning/good_practices_ml/data/aerial",
                 "--dataset_name",
                 "OpenAerialMap"
             ]

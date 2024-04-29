@@ -33,7 +33,7 @@ random.seed(9)
 
 def get_travel_images(REPO_PATH):
     """Scrapes images from bigfoto.com using the paths saved in the file regions.json
-    Saves the files into the folder {REPO_PATH}/data/bigfoto
+    Saves the files into the folder {REPO_PATH}/data/tourist
 
     Args:
         REPO_PATH (str): Path to project folder.
@@ -41,7 +41,7 @@ def get_travel_images(REPO_PATH):
     Returns:
         None
     """
-    regions_file = open("{}/data_finding/regions.json".format(REPO_PATH))
+    regions_file = open("{}/data_collection/regions.json".format(REPO_PATH))
     regions_json = json.load(regions_file)
     regions = regions_json["regions"]
     for region in regions:
@@ -57,10 +57,10 @@ def get_travel_images(REPO_PATH):
                     links = [elem.get_attribute('href') for elem in elems]
                     for i in range(0,len(links)):
                         img_data = requests.get(links[i]).content
-                        folder_path = "{}/data/bigfoto/{}".format(REPO_PATH, country['name'])
+                        folder_path = "{}/data/tourist/{}".format(REPO_PATH, country['name'])
                         if not os.path.isdir(folder_path):
                             os.makedirs(folder_path)
-                        with open("{}/data/bigfoto/{}/{}-{}.png".format(REPO_PATH, country['name'],link_path.replace('/','-'),i), 'wb') as handler:
+                        with open("{}/data/tourist/{}/{}-{}.png".format(REPO_PATH, country['name'],link_path.replace('/','-'),i), 'wb') as handler:
                             handler.write(img_data)
                 except TimeoutException:
                     print("Loading of result page took too much time!")
@@ -76,11 +76,11 @@ def find_interior_boxes(REPO_PATH):
     Returns:
         None
     """
-    polygon_file = open("{}/data_finding/ne_110m_admin_0_countries.json".format(REPO_PATH))
+    polygon_file = open("{}/data_collection/ne_110m_admin_0_countries.json".format(REPO_PATH))
     polygons_json = json.load(polygon_file)
     countries_polygons = polygons_json["features"]
 
-    country_panda = pandas.read_csv('{}/data_finding/country_list.csv'.format(REPO_PATH))
+    country_panda = pandas.read_csv('{}/country_list/country_list_region_and_continent.csv'.format(REPO_PATH))
     interior_boxes = []
     for index, row in country_panda.iterrows():
         polygon_object = []
@@ -131,7 +131,7 @@ def find_interior_boxes(REPO_PATH):
         else:
             print(row['Country'])         
     interior_panda = pandas.DataFrame(interior_boxes)
-    interior_panda.to_csv("{}/data_finding/interior_boxes.csv".format(REPO_PATH))
+    interior_panda.to_csv("{}/data_collection/interior_boxes.csv".format(REPO_PATH))
 
 
 def get_rectangle(polygon, center):
@@ -166,7 +166,7 @@ def get_rectangle(polygon, center):
 
 def get_aerial_images(REPO_PATH):
     """Finds images from openaerialmap.org using interior_boxes saved in interior_boxes.csv and bounding boxes (for a few island or peninsular countries) saved in island_bounding_boxes.csv
-    Saves the files into the folder {REPO_PATH}/data/open_aerial_map
+    Saves the files into the folder {REPO_PATH}/data/aerial
 
     Args:
         REPO_PATH (str): Path to project folder.
@@ -174,7 +174,7 @@ def get_aerial_images(REPO_PATH):
     Returns:
         None
     """
-    interior_boxes = pandas.read_csv('{}/data_finding/interior_boxes.csv'.format(REPO_PATH))
+    interior_boxes = pandas.read_csv('{}/data_collection/interior_boxes.csv'.format(REPO_PATH))
 
     for index, row in interior_boxes.iterrows():
         count = 0
@@ -187,7 +187,7 @@ def get_aerial_images(REPO_PATH):
                 new_count = get_images_from_bbox(el, count, row["Country"], REPO_PATH)   
                 count = new_count
 
-    island_bounding_boxes = pandas.read_csv('{}/data_finding/island_bounding_boxes.csv'.format(REPO_PATH))
+    island_bounding_boxes = pandas.read_csv('{}/data_collection/island_bounding_boxes.csv'.format(REPO_PATH))
     for index, row in island_bounding_boxes.iterrows():
         get_images_from_bbox([row['x1'], row['y1'], row['x2'], row['y2']], 0, "islandbbox-{}".format(row["Country"]), REPO_PATH) 
 
@@ -212,11 +212,11 @@ def get_images_from_bbox(bbox, count, country, REPO_PATH):
         if len(images) != 0:
             random.shuffle(images)
             only_country = country.split('-')[-1]
-            if not os.path.isdir("{}/data/open_aerial_map/{}/".format(REPO_PATH, only_country)):
-                os.makedirs("{}/data/open_aerial_map/{}/".format(REPO_PATH, only_country))
+            if not os.path.isdir("{}/data/aerial/{}/".format(REPO_PATH, only_country)):
+                os.makedirs("{}/data/aerial/{}/".format(REPO_PATH, only_country))
             for i in range(0,min(20,len(images))):
                     img_data = requests.get(images[i]).content
-                    with open("{}/data/open_aerial_map/{}/aerial-{}-{}.png".format(REPO_PATH, only_country,country,count), 'wb') as handler:
+                    with open("{}/data/aerial/{}/aerial-{}-{}.png".format(REPO_PATH, only_country,country,count), 'wb') as handler:
                         handler.write(img_data)
                     count += 1
     return count

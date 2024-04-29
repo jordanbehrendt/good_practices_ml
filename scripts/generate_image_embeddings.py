@@ -16,7 +16,7 @@ device = "cuda" if torch.cuda.is_available() else "cpu"
 model, preprocessor = clip.load("ViT-B/32", device=device)
 
 parser = argparse.ArgumentParser()
-parser.add_argument("--bigfoto_data_path", type=str, help="Path to BigFoto dataset")
+parser.add_argument("--tourist_data_path", type=str, help="Path to Tourist dataset")
 parser.add_argument("--geoguessr_data_path", type=str, help="Path to Geoguessr dataset")
 parser.add_argument("--aerial_data_path", type=str, help="Path to Aerial dataset")
 parser.add_argument("--REPO_PATH", type=str, help="Path to the repository")
@@ -43,17 +43,17 @@ def calculate_distances(embedding_str: str, prompt_embeddings: list):
 
 # load image data
 geoguessr_df = load_dataset.load_data(DATA_PATH=args.geoguessr_data_path)
-bigfoto_df = load_dataset.load_data(DATA_PATH=args.bigfoto_data_path)
+tourist_df = load_dataset.load_data(DATA_PATH=args.tourist_data_path)
 aerial_df = load_dataset.load_data(DATA_PATH=args.aerial_data_path)
 
 # generate Prompts
-country_list = pd.read_csv(os.path.join(args.REPO_PATH,"data_finding/country_list.csv"))["Country"].to_list()
+country_list = pd.read_csv(os.path.join(args.REPO_PATH,"country_list/country_list_region_and_continent.csv"))["Country"].to_list()
 country_prompt = list(map((lambda x: f"This image shows the country {x}"),country_list))
 
 with torch.no_grad():
     # generate image embeddings
     geoguessr_df["Embedding"] = geoguessr_df["path"].apply(lambda path: model.encode_image(preprocessor(PIL.Image.open(path)).unsqueeze(0).to(device)))
-    bigfoto_df["Embedding"] = bigfoto_df["path"].apply(lambda path: model.encode_image(preprocessor(PIL.Image.open(path)).unsqueeze(0).to(device)))
+    tourist_df["Embedding"] = tourist_df["path"].apply(lambda path: model.encode_image(preprocessor(PIL.Image.open(path)).unsqueeze(0).to(device)))
     aerial_df["Embedding"] = aerial_df["path"].apply(lambda path: model.encode_image(preprocessor(PIL.Image.open(path)).unsqueeze(0).to(device)))
 
     # generate prompt embeddings
@@ -66,11 +66,11 @@ with torch.no_grad():
 # generate model inputs, by appending distances to the prompt embeddings
 geoguessr_df["model_input"] = geoguessr_df["Embedding"].apply(lambda x: calculate_distances(x, prompt_embedding))
 aerial_df["model_input"] = aerial_df["Embedding"].apply(lambda x: calculate_distances(x, prompt_embedding))
-bigfoto_df["model_input"] = bigfoto_df["Embedding"].apply(lambda x: calculate_distances(x, prompt_embedding))
+tourist_df["model_input"] = tourist_df["Embedding"].apply(lambda x: calculate_distances(x, prompt_embedding))
 
 
 geoguessr_df.to_csv(os.path.join(args.REPO_PATH,"Image/geoguessr_embeddings.csv"))
-bigfoto_df.to_csv(os.path.join(args.REPO_PATH,"Image/bigfoto_embeddings.csv"))
+tourist_df.to_csv(os.path.join(args.REPO_PATH,"Image/tourist_embeddings.csv"))
 aerial_df.to_csv(os.path.join(args.REPO_PATH,"Image/aerial_embeddings.csv"))
 
 torch.save(simple_embedding, os.path.join(args.REPO_PATH,'/Embeddings/Prompt/prompt_simple_embedding.pt'))

@@ -1,6 +1,6 @@
 import pandas as pd
 
-country_list_region = pd.read_csv("./data_finding/country_list_region.csv")
+country_list_region = pd.read_csv("./country_list/country_list_region.csv")
 
 region_index_list = []
 

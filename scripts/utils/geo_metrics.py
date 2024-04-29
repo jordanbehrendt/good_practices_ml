@@ -87,7 +87,7 @@ def calculate_metric(repo_path: str, batch_df: pd.DataFrame, metric_name: str) -
     Returns:
         float: Calculated metric value.
     """
-    country_list = pd.read_csv('/home/kieran/Documents/Uni/WiSe23-24/Good_Practices_of_Machine_Learning/good_practices_ml/data_finding/country_list.csv')
+    country_list = pd.read_csv('/home/kieran/Documents/Uni/WiSe23-24/Good_Practices_of_Machine_Learning/good_practices_ml/country_list/country_list_region_and_continent.csv')
     batch_df['Probs-Array'] = batch_df['All-Probs'].apply(lambda x: ast.literal_eval(x))
     batch_df['Predicted labels'] = batch_df['Probs-Array'].apply(lambda x: country_list['Country'].iloc[np.argmax(np.array(x))])
 
