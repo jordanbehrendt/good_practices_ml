@@ -58,7 +58,7 @@ def create_datasets_from_embddings(REPO_PATH, seed=1234):
         geo_embed = pd.read_csv(os.path.join(
             REPO_PATH, "Embeddings/Image/geoguessr_embeddings.csv"))
         aerial_df = pd.read_csv(os.path.join(
-            REPO_PATH, "Embeddings/Image/aerial_map_embeddings.csv"))
+            REPO_PATH, "Embeddings/Image/aerial_embeddings.csv"))
         tourist_df = pd.read_csv(os.path.join(
             REPO_PATH, "Embeddings/Image/tourist_embeddings.csv"))
 

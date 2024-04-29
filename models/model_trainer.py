@@ -381,8 +381,8 @@ def create_and_train_model(REPO_PATH: str, seed: int = 1234):
         None
     """
 
-    country_list = f'{REPO_PATH}/data_finding/country_list_region.csv'
-    region_list = f'{REPO_PATH}/data_finding/UNSD_Methodology.csv'
+    country_list = f'{REPO_PATH}/country_list/country_list_region.csv'
+    region_list = f'{REPO_PATH}/country_list/UNSD_Methodology.csv'
 
     testing_directory = f'{REPO_PATH}/Embeddings/Testing'
     test_df = pd.read_csv(f'{testing_directory}/test_data.csv')

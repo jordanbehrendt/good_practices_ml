@@ -42,7 +42,7 @@ def run_experiments(DATA_PATH: str, REPO_PATH: str):
     # aerialmap_batch_size = 14
     # batch_sizes.append(aerialmap_batch_size)
 
-    country_list = pd.read_csv(f'{REPO_PATH}/data_finding/country_list.csv')["Country"].to_list()
+    country_list = pd.read_csv(f'{REPO_PATH}/country_list/country_list_region_and_continent.csv')["Country"].to_list()
 
     folder_path = f'{REPO_PATH}/CLIP_Experiment'
     model_name = 'clip_results'
