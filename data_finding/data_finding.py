@@ -33,7 +33,7 @@ random.seed(9)
 
 def get_travel_images(REPO_PATH):
     """Scrapes images from bigfoto.com using the paths saved in the file regions.json
-    Saves the files into the folder {REPO_PATH}/data/bigfoto
+    Saves the files into the folder {REPO_PATH}/data/tourist
 
     Args:
         REPO_PATH (str): Path to project folder.
@@ -57,10 +57,10 @@ def get_travel_images(REPO_PATH):
                     links = [elem.get_attribute('href') for elem in elems]
                     for i in range(0,len(links)):
                         img_data = requests.get(links[i]).content
-                        folder_path = "{}/data/bigfoto/{}".format(REPO_PATH, country['name'])
+                        folder_path = "{}/data/tourist/{}".format(REPO_PATH, country['name'])
                         if not os.path.isdir(folder_path):
                             os.makedirs(folder_path)
-                        with open("{}/data/bigfoto/{}/{}-{}.png".format(REPO_PATH, country['name'],link_path.replace('/','-'),i), 'wb') as handler:
+                        with open("{}/data/tourist/{}/{}-{}.png".format(REPO_PATH, country['name'],link_path.replace('/','-'),i), 'wb') as handler:
                             handler.write(img_data)
                 except TimeoutException:
                     print("Loading of result page took too much time!")

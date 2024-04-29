@@ -60,7 +60,7 @@ def create_datasets_from_embddings(REPO_PATH, seed=1234):
         aerial_df = pd.read_csv(os.path.join(
             REPO_PATH, "Embeddings/Image/aerial_map_embeddings.csv"))
         tourist_df = pd.read_csv(os.path.join(
-            REPO_PATH, "Embeddings/Image/bigfoto_embeddings.csv"))
+            REPO_PATH, "Embeddings/Image/tourist_embeddings.csv"))
 
         # Balance the datasets
         balanced_geo_df = balance_data(
