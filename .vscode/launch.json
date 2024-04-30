@@ -11,7 +11,7 @@
                 "--user",
                 "default",
                 "--yaml_path",
-                "../paths.yaml",
+                "/home/kieran/Documents/Uni/WiSe23-24/Good_Practices_of_Machine_Learning/good_practices_ml/paths.yaml",
                 "-d",
             ]
         },

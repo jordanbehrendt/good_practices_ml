@@ -124,7 +124,7 @@ def create_evaluation_report(accs: dict, metric: str, seed: int, paired_ttest: b
     compute_test_values(accs, metric, 'aso_test', seed, comparison_name, output_dir)
     pdf.create_merged_pdf(output_dir, comparison_name)
 
-def main(repo_path: str, exp_dirs: List[str], exp_names: List[str], metric: str, paired_ttest: bool, comparison_name: str) -> None:
+def main(repo_path: str, exp_dirs: List[str], exp_names: List[str], metric: str, paired_ttest: bool, comparison_name: str, seed: int) -> None:
     """
     Main function to perform evaluation.
 
@@ -143,104 +143,119 @@ def main(repo_path: str, exp_dirs: List[str], exp_names: List[str], metric: str,
     output_dir = os.path.join(repo_path, 'CLIP_Experiment/analysis/', comparison_name)
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
-    seed = 1234
     metric_dict = geo_metrics.calculate_experiment_metric(repo_path, exp_dirs, exp_names, metric)
     create_evaluation_report(metric_dict, metric, seed, paired_ttest, output_dir, comparison_name)
 
-def create_confusion_matrices(REPO_PATH):
-        """
-        Creates and visualizes the confusion matrix for country and region predictions.
+def create_confusion_matrices(REPO_PATH, seed):
+    """
+    Creates and visualizes the country and regional confusion matrices for each dataset.
 
-        Args:
-            true_countries (list): List of true country labels.
-            predicted_countries (list): List of predicted country labels.
+    Args:
+        REPO_PATH (str): path of the repo folder.
+        seed (int): random seed which defines the index of the repeated k-fold experiment
 
-        Returns:
-            None
-        """
-        country_list = pd.read_csv(f'{REPO_PATH}/country_list/country_list_region_and_continent.csv')
-        regional_ordering_index = [8, 11, 144, 3, 4, 12, 16, 26, 28, 44, 46, 51, 52, 66, 74, 83, 95, 101, 105, 109, 121, 128, 153, 180, 191, 201, 202, 32, 43, 77, 81, 134, 140, 146, 179, 99, 106, 185, 187, 198, 58, 98, 122, 131, 133, 136, 159, 163, 166, 177, 178, 193, 195, 209, 210, 41, 80, 97, 102, 103, 126, 127, 192, 20, 31, 48, 84, 119, 152, 160, 162, 173, 194, 60, 137, 149, 165, 204, 78, 156, 7, 34, 35, 40, 64, 53, 56, 116, 117, 167, 188, 23, 33, 72, 196, 13, 50, 55, 59, 62, 65, 69,
-                                        86, 88, 92, 94, 113, 115, 142, 168, 172, 38, 148, 189, 205, 9, 25, 27, 39, 42, 54, 61, 68, 76, 79, 147, 157, 197, 200, 24, 85, 100, 107, 125, 135, 150, 169, 184, 186, 203, 30, 138, 182, 208, 2, 17, 29, 89, 91, 111, 132, 143, 151, 0, 5, 15, 57, 71, 75, 82, 93, 120, 123, 130, 155, 161, 171, 175, 199, 206, 19, 22, 37, 45, 70, 73, 112, 124, 129, 139, 170, 174, 176, 183, 1, 6, 14, 21, 47, 67, 87, 90, 96, 104, 108, 145, 154, 158, 164, 181, 190, 207, 10, 18, 36, 49, 63, 110, 114, 118, 141]
-        create_confusion_matrix(REPO_PATH, country_list, regional_ordering_index, 'geoguessr')
-        create_confusion_matrix(REPO_PATH, country_list, regional_ordering_index, 'aerial')
-        create_confusion_matrix(REPO_PATH, country_list, regional_ordering_index, 'tourist')
+    Returns:
+        None
+    """
+    country_list = pd.read_csv(f'{REPO_PATH}/country_list/country_list_region_and_continent.csv')
+    regional_ordering_index = [8, 11, 144, 3, 4, 12, 16, 26, 28, 44, 46, 51, 52, 66, 74, 83, 95, 101, 105, 109, 121, 128, 153, 180, 191, 201, 202, 32, 43, 77, 81, 134, 140, 146, 179, 99, 106, 185, 187, 198, 58, 98, 122, 131, 133, 136, 159, 163, 166, 177, 178, 193, 195, 209, 210, 41, 80, 97, 102, 103, 126, 127, 192, 20, 31, 48, 84, 119, 152, 160, 162, 173, 194, 60, 137, 149, 165, 204, 78, 156, 7, 34, 35, 40, 64, 53, 56, 116, 117, 167, 188, 23, 33, 72, 196, 13, 50, 55, 59, 62, 65, 69,
+                                    86, 88, 92, 94, 113, 115, 142, 168, 172, 38, 148, 189, 205, 9, 25, 27, 39, 42, 54, 61, 68, 76, 79, 147, 157, 197, 200, 24, 85, 100, 107, 125, 135, 150, 169, 184, 186, 203, 30, 138, 182, 208, 2, 17, 29, 89, 91, 111, 132, 143, 151, 0, 5, 15, 57, 71, 75, 82, 93, 120, 123, 130, 155, 161, 171, 175, 199, 206, 19, 22, 37, 45, 70, 73, 112, 124, 129, 139, 170, 174, 176, 183, 1, 6, 14, 21, 47, 67, 87, 90, 96, 104, 108, 145, 154, 158, 164, 181, 190, 207, 10, 18, 36, 49, 63, 110, 114, 118, 141]
+    create_confusion_matrix(REPO_PATH, country_list, regional_ordering_index, 'geoguessr')
+    create_confusion_matrix(REPO_PATH, country_list, regional_ordering_index, 'aerial')
+    create_confusion_matrix(REPO_PATH, country_list, regional_ordering_index, 'tourist')
 
 def create_confusion_matrix(REPO_PATH, country_list, regional_ordering_index, dataset_name):
-              
-        # constant for classes
-        classes = country_list['Country']
-        np_classes = np.array(classes)
+    """
+    Create and 
 
-        # Create true_countries and predicted_countries lists
-        dataset_df = load_data(REPO_PATH, dataset_name)
-        country_labels = dataset_df["label"]
-        true_countries = []
-        for elem in country_labels:
-            true_countries.append(country_list.index[country_list['Country'] == elem].tolist()[0])
-        dataset_df['Probs-Array'] = dataset_df['All-Probs'].apply(lambda x: ast.literal_eval(x))
-        dataset_df['Predicted labels'] = dataset_df['Probs-Array'].apply(lambda x: np.argmax(np.array(x)))
-        predicted_countries = dataset_df['Predicted labels']
+    Args:
+        REPO_PATH (str): path of the repo folder.
+        country_list (DataFrame): Data Frame of Countries and Regions
+        regional_ordering_index (List): List to order the regions so that continents are grouped together
+        dataset_name (str): unique dataset name from {geoguessr, aerial, tourist} 
+    """            
+    # constant for classes
+    classes = country_list['Country']
+    np_classes = np.array(classes)
 
-        # Build country confusion matrix
-        cf_matrix = confusion_matrix(true_countries, predicted_countries, labels=range(0, 211))
-        ordered_index = np.argsort(-cf_matrix.diagonal())
-        ordered_matrix = cf_matrix[ordered_index][:, ordered_index]
+    # Create true_countries and predicted_countries lists
+    dataset_df = load_data(REPO_PATH, dataset_name)
+    country_labels = dataset_df["label"]
+    true_countries = []
+    for elem in country_labels:
+        true_countries.append(country_list.index[country_list['Country'] == elem].tolist()[0])
+    dataset_df['Probs-Array'] = dataset_df['All-Probs'].apply(lambda x: ast.literal_eval(x))
+    dataset_df['Predicted labels'] = dataset_df['Probs-Array'].apply(lambda x: np.argmax(np.array(x)))
+    predicted_countries = dataset_df['Predicted labels']
 
-        regionally_ordered_matrix = cf_matrix[regional_ordering_index][:,regional_ordering_index]
+    # Build country confusion matrix
+    cf_matrix = confusion_matrix(true_countries, predicted_countries, labels=range(0, 211))
+    ordered_index = np.argsort(-cf_matrix.diagonal())
+    ordered_matrix = cf_matrix[ordered_index][:, ordered_index]
 
-        ordered_classes = np_classes[ordered_index]
-        regionally_ordered_classes = np_classes[regional_ordering_index]
+    regionally_ordered_matrix = cf_matrix[regional_ordering_index][:,regional_ordering_index]
 
-        df_cm = pd.DataFrame(cf_matrix, index=classes, columns=classes)
-        ordered_df_cm = pd.DataFrame(
-            ordered_matrix, index=ordered_classes, columns=ordered_classes)
-        regionally_ordered_df_cm = pd.DataFrame(
-            regionally_ordered_matrix, index=regionally_ordered_classes, columns=regionally_ordered_classes)
+    ordered_classes = np_classes[ordered_index]
+    regionally_ordered_classes = np_classes[regional_ordering_index]
 
-        np_regions = np.sort(np.array(list(set(country_list['Intermediate Region Name']))))
+    df_cm = pd.DataFrame(cf_matrix, index=classes, columns=classes)
+    ordered_df_cm = pd.DataFrame(
+        ordered_matrix, index=ordered_classes, columns=ordered_classes)
+    regionally_ordered_df_cm = pd.DataFrame(
+        regionally_ordered_matrix, index=regionally_ordered_classes, columns=regionally_ordered_classes)
 
-        # Build region confusion matrix
-        true_regions = []
-        predicted_regions = []
-        for i in range(0, len(true_countries)):
-            true_regions.append(ast.literal_eval(country_list.iloc[true_countries[i]]["One Hot Region"]).index(1))
-            predicted_regions.append(ast.literal_eval(country_list.iloc[predicted_countries[i]]["One Hot Region"]).index(1))
+    np_regions = np.sort(np.array(list(set(country_list['Intermediate Region Name']))))
 
-        regions_cf_matrix = confusion_matrix(
-            true_regions, predicted_regions, labels=range(0, len(np_regions)))
-        regions_ordered_index = np.argsort(-regions_cf_matrix.diagonal())
-        regions_ordered_matrix = regions_cf_matrix[regions_ordered_index][:,
-                                                                          regions_ordered_index]
+    # Build region confusion matrix
+    true_regions = []
+    predicted_regions = []
+    for i in range(0, len(true_countries)):
+        true_regions.append(ast.literal_eval(country_list.iloc[true_countries[i]]["One Hot Region"]).index(1))
+        predicted_regions.append(ast.literal_eval(country_list.iloc[predicted_countries[i]]["One Hot Region"]).index(1))
 
-        ordered_regions = np_regions[regions_ordered_index]
+    regions_cf_matrix = confusion_matrix(
+        true_regions, predicted_regions, labels=range(0, len(np_regions)))
+    regions_ordered_index = np.argsort(-regions_cf_matrix.diagonal())
+    regions_ordered_matrix = regions_cf_matrix[regions_ordered_index][:,
+                                                                        regions_ordered_index]
 
-        regions_df_cm = pd.DataFrame(regions_cf_matrix, index=np_regions, columns=np_regions)
-        regions_ordered_df_cm = pd.DataFrame(regions_ordered_matrix, index=ordered_regions, columns=ordered_regions)
+    ordered_regions = np_regions[regions_ordered_index]
+
+    regions_df_cm = pd.DataFrame(regions_cf_matrix, index=np_regions, columns=np_regions)
+    regions_ordered_df_cm = pd.DataFrame(regions_ordered_matrix, index=ordered_regions, columns=ordered_regions)
 
 
-        if not os.path.exists(f'{REPO_PATH}/CLIP_Experiment/confusion_matrices/{dataset_name}/'):
-            os.makedirs(f'{REPO_PATH}/CLIP_Experiment/confusion_matrices/{dataset_name}/')
+    if not os.path.exists(f'{REPO_PATH}/CLIP_Experiment/confusion_matrices/{dataset_name}/'):
+        os.makedirs(f'{REPO_PATH}/CLIP_Experiment/confusion_matrices/{dataset_name}/')
 
-        plt.figure(1, figsize=(120, 70))
-        figure = sns.heatmap(df_cm, cmap=sns.cubehelix_palette(as_cmap=True)).get_figure()
-        figure.savefig(f'{REPO_PATH}/CLIP_Experiment/confusion_matrices/{dataset_name}/simple_confusion_matrix.png')
-        plt.figure(2, figsize=(120, 70))
-        ordered_figure = sns.heatmap(ordered_df_cm, cmap=sns.cubehelix_palette(as_cmap=True)).get_figure()
-        ordered_figure.savefig(f'{REPO_PATH}/CLIP_Experiment/confusion_matrices/{dataset_name}/ordered_confusion_matrix.png')
-        plt.figure(3, figsize=(120, 70))
-        regionally_ordered_figure = sns.heatmap(regionally_ordered_df_cm, cmap=sns.cubehelix_palette(as_cmap=True)).get_figure()
-        regionally_ordered_figure.savefig(f'{REPO_PATH}/CLIP_Experiment/confusion_matrices/{dataset_name}/regionally_ordered_confusion_matrix.png')
-        plt.figure(4, figsize=(120, 70))
-        regions_figure = sns.heatmap(regions_df_cm, cmap=sns.cubehelix_palette(as_cmap=True)).get_figure()
-        regions_figure.savefig(f'{REPO_PATH}/CLIP_Experiment/confusion_matrices/{dataset_name}/regions_confusion_matrix.png')
-        plt.figure(5, figsize=(120, 70))
-        regions_ordered_figure = sns.heatmap(regions_ordered_df_cm, cmap=sns.cubehelix_palette(as_cmap=True)).get_figure()
-        regions_ordered_figure.savefig(f'{REPO_PATH}/CLIP_Experiment/confusion_matrices/{dataset_name}/regions_ordered_confusion_matrix.png')
-        return
+    plt.figure(1, figsize=(120, 70))
+    figure = sns.heatmap(df_cm, cmap=sns.cubehelix_palette(as_cmap=True)).get_figure()
+    figure.savefig(f'{REPO_PATH}/CLIP_Experiment/confusion_matrices/{dataset_name}/simple_confusion_matrix.png')
+    plt.figure(2, figsize=(120, 70))
+    ordered_figure = sns.heatmap(ordered_df_cm, cmap=sns.cubehelix_palette(as_cmap=True)).get_figure()
+    ordered_figure.savefig(f'{REPO_PATH}/CLIP_Experiment/confusion_matrices/{dataset_name}/ordered_confusion_matrix.png')
+    plt.figure(3, figsize=(120, 70))
+    regionally_ordered_figure = sns.heatmap(regionally_ordered_df_cm, cmap=sns.cubehelix_palette(as_cmap=True)).get_figure()
+    regionally_ordered_figure.savefig(f'{REPO_PATH}/CLIP_Experiment/confusion_matrices/{dataset_name}/regionally_ordered_confusion_matrix.png')
+    plt.figure(4, figsize=(120, 70))
+    regions_figure = sns.heatmap(regions_df_cm, cmap=sns.cubehelix_palette(as_cmap=True)).get_figure()
+    regions_figure.savefig(f'{REPO_PATH}/CLIP_Experiment/confusion_matrices/{dataset_name}/regions_confusion_matrix.png')
+    plt.figure(5, figsize=(120, 70))
+    regions_ordered_figure = sns.heatmap(regions_ordered_df_cm, cmap=sns.cubehelix_palette(as_cmap=True)).get_figure()
+    regions_ordered_figure.savefig(f'{REPO_PATH}/CLIP_Experiment/confusion_matrices/{dataset_name}/regions_ordered_confusion_matrix.png')
+    return
 
-def load_data(REPO_PATH, dataset_name):
+def load_data(REPO_PATH, dataset_name, seed):
+    """
+    Generate and save a plot based on the given parameters.
+
+    Args:
+        REPO_PATH (str): path to repo folder.
+        dataset_name (str): unique dataset name from {geoguessr, aerial, tourist}
+        seed (int): random seed which defines the index of the repeated k-fold experiment
+    """    
     # Directory containing CSV files
-    directory = f'{REPO_PATH}/CLIP_Experiment/clip_results/image_from_prompt/{dataset_name}'
+    directory = f'{REPO_PATH}/CLIP_Experiment/clip_results/image_from_prompt/seed={seed}/{dataset_name}'
 
     # Get a list of all filenames in each directory
     file_list = [file for file in os.listdir(directory)]
@@ -260,27 +275,41 @@ def load_data(REPO_PATH, dataset_name):
     return combined_df
 
 def run_analysis_of_experiments(REPO_PATH):
-    experiment_dirs = [
-        f"{REPO_PATH}/CLIP_Experiment/clip_results/default_prompt/geoguessr",
-        f"{REPO_PATH}/CLIP_Experiment/clip_results/default_prompt/tourist",
-        f"{REPO_PATH}/CLIP_Experiment/clip_results/default_prompt/aerial",
-        f"{REPO_PATH}/CLIP_Experiment/clip_results/image_from_prompt/geoguessr",
-        f"{REPO_PATH}/CLIP_Experiment/clip_results/image_from_prompt/tourist",
-        f"{REPO_PATH}/CLIP_Experiment/clip_results/image_from_prompt/aerial",
-    ]
+    """
+    Generate and save a plot based on the given parameters.
 
-    # Run comparison of prompts for each dataset
-    main(REPO_PATH, [experiment_dirs[0], experiment_dirs[3]], ['default prompt', 'extended prompt'], 'mixed', True, 'geoguessr_prompts_mixed')
-    main(REPO_PATH, [experiment_dirs[1], experiment_dirs[4]], ['default prompt', 'extended prompt'], 'mixed', True, 'tourist_prompts_mixed')
-    main(REPO_PATH, [experiment_dirs[2], experiment_dirs[5]], ['default prompt', 'extended prompt'], 'mixed', True, 'aerial_prompts_mixed')
+    Args:
+        REPO_PATH (str): path to the repo folder.
+    """
 
-    # # Run comparison of datasets for image_from_prompt
-    main(REPO_PATH, [experiment_dirs[3], experiment_dirs[4], experiment_dirs[5]], ['geoguessr', 'tourist', 'aerial'], 'mixed', False, 'datasets_image_prompt_mixed')
-    main(REPO_PATH, [experiment_dirs[0], experiment_dirs[1], experiment_dirs[2]], ['geoguessr', 'tourist', 'aerial'], 'mixed', False, 'datasets_default_prompt_mixed')
+    seeds = [4808,4947,5723,3838,5836,3947,8956,5402,1215,8980]
 
-    create_confusion_matrices(REPO_PATH)
+    for seed in seeds:
+        experiment_dirs = [
+            f"{REPO_PATH}/CLIP_Experiment/clip_results/seed_{seed}/default_prompt/geoguessr",
+            f"{REPO_PATH}/CLIP_Experiment/clip_results/seed_{seed}/default_prompt/tourist",
+            f"{REPO_PATH}/CLIP_Experiment/clip_results/seed_{seed}/default_prompt/aerial",
+            f"{REPO_PATH}/CLIP_Experiment/clip_results/seed_{seed}/image_from_prompt/geoguessr",
+            f"{REPO_PATH}/CLIP_Experiment/clip_results/seed_{seed}/image_from_prompt/tourist",
+            f"{REPO_PATH}/CLIP_Experiment/clip_results/seed_{seed}/image_from_prompt/aerial",
+        ]
+
+        # Run comparison of prompts for each dataset
+        main(REPO_PATH, [experiment_dirs[0], experiment_dirs[3]], ['default prompt', 'extended prompt'], 'mixed', True, 'geoguessr_prompts_mixed', seed)
+        main(REPO_PATH, [experiment_dirs[1], experiment_dirs[4]], ['default prompt', 'extended prompt'], 'mixed', True, 'tourist_prompts_mixed', seed)
+        main(REPO_PATH, [experiment_dirs[2], experiment_dirs[5]], ['default prompt', 'extended prompt'], 'mixed', True, 'aerial_prompts_mixed', seed)
+
+        # # Run comparison of datasets for image_from_prompt
+        main(REPO_PATH, [experiment_dirs[3], experiment_dirs[4], experiment_dirs[5]], ['geoguessr', 'tourist', 'aerial'], 'mixed', False, 'datasets_image_prompt_mixed', seed)
+        main(REPO_PATH, [experiment_dirs[0], experiment_dirs[1], experiment_dirs[2]], ['geoguessr', 'tourist', 'aerial'], 'mixed', False, 'datasets_default_prompt_mixed', seed)
+
+    create_confusion_matrices(REPO_PATH, seeds[0])
+
 
 if __name__ == "__main__":
+    """
+    Run statistical analysis and save confusion matrices
+    """
     parser = argparse.ArgumentParser(description='Pretrained Model')
     parser.add_argument('--user', metavar='str', required=True, help='The user of the gpml group')
     parser.add_argument('--yaml_path', metavar='str', required=True, help='The path to the yaml file with the stored paths')
