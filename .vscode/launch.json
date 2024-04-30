@@ -1,8 +1,20 @@
 {
     "version": "0.2.0",
     "configurations": [
-
-
+        {
+            "name": "Default",
+            "type": "python",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            "args": [
+                "--user",
+                "default",
+                "--yaml_path",
+                "../paths.yaml",
+                "-d",
+            ]
+        },
             {
             "name": "Leon Laptop Current File",
             "type": "python",

@@ -1,4 +1,4 @@
 data_path:
-  user: 'PATH TO THE DATA'
+  default: 'PATH TO THE DATA'
 repo_path:
-  user: 'PATH TO THE REPO'
+  default: 'PATH TO THE REPO'
