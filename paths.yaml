@@ -1,4 +1,7 @@
+#Edit the REPO_PATH and DATA_PATH here
+#Currently there is only one user 'default'
+---
 data_path:
-  user: 'PATH TO THE DATA'
+  default: '/home/kieran/Documents/Uni/WiSe23-24/Good_Practices_of_Machine_Learning/data'
 repo_path:
-  user: 'PATH TO THE REPO'
+  default: '/home/kieran/Documents/Uni/WiSe23-24/Good_Practices_of_Machine_Learning/good_practices_ml'
