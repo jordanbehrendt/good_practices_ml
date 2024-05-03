@@ -27,13 +27,13 @@
             "console": "integratedTerminal",
             "args": [
                 "--user",
-                "jordan",
+                "user",
                 "--yaml_path",
                 "/share/temp/bjordan/good_practices_in_machine_learning/good_practices_ml/paths.yaml",
                 "--dataset_dir",
-                "/share/temp/bjordan/good_practices_in_machine_learning/compressed_dataset/",
+                "/share/temp/bjordan/good_practices_in_machine_learning/Tourist/",
                 "--dataset_name",
-                "Geolocation"
+                "Tourist"
             ]
         },
         {
