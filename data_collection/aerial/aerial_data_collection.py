@@ -45,7 +45,7 @@ def find_interior_boxes(REPO_PATH):
     polygons_json = json.load(polygon_file)
     countries_polygons = polygons_json["features"]
 
-    country_panda = pandas.read_csv('{}/country_list/country_list_region_and_continent.csv'.format(REPO_PATH))
+    country_panda = pandas.read_csv('{}/utils/country_list/country_list_region_and_continent.csv'.format(REPO_PATH))
     interior_boxes = []
     for index, row in country_panda.iterrows():
         polygon_object = []

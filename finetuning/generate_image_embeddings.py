@@ -47,7 +47,7 @@ tourist_df = load_dataset.load_data(DATA_PATH=args.tourist_data_path)
 aerial_df = load_dataset.load_data(DATA_PATH=args.aerial_data_path)
 
 # generate Prompts
-country_list = pd.read_csv(os.path.join(args.REPO_PATH,"country_list/country_list_region_and_continent.csv"))["Country"].to_list()
+country_list = pd.read_csv(os.path.join(args.REPO_PATH,"/utils/country_list/country_list_region_and_continent.csv"))["Country"].to_list()
 country_prompt = list(map((lambda x: f"This image shows the country {x}"),country_list))
 
 with torch.no_grad():

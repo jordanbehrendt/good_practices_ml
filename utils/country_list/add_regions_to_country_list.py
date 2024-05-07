@@ -18,7 +18,7 @@ def add_continent_and_region(REPO_PATH):
     country_list['Continent'] = country_list['Alpha2Code'].apply(find_continent_name)
     country_list['Intermediate Region Name'] = country_list['Alpha2Code'].apply(find_region_name)
 
-    country_list.to_csv('./country_list/country_list_region_and_continent.csv')
+    country_list.to_csv(f'{REPO_PATH}/utils/country_list/country_list_region_and_continent.csv', index=False)
 
 
 def add_one_hot_encodings(REPO_PATH):
