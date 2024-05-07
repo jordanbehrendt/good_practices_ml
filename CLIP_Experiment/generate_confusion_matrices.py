@@ -1,11 +1,8 @@
 import pandas as pd
 import os
-from typing import List
-from scipy import stats
 import numpy as np
 import seaborn as sns
 import matplotlib.pyplot as plt
-from deepsig import aso
 import sys
 sys.path.append('.')
 import argparse

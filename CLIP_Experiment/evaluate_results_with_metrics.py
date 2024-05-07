@@ -31,7 +31,7 @@ def calculate_metrics(REPO_PATH):
                 for seed in seeds:
                     result_list = calculate_accuracies(REPO_PATH, seed, dataset, prompt, metric)
                     df[f'{seed}'] = result_list
-                output_dir = f'{REPO_PATH}/CLIP_Experiment/metrics/{metric}/{prompt}'
+                output_dir = f'{REPO_PATH}/CLIP_Experiment/result_accuracy/{metric}/{prompt}'
                 if not os.path.exists(output_dir):
                     os.makedirs(output_dir)
                 df.to_csv(f'{output_dir}/{dataset}.csv')
