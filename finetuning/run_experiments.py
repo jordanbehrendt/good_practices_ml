@@ -1,7 +1,7 @@
 import create_datasets_from_embddings
 import sys
 sys.path.append("./../")
-import models.model_trainer as trainer
+import finetuning.model.model_trainer as trainer
 
 REPO_PATH = "/home/lbrenig/Documents/Uni/GPML/good_practices_ml"
 

@@ -7,10 +7,10 @@ import numpy as np
 import pandas as pd
 import torch.optim as optim
 import torch
-from models import nn
+from finetuning.model import nn
 import os
 from utils import load_dataset, geo_metrics
-from models.region_loss import Regional_Loss
+from finetuning.model.region_loss import Regional_Loss
 import ast
 import sklearn.model_selection
 from sklearn.metrics import confusion_matrix
@@ -56,7 +56,7 @@ class ModelTrainer():
 
         # self.region_criterion = Regional_Loss(self.country_list, self.region_list)
         self.writer = SummaryWriter(
-            log_dir=f'runs/seed_{seed}/{self.training_dataset_name[:-4]}/starting_regional_loss_portion-{starting_regional_loss_portion}/regional_loss_decline-{regional_loss_decline}/{self.timestamp}')
+            log_dir=f'finetuning/runs/seed_{seed}/{self.training_dataset_name[:-4]}/starting_regional_loss_portion-{starting_regional_loss_portion}/regional_loss_decline-{regional_loss_decline}/{self.timestamp}')
         self.start_training()
 
     def add_metrics_and_plot_tb(self, outputs, targets, name, step):
@@ -164,7 +164,7 @@ class ModelTrainer():
         return targets, outputs
         # self.writer.add_scalar('Validation Loss', avg_validation_loss, epoch_index*self.num_folds + fold_index)
 
-        # torch.save(self.model.state_dict(),f'saved_models/model_{self.training_dataset_name}_epoch_{epoch_index}_batch_{i}')
+        # torch.save(self.model.state_dict(),f'finetuning/saved_models/model_{self.training_dataset_name}_epoch_{epoch_index}_batch_{i}')
 
     def start_training(self):
         timestamp = datetime.datetime.now().strftime('%Y%m%d_%H%M%S')
@@ -224,7 +224,7 @@ class ModelTrainer():
                     self.createConfusionMatrix(target_idx, predicitions_idx, "Validation Confusion Matrix", epoch_index*self.num_folds)
         
             torch.save(self.model.state_dict(),
-                       f'saved_models/model_{self.training_dataset_name}_{timestamp}_epoch_{epoch_index+1}')
+                       f'finetuning/saved_models/model_{self.training_dataset_name}_{timestamp}_epoch_{epoch_index+1}')
 
 
     def test_model(self, test_dataset):
