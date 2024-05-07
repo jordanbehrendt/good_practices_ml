@@ -9,7 +9,7 @@ import torch.optim as optim
 import torch
 from models import nn
 import os
-from scripts import load_dataset, geo_metrics
+from utils import load_dataset, geo_metrics
 from models.region_loss import Regional_Loss
 import ast
 import sklearn.model_selection
@@ -381,10 +381,10 @@ def create_and_train_model(REPO_PATH: str, seed: int = 1234):
         None
     """
 
-    country_list = f'{REPO_PATH}/country_list/country_list_region.csv'
-    region_list = f'{REPO_PATH}/country_list/UNSD_Methodology.csv'
+    country_list = f'{REPO_PATH}/utils/country_list/country_list_region.csv'
+    region_list = f'{REPO_PATH}/utils/country_list/UNSD_Methodology.csv'
 
-    testing_directory = f'{REPO_PATH}/Embeddings/Testing'
+    testing_directory = f'{REPO_PATH}/CLIP_Embeddings/Testing'
     test_df = pd.read_csv(f'{testing_directory}/test_data.csv')
     test_dataset = load_dataset.EmbeddingDataset_from_df(
         test_df, "test")
@@ -400,7 +400,7 @@ def create_and_train_model(REPO_PATH: str, seed: int = 1234):
 
     for elem in training_datasets:
         train_df = pd.read_csv(
-            f'{REPO_PATH}/Embeddings/Training/{elem}')
+            f'{REPO_PATH}/CLIP_Embeddings/Training/{elem}')
 
         hyperparameters = [
             {'starting_regional_loss_portion': 0.0,

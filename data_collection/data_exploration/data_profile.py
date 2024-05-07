@@ -15,8 +15,7 @@ from ydata_profiling import ProfileReport
 import sys
 import os
 sys.path.append(os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'scripts/utils'))
-import load_dataset
-import pdf
+from utils import load_dataset, pdf
 
 def line_graph(image_distribution_path: str, output_dir: str, logarithmic: bool) -> None:
     """
@@ -185,7 +184,7 @@ def data_profile(dataset_dir: str, REPO_PATH: str, dataset_name: str) -> None:
     Returns:
         None
     """
-    output_dir = os.path.join(REPO_PATH, 'data_exploration', dataset_name)
+    output_dir = os.path.join(REPO_PATH, 'data_collection/data_exploration', dataset_name)
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
 

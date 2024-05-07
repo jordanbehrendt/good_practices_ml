@@ -10,8 +10,8 @@ def add_continent_and_region(REPO_PATH):
     Args:
         REPO_PATH (str): The path to the repository.
     """
-    country_list = pd.read_csv(f'{REPO_PATH}/country_list/country_list.csv')
-    UNSD = pd.read_csv(f'{REPO_PATH}/country_list/UNSD_Methodology.csv')
+    country_list = pd.read_csv(f'{REPO_PATH}/utils/country_list/country_list.csv')
+    UNSD = pd.read_csv(f'{REPO_PATH}/utils/country_list/UNSD_Methodology.csv')
 
     find_continent_name = lambda x: UNSD.loc[UNSD['ISO-alpha2 Code'] == x].iloc[0]['Region Name']
     find_region_name = lambda x: UNSD.loc[UNSD['ISO-alpha2 Code'] == x].iloc[0]['Intermediate Region Name']
@@ -29,7 +29,7 @@ def add_one_hot_encodings(REPO_PATH):
         REPO_PATH (str): The path to the repository.
     """
 
-    country_list = pd.read_csv(f"{REPO_PATH}/country_list/country_list_region_and_continent.csv")
+    country_list = pd.read_csv(f"{REPO_PATH}/utils/country_list/country_list_region_and_continent.csv")
     countries_df = pd.get_dummies(country_list['Country'])
     regions_df = pd.get_dummies(country_list['Intermediate Region Name'], prefix='Region')
 
@@ -42,7 +42,7 @@ def add_one_hot_encodings(REPO_PATH):
     # Add the lists of one-hot encoded vectors to the original DataFrame as a new column
     country_list['One Hot Region'] = one_hot_regions
     country_list['One Hot Country'] = one_hot_countries
-    country_list.to_csv(f"{REPO_PATH}/country_list/country_list_region_and_continent.csv", index=False)
+    country_list.to_csv(f"{REPO_PATH}/utils/country_list/country_list_region_and_continent.csv", index=False)
 
 
 if __name__ == "__main__":

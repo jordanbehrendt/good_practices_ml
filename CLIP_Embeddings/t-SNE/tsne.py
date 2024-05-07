@@ -20,7 +20,7 @@ def load_european_data(REPO_PATH, dataset_name, country_list):
         country_list (DataFrame): Data Frame of Countries, Regions and Continents
     """
     # Directory containing CSV files
-    directory = f'{REPO_PATH}/Embeddings/Image/'
+    directory = f'{REPO_PATH}/CLIP_Embeddings/Image/'
 
     # Get a list of all filenames in each directory
     file_list = [file for file in os.listdir(directory) if file.startswith(dataset_name)]
@@ -99,7 +99,7 @@ def save_continent_plot(REPO_PATH, tsne_results, dataset_name, continents):
         os.mkdir(f'./{dataset_name}')
     if not os.path.isdir(f'./{dataset_name}/World'):
         os.mkdir(f'./{dataset_name}/World')
-    scatterplot.figure.savefig(f'{REPO_PATH}/t-SNE/{dataset_name}/World/output.png')
+    scatterplot.figure.savefig(f'{REPO_PATH}/CLIP_Embeddings/t-SNE/{dataset_name}/World/output.png')
 
 def save_region_plots_europe(REPO_PATH, y, country_list, tsne_results, dataset_name, region_classes):
     """Save plots of the t-SNE results seperated by continent and colored by region
@@ -139,7 +139,7 @@ def save_region_plots_europe(REPO_PATH, y, country_list, tsne_results, dataset_n
         legend="full",
         alpha=0.3
     )
-    scatterplot.figure.savefig(f'{REPO_PATH}/t-SNE/{dataset_name}/Europe/output.png')
+    scatterplot.figure.savefig(f'{REPO_PATH}/CLIP_Embeddings/t-SNE/{dataset_name}/Europe/output.png')
 
 def save_region_plots(REPO_PATH, y, country_list, tsne_results, dataset_name, continent_classes):
     """Save plots of the t-SNE results seperated by continent and colored by region
@@ -191,9 +191,9 @@ def save_region_plots(REPO_PATH, y, country_list, tsne_results, dataset_name, co
             legend="full",
             alpha=0.3
         )
-        if not os.path.isdir(f'{REPO_PATH}/t-SNE/{dataset_name}/Continent/{continent_classes[i]}'):
-            os.mkdir(f'{REPO_PATH}/t-SNE/{dataset_name}/Continent/{continent_classes[i]}')
-        scatterplot.figure.savefig(f'{REPO_PATH}/t-SNE/{dataset_name}/Continent/{continent_classes[i]}/output.png')
+        if not os.path.isdir(f'{REPO_PATH}/CLIP_Embeddings/t-SNE/{dataset_name}/Continent/{continent_classes[i]}'):
+            os.mkdir(f'{REPO_PATH}/CLIP_Embeddings/t-SNE/{dataset_name}/Continent/{continent_classes[i]}')
+        scatterplot.figure.savefig(f'{REPO_PATH}/CLIP_Embeddings/t-SNE/{dataset_name}/Continent/{continent_classes[i]}/output.png')
 
 def save_country_plots_europe(REPO_PATH, y, country_list, tsne_results, dataset_name, region_classes):
     """Save plots of the t-SNE results seperated by region and colored by country
@@ -245,9 +245,9 @@ def save_country_plots_europe(REPO_PATH, y, country_list, tsne_results, dataset_
             legend="full",
             alpha=0.3
         )
-        if not os.path.isdir(f'{REPO_PATH}/t-SNE/{dataset_name}/Europe/Region/{region_classes[i]}'):
-            os.mkdir(f'{REPO_PATH}/t-SNE/{dataset_name}/Europe/Region/{region_classes[i]}')
-        scatterplot.figure.savefig(f'{REPO_PATH}/t-SNE/{dataset_name}/Europe/Region/{region_classes[i]}/output.png')   
+        if not os.path.isdir(f'{REPO_PATH}/CLIP_Embeddings/t-SNE/{dataset_name}/Europe/Region/{region_classes[i]}'):
+            os.mkdir(f'{REPO_PATH}/CLIP_Embeddings/t-SNE/{dataset_name}/Europe/Region/{region_classes[i]}')
+        scatterplot.figure.savefig(f'{REPO_PATH}/CLIP_Embeddings/t-SNE/{dataset_name}/Europe/Region/{region_classes[i]}/output.png')   
 
 def save_country_plots(REPO_PATH, y, country_list, tsne_results, dataset_name, region_classes):
     """Save plots of the t-SNE results seperated by region and colored by country
@@ -299,9 +299,9 @@ def save_country_plots(REPO_PATH, y, country_list, tsne_results, dataset_name, r
             legend="full",
             alpha=0.3
         )
-        if not os.path.isdir(f'{REPO_PATH}/t-SNE/{dataset_name}/Region/{region_classes[i]}'):
-            os.mkdir(f'{REPO_PATH}/t-SNE/{dataset_name}/Region/{region_classes[i]}')
-        scatterplot.figure.savefig(f'{REPO_PATH}/t-SNE/{dataset_name}/Region/{region_classes[i]}/output.png')
+        if not os.path.isdir(f'{REPO_PATH}/CLIP_Embeddings/t-SNE/{dataset_name}/Region/{region_classes[i]}'):
+            os.mkdir(f'{REPO_PATH}/CLIP_Embeddings/t-SNE/{dataset_name}/Region/{region_classes[i]}')
+        scatterplot.figure.savefig(f'{REPO_PATH}/CLIP_Embeddings/t-SNE/{dataset_name}/Region/{region_classes[i]}/output.png')
 
 
 def conduct_tsne_analysis(REPO_PATH, dataset_name, only_europe, include_distances):
@@ -313,7 +313,7 @@ def conduct_tsne_analysis(REPO_PATH, dataset_name, only_europe, include_distance
         only_europe (Boolean): Defines whether only european samples will be analyzed
         include_distances (Boolean): Defines whether the t-SNE analysis will be undertaken on the embeddings or embeddings appended with distances to prompts 
     """    
-    country_list = pd.read_csv(f'{REPO_PATH}/country_list/country_list_region_and_continent.csv')
+    country_list = pd.read_csv(f'{REPO_PATH}/utils/country_list/country_list_region_and_continent.csv')
 
     if (only_europe):
         #Load Data

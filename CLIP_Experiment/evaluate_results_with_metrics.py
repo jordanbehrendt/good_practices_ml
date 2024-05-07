@@ -1,7 +1,7 @@
 import pandas as pd
 import sys
 sys.path.append('.')
-from scripts.utils import geo_metrics
+from utils import geo_metrics
 import argparse
 import yaml
 import os

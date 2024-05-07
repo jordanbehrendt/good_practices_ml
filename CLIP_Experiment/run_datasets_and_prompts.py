@@ -3,8 +3,8 @@ sys.path.append('.')
 
 from typing import Callable, List
 from torch.utils.data import DataLoader
-from scripts.utils import load_dataset
-import scripts.utils.load_dataset as geo_data
+from utils import load_dataset
+import utils.load_dataset as geo_data
 import clip
 import torch
 import csv
@@ -180,7 +180,7 @@ def run_experiments(DATA_PATH: str, REPO_PATH: str):
         aerialmap_batch_size = 14
         batch_sizes.append(aerialmap_batch_size)
 
-        country_list = pd.read_csv(f'{REPO_PATH}/country_list/country_list_region_and_continent.csv')["Country"].to_list()
+        country_list = pd.read_csv(f'{REPO_PATH}/utils/country_list/country_list_region_and_continent.csv')["Country"].to_list()
 
         folder_path = f'{REPO_PATH}/CLIP_Experiment'
         model_name = f'clip_results/seed_{seed}'

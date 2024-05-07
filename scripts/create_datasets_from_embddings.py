@@ -2,7 +2,7 @@ import sys
 sys.path.append("./../")
 sys.path.append(".")
 import argparse
-from scripts import load_dataset
+from utils import load_dataset
 import clip
 import torch
 import pandas as pd
@@ -56,11 +56,11 @@ def create_datasets_from_embddings(REPO_PATH, seed=1234):
     with torch.no_grad():
         # read in and balance each dataset
         geo_embed = pd.read_csv(os.path.join(
-            REPO_PATH, "Embeddings/Image/geoguessr_embeddings.csv"))
+            REPO_PATH, "CLIP_Embeddings/Image/geoguessr_embeddings.csv"))
         aerial_df = pd.read_csv(os.path.join(
-            REPO_PATH, "Embeddings/Image/aerial_embeddings.csv"))
+            REPO_PATH, "CLIP_Embeddings/Image/aerial_embeddings.csv"))
         tourist_df = pd.read_csv(os.path.join(
-            REPO_PATH, "Embeddings/Image/tourist_embeddings.csv"))
+            REPO_PATH, "CLIP_Embeddings/Image/tourist_embeddings.csv"))
 
         # Balance the datasets
         balanced_geo_df = balance_data(
@@ -102,19 +102,19 @@ def create_datasets_from_embddings(REPO_PATH, seed=1234):
             frac=1, random_state=seed)
         
         test_data.to_csv(os.path.join(
-            REPO_PATH, "Embeddings/Testing/knwon_test_data.csv"), index=False)
+            REPO_PATH, "CLIP_Embeddings/Testing/knwon_test_data.csv"), index=False)
         zero_shot_data.to_csv(os.path.join(
-            REPO_PATH, "Embeddings/Testing/zero_shot_test_data.csv"), index=False)
+            REPO_PATH, "CLIP_Embeddings/Testing/zero_shot_test_data.csv"), index=False)
         test_data = pd.concat([test_data, zero_shot_data]).sample(
             frac=1, random_state=seed)
 
         test_data.to_csv(os.path.join(
-            REPO_PATH, "Embeddings/Testing/test_data.csv"), index=False)
+            REPO_PATH, "CLIP_Embeddings/Testing/test_data.csv"), index=False)
 
         weakly_balanced_geo_df = geo_train_and_val.sample(
             frac=1, random_state=seed)
         weakly_balanced_geo_df.to_csv(os.path.join(
-            REPO_PATH, "Embeddings/Training/geo_weakly_balanced.csv"), index=False)
+            REPO_PATH, "CLIP_Embeddings/Training/geo_weakly_balanced.csv"), index=False)
 
         # Get all images from geo_df for the classes that have more than 2000 images and that are not in balanced_geo_df
         geo_large_classes = geo_embed["label"].value_counts(
@@ -126,19 +126,19 @@ def create_datasets_from_embddings(REPO_PATH, seed=1234):
         unbalanced_geo_df = pd.concat(
             [geo_train_and_val, geo_additional_images]).sample(frac=1, random_state=seed)
         unbalanced_geo_df.to_csv(os.path.join(
-            REPO_PATH, "Embeddings/Training/geo_unbalanced.csv"), index=False)
+            REPO_PATH, "CLIP_Embeddings/Training/geo_unbalanced.csv"), index=False)
 
         # remove image of classes to have a maximum of 200 images
         strongley_balanced_geo_df = balance_data(
             df=unbalanced_geo_df, max_images=200, min_images=10, seed=seed).sample(frac=1, random_state=seed)
         strongley_balanced_geo_df.to_csv(os.path.join(
-            REPO_PATH, "Embeddings/Training/geo_strongly_balanced.csv"), index=False)
+            REPO_PATH, "CLIP_Embeddings/Training/geo_strongly_balanced.csv"), index=False)
 
         # add aerial and tourist images to create a weakly balanced mixed dataset
         mixed_weakly_balanced_df = pd.concat(
             [weakly_balanced_geo_df, aerial_train_and_val, tourist_train_and_val]).sample(frac=1, random_state=seed)
         mixed_weakly_balanced_df.to_csv(os.path.join(
-            REPO_PATH, "Embeddings/Training/mixed_weakly_balanced.csv"), index=False)
+            REPO_PATH, "CLIP_Embeddings/Training/mixed_weakly_balanced.csv"), index=False)
 
         print(len(tourist_train_and_val)/len(weakly_balanced_geo_df))
         tourist_percentage = len(tourist_train_and_val)/len(weakly_balanced_geo_df)
@@ -150,7 +150,7 @@ def create_datasets_from_embddings(REPO_PATH, seed=1234):
         mixed_strongly_balanced_df = pd.concat(
             [strongley_balanced_geo_df, aerial_train_and_val, small_tourist_df]).sample(frac=1, random_state=seed)
         mixed_strongly_balanced_df.to_csv(os.path.join(
-            REPO_PATH, "Embeddings/Training/mixed_strongly_balanced.csv"), index=False)
+            REPO_PATH, "CLIP_Embeddings/Training/mixed_strongly_balanced.csv"), index=False)
 
 if __name__ == "__main__":
     """Creates the test set and the diffrent train/valdiation sets.

@@ -6,7 +6,7 @@ import PIL
 import os
 import numpy as np
 sys.path.append("./../")
-from scripts import load_dataset
+from utils import load_dataset
 import argparse
 import ast
 from sklearn.metrics.pairwise import cosine_similarity
@@ -73,5 +73,5 @@ geoguessr_df.to_csv(os.path.join(args.REPO_PATH,"Image/geoguessr_embeddings.csv"
 tourist_df.to_csv(os.path.join(args.REPO_PATH,"Image/tourist_embeddings.csv"))
 aerial_df.to_csv(os.path.join(args.REPO_PATH,"Image/aerial_embeddings.csv"))
 
-torch.save(simple_embedding, os.path.join(args.REPO_PATH,'/Embeddings/Prompt/prompt_simple_embedding.pt'))
-torch.save(prompt_embedding, os.path.join(args.REPO_PATH,'/Embeddings/Prompt/prompt_image_shows_embedding.pt'))
+torch.save(simple_embedding, os.path.join(args.REPO_PATH,'/CLIP_Embeddings/Prompt/prompt_simple_embedding.pt'))
+torch.save(prompt_embedding, os.path.join(args.REPO_PATH,'/CLIP_Embeddings/Prompt/prompt_image_shows_embedding.pt'))
