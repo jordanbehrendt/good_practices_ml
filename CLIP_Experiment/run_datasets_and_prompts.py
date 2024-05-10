@@ -157,7 +157,7 @@ def run_experiments(DATA_PATH: str, REPO_PATH: str):
     for seed in seeds:
         datasets = []
 
-        geoguessr = load_dataset.load_data(f'{DATA_PATH}/compressed_dataset/', 0, 5000, False, False, seed)
+        geoguessr = load_dataset.load_data(f'{DATA_PATH}/geoguessr/', 0, 5000, False, False, seed)
         geoguessr = geoguessr.head(int(len(geoguessr)*0.2))
         geoguessr = load_dataset.ImageDataset_from_df(geoguessr, preprocessor, name= "geoguessr")
         datasets.append(geoguessr)
@@ -169,7 +169,7 @@ def run_experiments(DATA_PATH: str, REPO_PATH: str):
         datasets.append(aerialmap)
 
         default_prompt = lambda x: f"{x}"
-        image_from_prompt = lambda x: f"This image shows the country {x}"
+        extended_prompt = lambda x: f"This image shows the country {x}"
 
         batch_sizes = []
 
@@ -186,10 +186,10 @@ def run_experiments(DATA_PATH: str, REPO_PATH: str):
         model_name = f'clip_results/seed_{seed}'
 
         default_prompt_name = 'default_prompt'
-        image_prompt_name = 'image_from_prompt'
+        extended_name = 'extended_prompt'
 
         for i in range(0,len(datasets)):
-            test = ModelTester(datasets[i], model, [default_prompt, image_from_prompt], batch_sizes[i], country_list, seed, folder_path, model_name, [default_prompt_name, image_prompt_name] , '')
+            test = ModelTester(datasets[i], model, [default_prompt, extended_prompt], batch_sizes[i], country_list, seed, folder_path, model_name, [default_prompt_name, image_prompt_name] , '')
             test.run_test()
 
 

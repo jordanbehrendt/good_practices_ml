@@ -43,20 +43,20 @@ def compute_paired_k_fold_cross_validation_t_test(results_1:list,results_2:list,
         k (int): Number of cross validation folds
         r (int): Number of random cross-validation repetitions
     """
-    if len(results_1) != len(results_2):
+    num_experiments = len(results_1)
+    if num_experiments != len(results_2):
         raise Exception(f'The results are not the same length.')
-    if len(results_1) != r*k:
-        print(len(results_1))
+    if num_experiments != r*k:
         raise Exception(f'The results do not coincide with the r and k values.')
     differences = [x_i - y_i for x_i, y_i in zip(results_1, results_2)] 
-    mean = sum(differences) / (k*r)
+    mean = sum(differences) / num_experiments
     variance = 0
-    for count in range(0, len(differences)):
+    for count in range(0, num_experiments):
         variance += (differences[count] - mean)**2
-    variance *= 1/(k*r - 1)
-    t = mean / math.sqrt(variance/(k*r - 1))
+    variance *= 1/(num_experiments - 1)
+    t = mean / math.sqrt(variance/(num_experiments + 1/(k-1)))
 
-    p = stats.t.sf(t, r*k-1)
+    p = stats.t.sf(t, num_experiments-1)
     return t,p
 
 
@@ -100,9 +100,13 @@ def run_analysis_of_dataset_and_prompts(output_dir: str,comparison_df: pd.DataFr
                     t_values.append(t)
                     p_values.append(p)
                 else:
-                    ttest = stats.ttest_ind(comparison_df.iloc[:,i].tolist(), comparison_df.iloc[:,j].tolist())
-                    t_values.append(ttest.statistic)
-                    p_values.append(ttest.pvalue)
+                    t,p = compute_paired_k_fold_cross_validation_t_test(comparison_df.iloc[:,i].tolist(),comparison_df.iloc[:,j].tolist(),20,10)
+                    t_values.append(t)
+                    p_values.append(p)
+                # else:
+                #     t,p = compute_paired_k_fold_cross_validation_t_test(comparison_df.iloc[:,i].tolist(),comparison_df.iloc[:,j].tolist(),20,10)
+                #     t_values.append(ttest.statistic)
+                #     p_values.append(ttest.pvalue)
         analysis[f'{comparison_df.columns[i]}_t_values'] = t_values
         analysis[f'{comparison_df.columns[i]}_p_values'] = p_values
 
@@ -128,31 +132,31 @@ def run_analysis_of_experiments(REPO_PATH, metric):
 
     datasets = ['geoguessr', 'aerial', 'tourist']
     default_df = pd.DataFrame()
-    image_from_df = pd.DataFrame()
+    extended_prompt_df = pd.DataFrame()
     for dataset in datasets:
-        default_experiment = pd.read_csv(f"{REPO_PATH}/CLIP_Experiment/metrics/{metric}/default_prompt/{dataset}.csv")
-        image_from_experiment = pd.read_csv(f"{REPO_PATH}/CLIP_Experiment/metrics/{metric}/image_from_prompt/{dataset}.csv")
+        default_experiment = pd.read_csv(f"{REPO_PATH}/CLIP_Experiment/result_accuracy/{metric}/default_prompt/{dataset}.csv")
+        extended_prompt_experiment = pd.read_csv(f"{REPO_PATH}/CLIP_Experiment/result_accuracy/{metric}/extended_prompt/{dataset}.csv")
         default_list = []
-        image_from_list = []
+        extended_prompt_list = []
         for seed in seeds:
             default_list += list(default_experiment[f'{seed}'])
-            image_from_list += list(image_from_experiment[f'{seed}'])
-        comparison_df = pd.DataFrame({'default_prompt': default_list, 'image_from_prompt': image_from_list})
+            extended_prompt_list += list(extended_prompt_experiment[f'{seed}'])
+        comparison_df = pd.DataFrame({'default_prompt': default_list, 'extended_prompt': extended_prompt_list})
         default_df[f'{dataset}'] = default_list
-        image_from_df[f'{dataset}'] = image_from_list
+        extended_prompt_df[f'{dataset}'] = extended_prompt_list
         output_dir = f'{REPO_PATH}/CLIP_Experiment/statistical_tests/{metric}/{dataset}/'
         if not os.path.exists(output_dir):
             os.makedirs(output_dir)
         run_analysis_of_dataset_and_prompts(output_dir,comparison_df, metric, True)
     
     default_output_dir = f'{REPO_PATH}/CLIP_Experiment/statistical_tests/{metric}/default_prompt/'
-    image_from_output_dir = f'{REPO_PATH}/CLIP_Experiment/statistical_tests/{metric}/image_from_prompt/'
+    extended_prompt_output_dir = f'{REPO_PATH}/CLIP_Experiment/statistical_tests/{metric}/extended_prompt/'
     if not os.path.exists(default_output_dir):
         os.makedirs(default_output_dir)
-    if not os.path.exists(image_from_output_dir):
-        os.makedirs(image_from_output_dir)
+    if not os.path.exists(extended_prompt_output_dir):
+        os.makedirs(extended_prompt_output_dir)
     run_analysis_of_dataset_and_prompts(default_output_dir,default_df, metric, False)
-    run_analysis_of_dataset_and_prompts(image_from_output_dir,image_from_df, metric, False)
+    run_analysis_of_dataset_and_prompts(extended_prompt_output_dir,extended_prompt_df, metric, False)
 
 if __name__ == "__main__":
     """

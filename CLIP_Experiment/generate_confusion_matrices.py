@@ -20,7 +20,7 @@ def load_data(REPO_PATH, dataset_name, seed):
         seed (int): random seed which defines the index of the repeated k-fold experiment
     """    
     # Directory containing CSV files
-    directory = f'{REPO_PATH}/CLIP_Experiment/clip_results/seed_{seed}/image_from_prompt/{dataset_name}'
+    directory = f'{REPO_PATH}/CLIP_Experiment/clip_results/seed_{seed}/extended_prompt/{dataset_name}'
 
     # Get a list of all filenames in each directory
     file_list = [file for file in os.listdir(directory)]

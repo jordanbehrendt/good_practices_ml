@@ -22,7 +22,7 @@ def calculate_metrics(REPO_PATH):
 
     seeds = [4808,4947,5723,3838,5836,3947,8956,5402,1215,8980]
     datasets = ['geoguessr', 'tourist', 'aerial']
-    prompts = ['default_prompt', 'image_from_prompt']
+    prompts = ['default_prompt', 'extended_prompt']
     metrics = ['country_acc', 'region_acc', 'mixed']
     for metric in metrics:
         for prompt in prompts:
