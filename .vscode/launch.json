@@ -1,8 +1,20 @@
 {
     "version": "0.2.0",
     "configurations": [
-
-
+        {
+            "name": "Default",
+            "type": "python",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            "args": [
+                "--user",
+                "default",
+                "--yaml_path",
+                "/home/kieran/Documents/Uni/WiSe23-24/Good_Practices_of_Machine_Learning/good_practices_ml/paths.yaml",
+                "-d",
+            ]
+        },
             {
             "name": "Leon Laptop Current File",
             "type": "python",
@@ -27,13 +39,13 @@
             "console": "integratedTerminal",
             "args": [
                 "--user",
-                "jordan",
+                "user",
                 "--yaml_path",
                 "/share/temp/bjordan/good_practices_in_machine_learning/good_practices_ml/paths.yaml",
                 "--dataset_dir",
-                "/share/temp/bjordan/good_practices_in_machine_learning/compressed_dataset/",
+                "/share/temp/bjordan/good_practices_in_machine_learning/Tourist/",
                 "--dataset_name",
-                "Geolocation"
+                "Tourist"
             ]
         },
         {
@@ -92,7 +104,7 @@
             ]
         },
         {
-            "name": "Kieran Data Profile - BigFoto",
+            "name": "Kieran Data Profile - Tourist",
             "type": "python",
             "request": "launch",
             "program": "${file}",
@@ -103,9 +115,9 @@
                 "--yaml_path",
                 "/home/kieran/Documents/Uni/WiSe23-24/Good_Practices_of_Machine_Learning/good_practices_ml/paths.yaml",
                 "--dataset_dir",
-                "/home/kieran/Documents/Uni/WiSe23-24/Good_Practices_of_Machine_Learning/good_practices_ml/data/bigfoto/",
+                "/home/kieran/Documents/Uni/WiSe23-24/Good_Practices_of_Machine_Learning/good_practices_ml/data/tourist/",
                 "--dataset_name",
-                "BigFoto"
+                "Tourist"
             ]
         },
         {
@@ -120,7 +132,7 @@
                 "--yaml_path",
                 "/home/kieran/Documents/Uni/WiSe23-24/Good_Practices_of_Machine_Learning/good_practices_ml/paths.yaml",
                 "--dataset_dir",
-                "/home/kieran/Documents/Uni/WiSe23-24/Good_Practices_of_Machine_Learning/good_practices_ml/data/open_aerial_map",
+                "/home/kieran/Documents/Uni/WiSe23-24/Good_Practices_of_Machine_Learning/good_practices_ml/data/aerial",
                 "--dataset_name",
                 "OpenAerialMap"
             ]
@@ -155,12 +167,12 @@
                 "/home/kieran/Documents/Uni/WiSe23-24/Good_Practices_of_Machine_Learning/good_practices_ml/paths.yaml",
                 "--experiment_dirs",
                 "/home/kieran/Documents/Uni/WiSe23-24/Good_Practices_of_Machine_Learning/good_practices_ml/Experiments/pretrained_clip/country_prompt/Geoguesser-v1",
-                "/home/kieran/Documents/Uni/WiSe23-24/Good_Practices_of_Machine_Learning/good_practices_ml/Experiments/pretrained_clip/country_prompt/BigFoto-v1",
+                "/home/kieran/Documents/Uni/WiSe23-24/Good_Practices_of_Machine_Learning/good_practices_ml/Experiments/pretrained_clip/country_prompt/Tourist-v1",
                 "/home/kieran/Documents/Uni/WiSe23-24/Good_Practices_of_Machine_Learning/good_practices_ml/Experiments/pretrained_clip/country_prompt/OpenAerialMap-v1",
                 "/home/kieran/Documents/Uni/WiSe23-24/Good_Practices_of_Machine_Learning/good_practices_ml/Experiments/pretrained_clip/country_prompt/Mars-v1",
                 "--experiment_names",
                 "GeoGuesser Dataset",
-                "Bigfoto Dataset",
+                "Tourist Dataset",
                 "AerialMap Dataset",
                 "Mars Dataset",
                 "--metric",
@@ -184,12 +196,12 @@
                 "/home/kieran/Documents/Uni/WiSe23-24/Good_Practices_of_Machine_Learning/good_practices_ml/paths.yaml",
                 "--experiment_dirs",
                 "/home/kieran/Documents/Uni/WiSe23-24/Good_Practices_of_Machine_Learning/good_practices_ml/Experiments/pretrained_clip/image_from_prompt/Geoguesser-v1",
-                "/home/kieran/Documents/Uni/WiSe23-24/Good_Practices_of_Machine_Learning/good_practices_ml/Experiments/pretrained_clip/image_from_prompt/BigFoto-v1",
+                "/home/kieran/Documents/Uni/WiSe23-24/Good_Practices_of_Machine_Learning/good_practices_ml/Experiments/pretrained_clip/image_from_prompt/Tourist-v1",
                 "/home/kieran/Documents/Uni/WiSe23-24/Good_Practices_of_Machine_Learning/good_practices_ml/Experiments/pretrained_clip/image_from_prompt/OpenAerialMap-v1",
                 "/home/kieran/Documents/Uni/WiSe23-24/Good_Practices_of_Machine_Learning/good_practices_ml/Experiments/pretrained_clip/image_from_prompt/Mars-v1",
                 "--experiment_names",
                 "GeoGuesser Dataset",
-                "Bigfoto Dataset",
+                "Tourist Dataset",
                 "AerialMap Dataset",
                 "Mars Dataset",
                 "--metric",
@@ -213,12 +225,12 @@
                 "/home/kieran/Documents/Uni/WiSe23-24/Good_Practices_of_Machine_Learning/good_practices_ml/paths.yaml",
                 "--experiment_dirs",
                 "/home/kieran/Documents/Uni/WiSe23-24/Good_Practices_of_Machine_Learning/good_practices_ml/Experiments/pretrained_clip/context_prompt/Geoguesser-v1",
-                "/home/kieran/Documents/Uni/WiSe23-24/Good_Practices_of_Machine_Learning/good_practices_ml/Experiments/pretrained_clip/context_prompt/BigFoto-v1",
+                "/home/kieran/Documents/Uni/WiSe23-24/Good_Practices_of_Machine_Learning/good_practices_ml/Experiments/pretrained_clip/context_prompt/Tourist-v1",
                 "/home/kieran/Documents/Uni/WiSe23-24/Good_Practices_of_Machine_Learning/good_practices_ml/Experiments/pretrained_clip/context_prompt/OpenAerialMap-v1",
                 "/home/kieran/Documents/Uni/WiSe23-24/Good_Practices_of_Machine_Learning/good_practices_ml/Experiments/pretrained_clip/context_prompt/Mars-v1",
                 "--experiment_names",
                 "GeoGuesser Dataset",
-                "Bigfoto Dataset",
+                "Tourist Dataset",
                 "AerialMap Dataset",
                 "Mars Dataset",
                 "--metric",
