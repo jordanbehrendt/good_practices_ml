@@ -13,7 +13,32 @@
 3. *Tourist:* download the 'tourist' folder from https://osf.io/pe453/?view_only=d4ebd0f1fcb54dd8b24312fed3e5b722
 4. *Aerial:* download the 'aerial' folder from https://osf.io/pe453/?view_only=d4ebd0f1fcb54dd8b24312fed3e5b722
 
+## data_exploration
+The data_profile script, located in the data_collection/data_exploration directory, is designed for analyzing and visualizing image distribution within datasets. It generates comprehensive reports, CSV files for image distribution, and several visualizations, including heat maps and graphs, to better understand data characteristics.
+### Features
+1. Profile Reports: Generates detailed statistical profiles of datasets, which can be used for initial data analysis.
+2. Image Distribution CSV: Creates a CSV file listing the distribution of images across different labels/categories.
+3. Visualizations:
+    3.1 Line Graphs: Shows the distribution of images across categories.
+    3.2 Bar Graphs: Provides a horizontal view of the image distribution.
+    3.3 World Heat Maps: Displays a geographical distribution of images across the world, both in logarithmic and linear scales.
+### Command line interface
+To run the script from the command line, navigate to the script's directory and execute the following command:
+python data_profile.py --user [user] --yaml_path [path_to_yaml] --dataset_dir [path_to_dataset] --dataset_name [name_of_dataset]
 
+Arguments
+    --user: Specifies the user of the GPML group.
+    --yaml_path: Path to the YAML configuration file containing paths needed for the script.
+    --dataset_dir: Directory path where the dataset is located.
+    --dataset_name: Name of the dataset for which the profile and visualizations are generated.
+#### Example
+python data_profile.py --user bjordan --yaml_path /path/to/paths.yaml --dataset_dir /path/to/dataset --dataset_name "Tourist"
+### Output
+The script will generate the following outputs:
+1. A profile report as an HTML file.
+2. A CSV file detailing image distribution.
+3. Various graphs and maps saved as JPEG files.
+4. A combined PDF document containing all the generated visualizations.
 
 
 # CLIP_Experiment
