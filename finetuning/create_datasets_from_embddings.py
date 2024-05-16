@@ -10,6 +10,7 @@ import os
 import PIL
 import sklearn.model_selection
 import numpy as np
+import random
 
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
@@ -53,6 +54,16 @@ def balance_data(df: pd.DataFrame, max_images: int = 1000, min_images: int = 10,
 
 
 def create_datasets_from_embddings(REPO_PATH, seed=1234):
+    # set radom seed
+    os.environ['PYTHONHASHSEED']=str(seed)
+    torch.manual_seed(seed)
+    torch.manual_seed_all(seed)
+    torch.cuda.manual_seed(seed)
+    torch.cuda.manual_seed_all(seed)
+    torch.use_deterministic_algorithms(True)
+    random.seed(seed)
+    np.random.seed(seed)
+    
     with torch.no_grad():
         # read in and balance each dataset
         geo_embed = pd.read_csv(os.path.join(
