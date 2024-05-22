@@ -22,15 +22,24 @@ import argparse
 import yaml
 import math
 import matplotlib.pyplot as plt
-from matplotlib.colors import LogNorm, Normalize
-import time
-import multiprocessing
-
+import random
+import numpy as np
 
 
 class ModelTrainer():
 
     def __init__(self, model: torch.nn.Module, train_dataframe, country_list, region_list, num_folds=10, num_epochs=3, learning_rate=0.001, starting_regional_loss_portion=0.9, regional_loss_decline=0.2, train_dataset_name="Balanced", batch_size=260, seed=123) -> None:
+        # set radom seed
+        os.environ['PYTHONHASHSEED']=str(seed)
+        torch.manual_seed(seed)
+        torch.manual_seed_all(seed)
+        torch.cuda.manual_seed(seed)
+        torch.cuda.manual_seed_all(seed)
+        torch.use_deterministic_algorithms(True)
+        random.seed(seed)
+        np.random.seed(seed)
+
+        
         self.model = model
         self.device = torch.device(
             "cuda:0" if torch.cuda.is_available() else "cpu")
@@ -165,7 +174,11 @@ class ModelTrainer():
         # self.writer.add_scalar('Validation Loss', avg_validation_loss, epoch_index*self.num_folds + fold_index)
 
         # torch.save(self.model.state_dict(),f'finetuning/saved_models/model_{self.training_dataset_name}_epoch_{epoch_index}_batch_{i}')
-
+    def seed_worker(worker_id):
+        worker_seed = torch.initial_seed() % 2**32
+        np.random.seed(worker_seed)
+        random.seed(worker_seed)
+        
     def start_training(self):
         timestamp = datetime.datetime.now().strftime('%Y%m%d_%H%M%S')
         validation_size = math.floor(
@@ -192,8 +205,12 @@ class ModelTrainer():
                 fold_training_df = self.train_dataframe.drop(drop_indices)
                 train_dataset = load_dataset.EmbeddingDataset_from_df(
                     fold_training_df, 'train')
+                # fix randomness for dataloader
+                g = torch.Generator()
+                g.manual_seed(0)
+
                 train_loader = DataLoader(
-                    train_dataset,batch_size=self.batch_size, shuffle=False)
+                    train_dataset,batch_size=self.batch_size, shuffle=False, worker_init_fn=self.seed_worker, generator=g)
                 avg_training_loss = self.train_one_fold(train_loader)
                 self.writer.add_scalar(
                     'Training Loss', avg_training_loss, epoch_index*self.num_folds + fold_index)
@@ -388,7 +405,7 @@ def create_and_train_model(REPO_PATH: str, seed: int = 1234):
     test_df = pd.read_csv(f'{testing_directory}/test_data.csv')
     test_dataset = load_dataset.EmbeddingDataset_from_df(
         test_df, "test")
-    test_loader = DataLoader(test_dataset, shuffle=False)
+    #test_loader = DataLoader(test_dataset, shuffle=False)
 
     training_datasets = [
         'geo_weakly_balanced.csv',
