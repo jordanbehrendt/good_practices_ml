@@ -401,10 +401,13 @@ def create_and_train_model(REPO_PATH: str, seed: int = 1234):
     country_list = f'{REPO_PATH}/utils/country_list/country_list_region.csv'
     region_list = f'{REPO_PATH}/utils/country_list/UNSD_Methodology.csv'
 
-    testing_directory = f'{REPO_PATH}/CLIP_Embeddings/Testing'
-    test_df = pd.read_csv(f'{testing_directory}/test_data.csv')
+    testing_directory = f'{REPO_PATH}/CLIP_Embeddings/Embeddings/CLIP_Embeddings/Testing'
+    test_df = pd.read_csv(f'{testing_directory}/known_test_data.csv')
+    zeroshot_test_df = pd.read_csv(f'{testing_directory}/zero_shot_test_data.csv')
     test_dataset = load_dataset.EmbeddingDataset_from_df(
         test_df, "test")
+    zeroshot_test_dataset = load_dataset.EmbeddingDataset_from_df(
+        zeroshot_test_df, "test")
     #test_loader = DataLoader(test_dataset, shuffle=False)
 
     training_datasets = [
@@ -417,7 +420,7 @@ def create_and_train_model(REPO_PATH: str, seed: int = 1234):
 
     for elem in training_datasets:
         train_df = pd.read_csv(
-            f'{REPO_PATH}/CLIP_Embeddings/Training/{elem}')
+            f'{REPO_PATH}/CLIP_Embeddings/Embeddings/CLIP_Embeddings/{elem}')
 
         hyperparameters = [
             {'starting_regional_loss_portion': 0.0,
@@ -429,9 +432,9 @@ def create_and_train_model(REPO_PATH: str, seed: int = 1234):
              {'starting_regional_loss_portion': 0.5,
              'regional_loss_decline': 1.0}
         ]
-        bs = 260
+        bs = 261
         if elem == 'geo_strongly_balanced.csv' or elem == 'mixed_strongly_balanced.csv':
-            bs = 110
+            bs = 97
         for i in range(0, len(hyperparameters)):
             model = nn.FinetunedClip()
             trained_model = ModelTrainer(model, train_df, country_list, region_list,
@@ -441,6 +444,7 @@ def create_and_train_model(REPO_PATH: str, seed: int = 1234):
                                          regional_loss_decline=hyperparameters[i]['regional_loss_decline'],
                                          train_dataset_name=elem, seed=seed)
             trained_model.test_model(test_dataset)
+            trained_model.test_model(zeroshot_test_dataset)
     print("END")
 
 if __name__ == "__main__":
