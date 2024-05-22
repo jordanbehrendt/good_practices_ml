@@ -56,17 +56,39 @@ def balance_data(
     return balanced_df
 
 
-def create_datasets_from_embddings(REPO_PATH, seed=1234):
-    # set radom seed
+def create_datasets_from_embddings(
+    REPO_PATH,
+    seed=1234,
+    min_geo_percentage=0.5,
+    max_images_weakly=2000,
+    max_images_strongly=200,
+    min_geo_images=10,
+    min_aerial_images=2,
+    min_tourist_images=10,
+    test_size=0.15,
+):
+    """
+    Create balanced datasets from embeddings for training and testing.
+
+    Args:
+        REPO_PATH (str): The path to the repository.
+        seed (int, optional): The random seed for reproducibility. Defaults to 1234.
+        min_geo_percentage (float, optional): The minimum percentage of geo images to replace with aerial and tourist images. Defaults to 0.5.
+        max_images_weakly (int, optional): The maximum number of images for weakly balanced datasets. Defaults to 2000.
+        max_images_strongly (int, optional): The maximum number of images for strongly balanced datasets. Defaults to 200.
+        min_geo_images (int, optional): The minimum number of geo images. Defaults to 10.
+        min_aerial_images (int, optional): The minimum number of aerial images. Defaults to 2.
+        min_tourist_images (int, optional): The minimum number of tourist images. Defaults to 10.
+        test_size (float, optional): The proportion of the dataset to include in the test split. Defaults to 0.15.
+    """
+
+    # set random seed
     os.environ["PYTHONHASHSEED"] = str(seed)
     torch.manual_seed(seed)
     torch.cuda.manual_seed(seed)
     torch.use_deterministic_algorithms(True)
     random.seed(seed)
     np.random.seed(seed)
-
-    # minimum percentage of geo images in mixed sets
-    min_geo_percentage = 0.5
 
     with torch.no_grad():
         # read in and balance each dataset
@@ -79,7 +101,8 @@ def create_datasets_from_embddings(REPO_PATH, seed=1234):
         tourist_df = pd.read_csv(
             os.path.join(REPO_PATH, "CLIP_Embeddings/Image/tourist_embeddings.csv")
         )
-        
+
+        # Print dataset information
         print(f"Datasets read in with seed {seed}")
         print(f"Geo: {len(geo_embed)}")
         print(f"Aerial: {len(aerial_df)}")
@@ -87,33 +110,42 @@ def create_datasets_from_embddings(REPO_PATH, seed=1234):
 
         # Balance the datasets
         balanced_geo_df = balance_data(
-            df=geo_embed, max_images=2000, min_images=10, seed=seed
+            df=geo_embed,
+            max_images=max_images_weakly,
+            min_images=min_geo_images,
+            seed=seed,
         )
         balanced_aerial_df = balance_data(
-            df=aerial_df, max_images=2000, min_images=2, seed=seed
+            df=aerial_df,
+            max_images=max_images_weakly,
+            min_images=min_aerial_images,
+            seed=seed,
         )
         balanced_tourist_df = balance_data(
-            df=tourist_df, max_images=2000, min_images=10, seed=seed
+            df=tourist_df,
+            max_images=max_images_weakly,
+            min_images=min_tourist_images,
+            seed=seed,
         )
 
         # Split the datasets into train, validation and test sets
         geo_train_and_val, geo_test = sklearn.model_selection.train_test_split(
             balanced_geo_df,
-            test_size=0.15,
+            test_size=test_size,
             random_state=seed,
             shuffle=True,
             stratify=balanced_geo_df["label"],
         )
         aerial_train_and_val, aerial_test = sklearn.model_selection.train_test_split(
             balanced_aerial_df,
-            test_size=0.15,
+            test_size=test_size,
             random_state=seed,
             shuffle=True,
             stratify=balanced_aerial_df["label"],
         )
         tourist_train_and_val, tourist_test = sklearn.model_selection.train_test_split(
             balanced_tourist_df,
-            test_size=0.15,
+            test_size=test_size,
             random_state=seed,
             shuffle=True,
             stratify=balanced_tourist_df["label"],
@@ -136,6 +168,7 @@ def create_datasets_from_embddings(REPO_PATH, seed=1234):
             [geo_zero_shot_df, aerial_zero_shot_df, tourist_zero_shot_df]
         ).sample(frac=1, random_state=seed)
 
+        # Save test and zero shot datasets
         test_data.to_csv(
             os.path.join(REPO_PATH, "CLIP_Embeddings/Testing/knwon_test_data.csv"),
             index=False,
@@ -151,11 +184,11 @@ def create_datasets_from_embddings(REPO_PATH, seed=1234):
             index=False,
         )
 
-        # Get all images from geo_df for the classes that have more than 2000 images 
+        # Get all images from geo_df for the classes that have more than 2000 images
         # and that are not in balanced_geo_df
         geo_large_classes = (
             geo_embed["label"]
-            .value_counts()[geo_embed["label"].value_counts() > 2000]
+            .value_counts()[geo_embed["label"].value_counts() > max_images_weakly]
             .index.tolist()
         )
         geo_additional_images = geo_embed[
@@ -163,7 +196,7 @@ def create_datasets_from_embddings(REPO_PATH, seed=1234):
             & ~geo_embed["path"].isin(balanced_geo_df["path"])
         ]
 
-        # add the additional images to recreate the class imbalance
+        # Add the additional images to recreate the class imbalance
         unbalanced_geo_df = pd.concat(
             [geo_train_and_val, geo_additional_images]
         ).sample(frac=1, random_state=seed)
@@ -172,9 +205,12 @@ def create_datasets_from_embddings(REPO_PATH, seed=1234):
             index=False,
         )
 
-        # remove image of classes to have a maximum of 200 images for the strongly balanced dataset
+        # Remove images of classes to have a maximum of 200 images for the strongly balanced dataset
         strongley_balanced_geo_df = balance_data(
-            df=unbalanced_geo_df, max_images=200, min_images=10, seed=seed
+            df=unbalanced_geo_df,
+            max_images=max_images_strongly,
+            min_images=min_geo_images,
+            seed=seed,
         ).sample(frac=1, random_state=seed)
         strongley_balanced_geo_df.to_csv(
             os.path.join(
@@ -183,7 +219,7 @@ def create_datasets_from_embddings(REPO_PATH, seed=1234):
             index=False,
         )
 
-        # Replace up to 50% of each label with images of that same label from aerial 
+        # Replace up to 50% of each label with images of that same label from aerial
         # and tourist data in the weakly balanced set
         mixed_weakly_balanced_df = weakly_balanced_geo_df.copy()
         for label in mixed_weakly_balanced_df["label"].unique():
@@ -198,10 +234,6 @@ def create_datasets_from_embddings(REPO_PATH, seed=1234):
                 int(len(label_images) * min_geo_percentage),
                 len(aerial_images) + len(tourist_images),
             )
-            print(
-                f"Label: {label}, Num original: {len(label_images)}, 
-                Num replace: {len(aerial_images) + len(tourist_images)}"
-            )
             replace_images = pd.concat([aerial_images, tourist_images])
             replace_indices = (
                 mixed_weakly_balanced_df[mixed_weakly_balanced_df["label"] == label]
@@ -210,7 +242,7 @@ def create_datasets_from_embddings(REPO_PATH, seed=1234):
             )
             mixed_weakly_balanced_df.loc[replace_indices] = replace_images.values
 
-        # Replace up to 50% of each label with images of that same label from aerial 
+        # Replace up to 50% of each label with images of that same label from aerial
         # and tourist data in the strongly balanced set
         mixed_strongly_balanced_df = strongley_balanced_geo_df.copy()
         for label in mixed_strongly_balanced_df["label"].unique():
@@ -226,10 +258,6 @@ def create_datasets_from_embddings(REPO_PATH, seed=1234):
                 len(aerial_images) + len(tourist_images),
             )
             replace_images = pd.concat([aerial_images, tourist_images])
-            print(
-                f"Label: {label}, Num original: {len(label_images)}, 
-                Num replace: {len(aerial_images) + len(tourist_images)}"
-            )
             replace_indices = (
                 mixed_strongly_balanced_df[mixed_strongly_balanced_df["label"] == label]
                 .sample(num_replace, seed=seed)
@@ -237,7 +265,7 @@ def create_datasets_from_embddings(REPO_PATH, seed=1234):
             )
             mixed_strongly_balanced_df.loc[replace_indices] = replace_images.values
 
-        # save the mixed datasets
+        # Save the mixed datasets
         mixed_weakly_balanced_df.to_csv(
             os.path.join(
                 REPO_PATH, "CLIP_Embeddings/Training/mixed_weakly_balanced.csv"
@@ -251,6 +279,7 @@ def create_datasets_from_embddings(REPO_PATH, seed=1234):
             index=False,
         )
 
+        # Print dataset sizes
         print(f"Test data: {len(test_data)}")
         print(f"Zero shot data: {len(zero_shot_data)}")
         print(f"Geo weakly balanced: {len(weakly_balanced_geo_df)}")
@@ -270,6 +299,54 @@ if __name__ == "__main__":
         default="/media/leon/Samsung_T5/Uni/good_practices_ml/Embeddings",
         type=str,
         help="Path to the repository",
+    )
+    parser.add_argument(
+        "--seed",
+        default=1234,
+        type=int,
+        help="The random seed for reproducibility",
+    )
+    parser.add_argument(
+        "--min_geo_percentage",
+        default=0.5,
+        type=float,
+        help="The minimum percentage of geo images to replace with aerial and tourist images",
+    )
+    parser.add_argument(
+        "--max_images_weakly",
+        default=2000,
+        type=int,
+        help="The maximum number of images for weakly balanced datasets",
+    )
+    parser.add_argument(
+        "--max_images_strongly",
+        default=200,
+        type=int,
+        help="The maximum number of images for strongly balanced datasets",
+    )
+    parser.add_argument(
+        "--min_geo_images",
+        default=10,
+        type=int,
+        help="The minimum number of geo images",
+    )
+    parser.add_argument(
+        "--min_aerial_images",
+        default=2,
+        type=int,
+        help="The minimum number of aerial images",
+    )
+    parser.add_argument(
+        "--min_tourist_images",
+        default=10,
+        type=int,
+        help="The minimum number of tourist images",
+    )
+    parser.add_argument(
+        "--test_size",
+        default=0.15,
+        type=float,
+        help="The proportion of the dataset to include in the test split",
     )
     args = parser.parse_args()
     create_datasets_from_embddings(args.repo_path)
