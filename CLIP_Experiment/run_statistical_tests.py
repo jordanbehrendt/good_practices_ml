@@ -57,7 +57,8 @@ def compute_paired_k_fold_cross_validation_t_test(results_1:list,results_2:list,
     t = mean / math.sqrt(variance/(num_experiments + 1/(k-1)))
 
     p = stats.t.sf(t, num_experiments-1)
-    return t,p
+    df= num_experiments-1
+    return t,p,df
 
 
 def run_analysis_of_dataset_and_prompts(output_dir: str,comparison_df: pd.DataFrame, metric: str, paired_ttest: bool) -> None:
@@ -90,25 +91,27 @@ def run_analysis_of_dataset_and_prompts(output_dir: str,comparison_df: pd.DataFr
     for i in range(num_datasets):
         t_values = []
         p_values = []
+        df_values = []
         for j in range(num_datasets):
             if i == j:
                 t_values.append(0.0)
                 p_values.append(0.0)               
+                df_values.append(0.0)               
             else:
                 if paired_ttest:
-                    t,p = compute_paired_k_fold_cross_validation_t_test(comparison_df.iloc[:,i].tolist(),comparison_df.iloc[:,j].tolist(),20,10)
+                    t,p,df = compute_paired_k_fold_cross_validation_t_test(comparison_df.iloc[:,i].tolist(),comparison_df.iloc[:,j].tolist(),20,10)
                     t_values.append(t)
                     p_values.append(p)
+                    df_values.append(df)
                 else:
-                    t,p = compute_paired_k_fold_cross_validation_t_test(comparison_df.iloc[:,i].tolist(),comparison_df.iloc[:,j].tolist(),20,10)
-                    t_values.append(t)
-                    p_values.append(p)
-                # else:
-                #     t,p = compute_paired_k_fold_cross_validation_t_test(comparison_df.iloc[:,i].tolist(),comparison_df.iloc[:,j].tolist(),20,10)
-                #     t_values.append(ttest.statistic)
-                #     p_values.append(ttest.pvalue)
+                    results = stats.ttest_ind(comparison_df.iloc[:,i].tolist(),comparison_df.iloc[:,j].tolist(),alternative='greater')
+                    t_values.append(results.statistic)
+                    p_values.append(results.pvalue)
+                    df_values.append(len(comparison_df.iloc[:,i].tolist()) - 1)
+
         analysis[f'{comparison_df.columns[i]}_t_values'] = t_values
         analysis[f'{comparison_df.columns[i]}_p_values'] = p_values
+        analysis[f'{comparison_df.columns[i]}_df_values'] = df_values
 
     # Convert the analysis dictionary to a DataFrame
     analysis_df = pd.DataFrame(analysis)
