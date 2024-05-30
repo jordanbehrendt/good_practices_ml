@@ -234,13 +234,13 @@ class ModelTrainer():
                 with torch.no_grad():
                     predicitions_idx = torch.argmax(outputs, axis=1).tolist()
                     target_idx = [self.country_list[self.country_list['Country'] == target].index[0] for target in targets]
+                    if epoch_index == self.num_epochs-1:
+                        prediction = [self.country_list.iloc[predicitions_idx[i]]['Country'] for i in range(0, len(predicitions_idx))]
+                        validation_results_dict = {'Label': targets, 'Prediction': prediction, 'Output': outputs.numpy().tolist()}
+                        validation_results_dict = pd.DataFrame(validation_results_dict)
+                        validation_results_dict.to_csv(self.log_dir + f'/validation_results.csv', index=False)
                     try:
                         self.add_metrics_and_plot_tb(outputs, targets, "Epoch Validation", epoch_index*self.num_folds)
-                        if epoch_index == self.num_epochs-1:
-                            prediction = [self.country_list.iloc[predicitions_idx[i]]['Country'] for i in range(0, len(predicitions_idx))]
-                            validation_results_dict = {'Label': targets, 'Prediction': prediction, 'Output': outputs.numpy().tolist()}
-                            validation_results_dict = pd.DataFrame(validation_results_dict)
-                            validation_results_dict.to_csv(self.log_dir + f'/validation_results.csv', index=False)
                     except Exception as e:
                         print(e)
                     #self.createConfusionMatrix(target_idx, predicitions_idx, "Validation Confusion Matrix", epoch_index*self.num_folds)
