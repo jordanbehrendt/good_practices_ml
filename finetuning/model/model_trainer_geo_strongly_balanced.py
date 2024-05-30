@@ -81,8 +81,8 @@ class ModelTrainer():
         ignored_classes = metrics_df[(metrics_df['Precision'] == 0) & (metrics_df['Recall'] == 0)]
         metrics_df = metrics_df.drop(ignored_classes.index)
 
-        #bar_plot = metrics_df.plot(kind='bar', xlabel='Class', ylabel='Metrics', title='Metrics per Country, {len(ignored_classes)} ignored countries.').get_figure()
-        #self.writer.add_figure(f'{name} Metrics per Country', bar_plot, step)
+        bar_plot = metrics_df.plot(kind='bar', xlabel='Class', ylabel='Metrics', title='Metrics per Country, {len(ignored_classes)} ignored countries.').get_figure()
+        self.writer.add_figure(f'{name} Metrics per Country', bar_plot, step)
         self.writer.add_scalar(f'{name} Number of Ignored Classes', len(ignored_classes), step)
 
         # Calculate metrics per region
@@ -98,8 +98,8 @@ class ModelTrainer():
         ignored_regions = region_metrics_df[(region_metrics_df['Precision'] == 0) & (region_metrics_df['Recall'] == 0)]
         region_metrics_df = region_metrics_df.drop(ignored_regions.index)
 
-        #region_bar_plot = region_metrics_df.plot(kind='bar', xlabel='Region', ylabel='Metrics', title=f'Metrics per Region, {len(ignored_regions)} ignored regions.').get_figure()
-        #self.writer.add_figure(f'{name} Metrics per Region', region_bar_plot, step)
+        region_bar_plot = region_metrics_df.plot(kind='bar', xlabel='Region', ylabel='Metrics', title=f'Metrics per Region, {len(ignored_regions)} ignored regions.').get_figure()
+        self.writer.add_figure(f'{name} Metrics per Region', region_bar_plot, step)
         self.writer.add_scalar(f'{name} Number of Ignored Regions', len(ignored_regions), step)
         self.writer.add_text(f'{name} List of Ignored Regions', ';'.join(ignored_regions.index.to_list()), step)
         self.writer.flush()
@@ -225,6 +225,7 @@ class ModelTrainer():
                 targets.extend(target)
                 outputs = torch.cat((outputs, prediction), dim=0)
 
+                
                 # self.writer.add_scalars('Training vs. Validation Loss',
                 #         { 'Training' : avg_training_loss, 'Validation' : avg_validation_loss },
                 #         epoch_index*self.num_folds + fold_index + 1)
@@ -236,14 +237,9 @@ class ModelTrainer():
                     target_idx = [self.country_list[self.country_list['Country'] == target].index[0] for target in targets]
                     try:
                         self.add_metrics_and_plot_tb(outputs, targets, "Epoch Validation", epoch_index*self.num_folds)
-                        if epoch_index == self.num_epochs-1:
-                            prediction = [self.country_list.iloc[predicitions_idx[i]]['Country'] for i in range(0, len(predicitions_idx))]
-                            validation_results_dict = {'Label': targets, 'Prediction': prediction, 'Output': outputs.numpy().tolist()}
-                            validation_results_dict = pd.DataFrame(validation_results_dict)
-                            validation_results_dict.to_csv(self.log_dir + f'/validation_results.csv', index=False)
                     except Exception as e:
                         print(e)
-                    #self.createConfusionMatrix(target_idx, predicitions_idx, "Validation Confusion Matrix", epoch_index*self.num_folds)
+                    self.createConfusionMatrix(target_idx, predicitions_idx, "Validation Confusion Matrix", epoch_index*self.num_folds)
         
             torch.save(self.model.state_dict(),
                        f'saved_models/model_{self.training_dataset_name}_{timestamp}_epoch_{epoch_index+1}')
@@ -266,7 +262,7 @@ class ModelTrainer():
         with torch.no_grad():
             predicitions_idx = torch.argmax(outputs, axis=1).tolist()
             target_idx = [self.country_list[self.country_list['Country'] == target].index[0] for target in targets]
-            #self.createConfusionMatrix(target_idx, predicitions_idx, "Test Confusion Matrix", None)
+            self.createConfusionMatrix(target_idx, predicitions_idx, "Test Confusion Matrix", None)
             try:
                 self.add_metrics_and_plot_tb(outputs, targets, "Test", None)
             except Exception as e:
@@ -395,7 +391,7 @@ class ModelTrainer():
         return loss
 
 
-def create_and_train_model(REPO_PATH: str, seed: int = 1234, training_datasets=['geo_weakly_balanced.csv','geo_unbalanced.csv','geo_strongly_balanced.csv','mixed_weakly_balanced.csv','mixed_strongly_balanced.csv']):
+def create_and_train_model(REPO_PATH: str, seed: int = 1234):
     """
     Creates and trains a model using the specified repository path.
 
@@ -418,13 +414,9 @@ def create_and_train_model(REPO_PATH: str, seed: int = 1234, training_datasets=[
         zeroshot_test_df, "test")
     #test_loader = DataLoader(test_dataset, shuffle=False)
 
-    #training_datasets = [
-    #    'geo_weakly_balanced.csv',
-    #    'geo_unbalanced.csv',
-    #    'geo_strongly_balanced.csv',
-    #    'mixed_weakly_balanced.csv',
-    #    'mixed_strongly_balanced.csv'
-    #]
+    training_datasets = [
+        'geo_strongly_balanced.csv'
+    ]
 
     for elem in training_datasets:
         train_df = pd.read_csv(

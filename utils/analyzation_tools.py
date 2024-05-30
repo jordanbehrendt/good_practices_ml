@@ -46,7 +46,7 @@ def corrected_repeated_kFold_cv_test(data1, data2, n1, n2, alpha):
     return df, t, cv, p
 
 
-def box_plot_experiments(list_of_df, name, save_path):
+def box_plot_experiments(list_of_df, name, save_path, loss_number=0, dataset_names=None, metric_names=None):
     """
     Genreates box plots for all metrics contained in the dataframes.
     Compares these metrics for each dataframe in the list.
@@ -59,18 +59,28 @@ def box_plot_experiments(list_of_df, name, save_path):
     Returns:
     pd.DataFrame: A concatenated dataframe containing all data with a coloumn tagging the used Loss.
     """
+    dataset_to_indices = {'geo_strongly_balanced':0, 'geo_unbalanced':1, 'geo_weakly_balanced':2, 'mixed_strongly_balanced':3, 'mixed_weakly_balanced':4}
+    if dataset_names is not None:
+        indices = [dataset_to_indices[name] for name in dataset_names]
+    else:
+        indices = range(len(list_of_df))
 
     sns.set_theme(style="whitegrid")
+    list_of_df = [df[loss_number].copy() for df in list_of_df]
 
-    for i in range(len(list_of_df)):
-        list_of_df[i] = list_of_df[i].assign(Experiment=f"L{i+1}")
+    for i in indices:
+        list_of_df[i] = list_of_df[i].assign(Experiment=f"{list(dataset_to_indices.values())[i]}")
+        list_of_df[i] = list_of_df[i][metric_names]
+        #cols_to_drop = list_of_df[i].filter(like='text', axis=1).columns
+        #list_of_df[i] = list_of_df[i].drop(columns=cols_to_drop)
+
         list_of_df[i].columns = list_of_df[i].columns.str.split().str[-2:].str.join(" ")
 
     condf = pd.concat(list_of_df)
     meltdf = condf.melt(id_vars=["Experiment"], var_name="Metric", value_name="Value")
     meltdf["Value"] = meltdf["Value"].apply(lambda x: float(x[0]) if type(x) == list else x) 
     ax = sns.boxplot(
-        x="Experiment", y="Value", hue="Metric", data=meltdf, showfliers=False
+        x="Metric", y="Value", hue="Experiment", data=meltdf, showfliers=False
     )
     ax.set_title(name)
     lgd = plt.legend(bbox_to_anchor=(0.9, 0.95), loc=2, borderaxespad=0.0)
@@ -227,14 +237,43 @@ def event_to_df(log_dir):
 
     return region_columns_val_list, country_columns_val_list, region_columns_test_list, country_columns_test_list, other_coloumns_list
 
+def read_experiment_data(experiment_dir):
+    # directory of all experiments
+    # create lists that contain the dataframes of the different experiments
+    # First axis contains the different dataset configurations
+    # Second axis contains the different Loss configurations
+    # Third axis contains the DataFrame of the different seeds
+    region_val_datasets = []
+    country_val_datasets = []
+    region_test_datasets = []
+    country_test_datasets = []
+    other_coloumns_list = []
+
+    for folder in sorted(os.listdir(experiment_dir)):
+        log_dir = os.path.join(experiment_dir, folder)
+        if os.path.isdir(log_dir):
+            if 'balanced' not in log_dir:
+                continue
+            save_path = log_dir + '/results/'
+            # Call the event_to_df function with the log directory 
+            rv, cv, rt, ct, o = event_to_df(log_dir)
+            region_val_datasets.append(rv)
+            country_val_datasets.append(cv)
+            region_test_datasets.append(rt)
+            country_test_datasets.append(ct)
+            other_coloumns_list.append(o)
+    return region_val_datasets, country_val_datasets, region_test_datasets, country_test_datasets, other_coloumns_list
+
 if __name__ == "__main__":
     # Specify the path to the TensorBoard log directory
-    log_dir = '/media/leon/Samsung_T5/Uni/good_practices_ml/runs/experiment1/mixed_strongly_balanced/'
-    save_path = '/media/leon/Samsung_T5/Uni/good_practices_ml/runs/experiment1/mixed_strongly_balanced/'
+    log_dir = '/share/temp/bjordan/good_practices_in_machine_learning/good_practices_ml/finetuning/runs/experiment1/'
+    save_path = '/share/temp/bjordan/good_practices_in_machine_learning/good_practices_ml/finetuning/runs/experiment1/boxplots/'
+    dataset_names = ['geo_strongly_balanced', 'geo_unbalanced', 'geo_weakly_balanced', 'mixed_strongly_balanced', 'mixed_weakly_balanced']
+    metric_names = ['']
     # Call the event_to_df function with the log directory 
-    region_columns_val_list, coutnry_columns_val_list, region_columns_test_list, country_columns_test_list, other_coloumns_list = event_to_df(log_dir)
+    region_columns_val_list, coutnry_columns_val_list, region_columns_test_list, country_columns_test_list, other_coloumns_list = read_experiment_data(log_dir)
     # Call the box_plot_experiments function with the lists of dataframes
-    val_region_metrics = box_plot_experiments(region_columns_val_list, 'validation-region', save_path)
-    val_country_metrics = box_plot_experiments(coutnry_columns_val_list, 'validation-country', save_path)
-    test_region_metric = box_plot_experiments(region_columns_test_list, 'test-region', save_path)
-    test_coutnry_metric = box_plot_experiments(country_columns_test_list, 'test-country', save_path)
+    val_region_metrics = box_plot_experiments(region_columns_val_list, 'validation-region', save_path, dataset_names=dataset_names, metric_names=metric_names)   
+    val_country_metrics = box_plot_experiments(coutnry_columns_val_list, 'validation-country', save_path, dataset_names=dataset_names, metric_names=metric_names)
+    test_region_metric = box_plot_experiments(region_columns_test_list, 'test-region', save_path, dataset_names=dataset_names, metric_names=metric_names)
+    test_coutnry_metric = box_plot_experiments(country_columns_test_list, 'test-country', save_path, dataset_names=dataset_names, metric_names=metric_names)

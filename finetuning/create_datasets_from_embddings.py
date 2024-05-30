@@ -1,3 +1,7 @@
+import sys
+sys.path.append("./../")
+sys.path.append(".")
+
 import random
 import numpy as np
 import sklearn.model_selection
@@ -8,10 +12,8 @@ import torch
 import clip
 from utils import load_dataset
 import argparse
-import sys
 
-sys.path.append("./../")
-sys.path.append(".")
+
 
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
@@ -143,6 +145,13 @@ def create_datasets_from_embddings(
             shuffle=True,
             stratify=balanced_aerial_df["label"],
         )
+        # Make sure that all labels in the training set are also in the test set
+        labels_in_aerial_train_not_in_aerial_test = set(aerial_train_and_val['label'].value_counts().keys().to_list()) - set(aerial_test['label'].value_counts().keys().to_list())
+        for label in labels_in_aerial_train_not_in_aerial_test:
+            entry = aerial_train_and_val[aerial_train_and_val['label'] == label].sample(1)
+            aerial_test = pd.concat([aerial_test, entry])
+            aerial_train_and_val = aerial_train_and_val.drop(entry.index)
+
         tourist_train_and_val, tourist_test = sklearn.model_selection.train_test_split(
             balanced_tourist_df,
             test_size=test_size,
@@ -151,26 +160,27 @@ def create_datasets_from_embddings(
             stratify=balanced_tourist_df["label"],
         )
 
-        # Create zero shot datasets
-        geo_zero_shot_df = geo_embed[~geo_embed["label"].isin(balanced_geo_df["label"])]
-        aerial_zero_shot_df = aerial_df[
-            ~aerial_df["label"].isin(balanced_aerial_df["label"])
-        ]
-        tourist_zero_shot_df = tourist_df[
-            ~tourist_df["label"].isin(balanced_tourist_df["label"])
-        ]
-
         # Concatenate and shuffle all test and zero_shot datasets
         test_data = pd.concat([geo_test, aerial_test, tourist_test]).sample(
             frac=1, random_state=seed
         )
+
+        # Create zero shot datasets
+        geo_zero_shot_df = geo_embed[~geo_embed["label"].isin(test_data["label"])]
+        aerial_zero_shot_df = aerial_df[
+            ~aerial_df["label"].isin(test_data["label"])
+        ]
+        tourist_zero_shot_df = tourist_df[
+            ~tourist_df["label"].isin(test_data["label"])
+        ]
+
         zero_shot_data = pd.concat(
             [geo_zero_shot_df, aerial_zero_shot_df, tourist_zero_shot_df]
         ).sample(frac=1, random_state=seed)
 
         # Save test and zero shot datasets
         test_data.to_csv(
-            os.path.join(REPO_PATH, "CLIP_Embeddings/Testing/knwon_test_data.csv"),
+            os.path.join(REPO_PATH, "CLIP_Embeddings/Testing/known_test_data.csv"),
             index=False,
         )
         zero_shot_data.to_csv(
@@ -209,7 +219,7 @@ def create_datasets_from_embddings(
         strongley_balanced_geo_df = balance_data(
             df=unbalanced_geo_df,
             max_images=max_images_strongly,
-            min_images=min_geo_images,
+            min_images=0,
             seed=seed,
         ).sample(frac=1, random_state=seed)
         strongley_balanced_geo_df.to_csv(
@@ -234,13 +244,16 @@ def create_datasets_from_embddings(
                 int(len(label_images) * min_geo_percentage),
                 len(aerial_images) + len(tourist_images),
             )
+            if num_replace == 0:
+                continue
             replace_images = pd.concat([aerial_images, tourist_images])
             replace_indices = (
                 mixed_weakly_balanced_df[mixed_weakly_balanced_df["label"] == label]
-                .sample(num_replace, seed=seed)
+                .sample(num_replace, random_state=seed)
                 .index
             )
-            mixed_weakly_balanced_df.loc[replace_indices] = replace_images.values
+            cols_to_use = mixed_weakly_balanced_df.columns
+            mixed_weakly_balanced_df.loc[replace_indices] = replace_images[cols_to_use].sample(num_replace, random_state=seed).to_numpy()
 
         # Replace up to 50% of each label with images of that same label from aerial
         # and tourist data in the strongly balanced set
@@ -257,13 +270,16 @@ def create_datasets_from_embddings(
                 int(len(label_images) * min_geo_percentage),
                 len(aerial_images) + len(tourist_images),
             )
+            if num_replace == 0:
+                continue
             replace_images = pd.concat([aerial_images, tourist_images])
             replace_indices = (
                 mixed_strongly_balanced_df[mixed_strongly_balanced_df["label"] == label]
-                .sample(num_replace, seed=seed)
+                .sample(num_replace, random_state=seed)
                 .index
             )
-            mixed_strongly_balanced_df.loc[replace_indices] = replace_images.values
+            cols_to_use = mixed_strongly_balanced_df.columns
+            mixed_strongly_balanced_df.loc[replace_indices] = replace_images[cols_to_use].sample(num_replace, random_state=seed).to_numpy()
 
         # Save the mixed datasets
         mixed_weakly_balanced_df.to_csv(
@@ -296,7 +312,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "--repo_path",
-        default="/media/leon/Samsung_T5/Uni/good_practices_ml/Embeddings",
+        default="/share/temp/bjordan/good_practices_in_machine_learning/good_practices_ml/CLIP_Embeddings/Embeddings",
         type=str,
         help="Path to the repository",
     )
