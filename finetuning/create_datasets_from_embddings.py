@@ -304,6 +304,45 @@ def create_datasets_from_embddings(
         print(f"Mixed weakly balanced: {len(mixed_weakly_balanced_df)}")
         print(f"Mixed strongly balanced: {len(mixed_strongly_balanced_df)}")
 
+        # Check how much data from the tourist df is in the mixed weakly dataframe
+        tourist_in_mixed_weakly = mixed_weakly_balanced_df[mixed_weakly_balanced_df["path"].isin(tourist_df["path"])]
+        tourist_count_in_mixed_weakly = len(tourist_in_mixed_weakly)
+        print(f"Number of tourist data in mixed weakly balanced dataset: {tourist_count_in_mixed_weakly}")
+
+        # Check how much data from the aerial df is in the mixed weakly dataframe
+        aerial_in_mixed_weakly = mixed_weakly_balanced_df[mixed_weakly_balanced_df["path"].isin(aerial_df["path"])]
+        aerial_count_in_mixed_weakly = len(aerial_in_mixed_weakly)
+        print(f"Number of aerial data in mixed weakly balanced dataset: {aerial_count_in_mixed_weakly}")
+
+        # Check how much data from the tourist df is in the mixed strongly dataframe
+        tourist_in_mixed_strongly = mixed_strongly_balanced_df[mixed_strongly_balanced_df["path"].isin(tourist_df["path"])]
+        tourist_count_in_mixed_strongly = len(tourist_in_mixed_strongly)
+        print(f"Number of tourist data in mixed strongly balanced dataset: {tourist_count_in_mixed_strongly}")
+
+        # Check how much data from the aerial df is in the mixed strongly dataframe
+        aerial_in_mixed_strongly = mixed_strongly_balanced_df[mixed_strongly_balanced_df["path"].isin(aerial_df["path"])]
+        aerial_count_in_mixed_strongly = len(aerial_in_mixed_strongly)
+        print(f"Number of aerial data in mixed strongly balanced dataset: {aerial_count_in_mixed_strongly}")
+
+        # Check how much data from the tourist df is in the test data
+        tourist_in_test = test_data[test_data["path"].isin(tourist_df["path"])]
+        tourist_count_in_test = len(tourist_in_test)
+        print(f"Number of tourist data in test dataset: {tourist_count_in_test}")
+
+        # Check how much data from the aerial df is in the test data
+        aerial_in_test = test_data[test_data["path"].isin(aerial_df["path"])]
+        aerial_count_in_test = len(aerial_in_test)
+        print(f"Number of aerial data in test dataset: {aerial_count_in_test}")
+
+        # Check how much data from the tourist df is in the zero shot data
+        tourist_in_zero_shot = zero_shot_data[zero_shot_data["path"].isin(tourist_df["path"])]
+        tourist_count_in_zero_shot = len(tourist_in_zero_shot)
+        print(f"Number of tourist data in zero shot dataset: {tourist_count_in_zero_shot}")
+
+        # Check how much data from the aerial df is in the zero shot data
+        aerial_in_zero_shot = zero_shot_data[zero_shot_data["path"].isin(aerial_df["path"])]
+        aerial_count_in_zero_shot = len(aerial_in_zero_shot)
+        print(f"Number of aerial data in zero shot dataset: {aerial_count_in_zero_shot}")
 
 if __name__ == "__main__":
     """Creates the test set and the diffrent train/valdiation sets.
@@ -312,7 +351,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "--repo_path",
-        default="/share/temp/bjordan/good_practices_in_machine_learning/good_practices_ml/CLIP_Embeddings/Embeddings",
+        default="/media/leon/Samsung_T5/Uni/good_practices_ml/Embeddings/",
         type=str,
         help="Path to the repository",
     )
