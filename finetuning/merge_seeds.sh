@@ -1,8 +1,8 @@
 #!/bin/bash
 
 # Set the source and destination directories
-source_dir="/share/temp/bjordan/good_practices_in_machine_learning/good_practices_ml/finetuning/runs/all_seeds"
-destination_dir="/share/temp/bjordan/good_practices_in_machine_learning/good_practices_ml/finetuning/runs/merged_seeds"
+source_dir="/share/temp/bjordan/good_practices_in_machine_learning/good_practices_ml/finetuning/runs/all_seeds2"
+destination_dir="/share/temp/bjordan/good_practices_in_machine_learning/good_practices_ml/finetuning/runs/merged_seeds2"
 
 # Loop through all the files in the source directory
 for file in "$source_dir"/*/*/*/*/*/*; do
