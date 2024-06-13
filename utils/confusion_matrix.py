@@ -101,9 +101,9 @@ def create_and_save_confusion_matrices(REPO_PATH, SAVE_FIGURES_PATH, true_countr
     ax_3.tick_params(axis='both', labelsize=15)
     ax_3.set(xlabel=None, ylabel=None)
     if normalize:
-        ax_3.figure.savefig(f'{SAVE_FIGURES_PATH}/normalized/regionally_ordered_confusion_matrix.png')
+        ax_3.figure.savefig(f'{SAVE_FIGURES_PATH}/normalized/regional_ordered_confusion_matrix.png')
     else:
-        ax_3.figure.savefig(f'{SAVE_FIGURES_PATH}/regionally_ordered_confusion_matrix.png')
+        ax_3.figure.savefig(f'{SAVE_FIGURES_PATH}/regional_ordered_confusion_matrix.png')
     fig_4, ax_4 = plt.subplots(figsize=(120, 90))
     ax_4 = sns.heatmap(regions_df_cm, cmap=sns.cubehelix_palette(as_cmap=True),xticklabels = 1,yticklabels=1)
     ax_4.tick_params(axis='both', labelsize=50)
