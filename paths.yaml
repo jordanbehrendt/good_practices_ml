@@ -2,6 +2,6 @@
 #Currently there is only one user 'default'
 ---
 data_path:
-  default: '/home/kieran/Documents/Uni/WiSe23-24/Good_Practices_of_Machine_Learning/data'
+  default: '/share/temp/bjordan/good_practices_in_machine_learning/Tourist/'
 repo_path:
-  default: '/home/kieran/Documents/Uni/WiSe23-24/Good_Practices_of_Machine_Learning/good_practices_ml'
+  default: '/share/temp/bjordan/good_practices_in_machine_learning/good_practices_ml/'

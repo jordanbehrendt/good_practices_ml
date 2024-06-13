@@ -39,7 +39,7 @@
             "console": "integratedTerminal",
             "args": [
                 "--user",
-                "user",
+                "default",
                 "--yaml_path",
                 "/share/temp/bjordan/good_practices_in_machine_learning/good_practices_ml/paths.yaml",
                 "--dataset_dir",
