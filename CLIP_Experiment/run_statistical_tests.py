@@ -56,7 +56,7 @@ def compute_paired_k_fold_cross_validation_t_test(results_1:list,results_2:list,
     variance *= 1/(num_experiments - 1)
     t = mean / math.sqrt(variance/(num_experiments + 1/(k-1)))
 
-    p = stats.t.sf(t, num_experiments-1)
+    p = stats.t.sf(abs(t), num_experiments-1)
     df= num_experiments-1
     return t,p,df
 
@@ -92,22 +92,22 @@ def run_analysis_of_dataset_and_prompts(output_dir: str,comparison_df: pd.DataFr
         t_values = []
         p_values = []
         df_values = []
-        for j in range(num_datasets):
-            if i == j:
-                t_values.append(0.0)
-                p_values.append(0.0)               
-                df_values.append(0.0)               
-            else:
+        for j in range(num_datasets):              
+            if i < j:
                 if paired_ttest:
                     t,p,df = compute_paired_k_fold_cross_validation_t_test(comparison_df.iloc[:,i].tolist(),comparison_df.iloc[:,j].tolist(),20,10)
                     t_values.append(t)
                     p_values.append(p)
                     df_values.append(df)
                 else:
-                    results = stats.ttest_ind(comparison_df.iloc[:,i].tolist(),comparison_df.iloc[:,j].tolist(),alternative='greater')
+                    results = stats.ttest_ind(comparison_df.iloc[:,i].tolist(),comparison_df.iloc[:,j].tolist())
                     t_values.append(results.statistic)
                     p_values.append(results.pvalue)
                     df_values.append(len(comparison_df.iloc[:,i].tolist()) - 1)
+            else:
+                t_values.append(0.0)
+                p_values.append(0.0)               
+                df_values.append(0.0) 
 
         analysis[f'{comparison_df.columns[i]}_t_values'] = t_values
         analysis[f'{comparison_df.columns[i]}_p_values'] = p_values

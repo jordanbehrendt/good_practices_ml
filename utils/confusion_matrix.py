@@ -20,9 +20,6 @@ def create_and_save_confusion_matrices(REPO_PATH, SAVE_FIGURES_PATH, true_countr
     Returns:
         None
     """
-    # Flatten the lists if they are nested
-    true_countries = [item for sublist in true_countries for item in sublist] if any(isinstance(i, list) for i in true_countries) else true_countries
-    predicted_countries = [item for sublist in predicted_countries for item in sublist] if any(isinstance(i, list) for i in predicted_countries) else predicted_countries
 
     # Load country list and regional ordering index
     country_list = pd.read_csv(f'{REPO_PATH}/utils/country_list/country_list_region_and_continent.csv')
@@ -50,7 +47,7 @@ def create_and_save_confusion_matrices(REPO_PATH, SAVE_FIGURES_PATH, true_countr
     regionally_ordered_df_cm = pd.DataFrame(
         regionally_ordered_matrix, index=regionally_ordered_classes, columns=regionally_ordered_classes)
 
-    # Create region labels
+    #Create region labels
     np_regions = np.sort(np.array(list(set(country_list['Intermediate Region Name']))))
     true_regions = []
     predicted_regions = []
@@ -78,27 +75,50 @@ def create_and_save_confusion_matrices(REPO_PATH, SAVE_FIGURES_PATH, true_countr
         if not os.path.exists(f'{SAVE_FIGURES_PATH}'):
             os.makedirs(f'{SAVE_FIGURES_PATH}')       
 
-    # Plot and save country confusion matrices
-    plot_and_save_heatmap(df_cm, f'{SAVE_FIGURES_PATH}/simple_confusion_matrix.png', normalize)
-    plot_and_save_heatmap(ordered_df_cm, f'{SAVE_FIGURES_PATH}/ordered_confusion_matrix.png', normalize)
-    plot_and_save_heatmap(regionally_ordered_df_cm, f'{SAVE_FIGURES_PATH}/regionally_ordered_confusion_matrix.png', normalize)
-
-    # Plot and save region confusion matrices
-    plot_and_save_heatmap(regions_df_cm, f'{SAVE_FIGURES_PATH}/regions_confusion_matrix.png', normalize)
-    plot_and_save_heatmap(regions_ordered_df_cm, f'{SAVE_FIGURES_PATH}/regions_ordered_confusion_matrix.png', normalize)
-
-def plot_and_save_heatmap(dataframe, file_path, normalize):
-    plt.figure(figsize=(120, 90))
+    fig_1, ax_1 = plt.subplots(figsize=(120, 90))
     sns.set(font_scale=8)
-    ax = sns.heatmap(dataframe, cmap=sns.cubehelix_palette(as_cmap=True), xticklabels=1, yticklabels=1)
-    ax.tick_params(axis='both', labelsize=15)
-    ax.set(xlabel=None, ylabel=None)
-    ax.figure.savefig(file_path)
-    plt.close(ax.figure)
-
-# Example usage
-# REPO_PATH = 'path_to_repo'
-# SAVE_FIGURES_PATH = 'path_to_save_figures'
-# true_countries = [list_of_true_countries]
-# predicted_countries = [list_of_predicted_countries]
-# create_and_save_confusion_matrices(REPO_PATH, SAVE_FIGURES_PATH, true_countries, predicted_countries, normalize=True)
+    ax_1 = sns.heatmap(df_cm, cmap=sns.cubehelix_palette(as_cmap=True),xticklabels = 1,yticklabels=1)
+    ax_1.tick_params(axis='both', labelsize=15)
+    ax_1.set(xlabel=None, ylabel=None)
+    if normalize:
+        ax_1.figure.savefig(f'{SAVE_FIGURES_PATH}/normalized/simple_confusion_matrix.png')
+    else:
+        ax_1.figure.savefig(f'{SAVE_FIGURES_PATH}/simple_confusion_matrix.png')
+    fig_2, ax_2 = plt.subplots(figsize=(120, 90))
+    ax_2 = sns.heatmap(ordered_df_cm, cmap=sns.cubehelix_palette(as_cmap=True),xticklabels=1,yticklabels=1)
+    ax_2.tick_params(axis='both', labelsize=15)
+    ax_2.set(xlabel=None, ylabel=None)
+    if normalize:
+        ax_2.figure.savefig(f'{SAVE_FIGURES_PATH}/normalized/ordered_confusion_matrix.png')
+    else:
+        ax_2.figure.savefig(f'{SAVE_FIGURES_PATH}/ordered_confusion_matrix.png')
+    fig_3, ax_3 = plt.subplots(figsize=(120, 90))
+    ax_3 = sns.heatmap(regionally_ordered_df_cm, cmap=sns.cubehelix_palette(as_cmap=True),xticklabels=1,yticklabels=1)
+    ax_3.tick_params(axis='both', labelsize=15)
+    ax_3.set(xlabel=None, ylabel=None)
+    if normalize:
+        ax_3.figure.savefig(f'{SAVE_FIGURES_PATH}/normalized/regionally_ordered_confusion_matrix.png')
+    else:
+        ax_3.figure.savefig(f'{SAVE_FIGURES_PATH}/regionally_ordered_confusion_matrix.png')
+    fig_4, ax_4 = plt.subplots(figsize=(120, 90))
+    ax_4 = sns.heatmap(regions_df_cm, cmap=sns.cubehelix_palette(as_cmap=True),xticklabels = 1,yticklabels=1)
+    ax_4.tick_params(axis='both', labelsize=50)
+    ax_4.set(xlabel=None, ylabel=None)
+    if normalize:
+        ax_4.figure.savefig(f'{SAVE_FIGURES_PATH}/normalized/regions_confusion_matrix.png')
+    else:
+        ax_4.figure.savefig(f'{SAVE_FIGURES_PATH}/regions_confusion_matrix.png')
+    fig_5, ax_5 = plt.subplots(figsize=(120, 90))
+    ax_5 = sns.heatmap(regions_ordered_df_cm, cmap=sns.cubehelix_palette(as_cmap=True),xticklabels = 1,yticklabels=1)
+    ax_5.tick_params(axis='both', labelsize=50)
+    ax_5.set(xlabel=None, ylabel=None)
+    if normalize:
+        ax_5.figure.savefig(f'{SAVE_FIGURES_PATH}/normalized/regions_ordered_confusion_matrix.png')
+    else:
+        ax_5.figure.savefig(f'{SAVE_FIGURES_PATH}/regions_ordered_confusion_matrix.png')
+    fig_1.clf()
+    fig_2.clf()
+    fig_3.clf()
+    fig_4.clf()
+    fig_5.clf()
+    return
