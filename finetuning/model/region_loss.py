@@ -164,49 +164,37 @@ class Regional_Loss(torch.nn.Module):
         region_metrics_index = np.take(all_regions, region_metrics_index)
         return precision, recall, fscore, support, region_metrics_index
 
+
     def calculate_mixed_metrics(self, outputs, targets):
         country_predictions_idxs = torch.argmax(outputs, axis=1)
         target_countries = [self.country_dict[target] for target in targets]
-        
+
         region_outputs = torch.matmul(outputs, self.selective_sum_operator.transpose(0, 1))
         region_predictions_idxs = torch.argmax(region_outputs, axis=1)
         target_region_idx = torch.tensor([self.regions_dict[target.item()] for target in country_predictions_idxs], device=self.device)
 
-        unique_countries = np.unique(target_countries)
-
-        hP = []
-        hR = []
-        hF = []
+        unique_countries = np.unique(np.concatenate([country_predictions_idxs.numpy(),target_countries]))
+        TP, FP, FN = np.zeros(len(unique_countries)), np.zeros(len(unique_countries)), np.zeros(len(unique_countries))
 
         for idx, country in enumerate(unique_countries):
-            t_country = target_countries == country
-            t_region = target_region_idx == self.regions_dict[country]
-            ti = (t_region.sum() + t_country.sum())
+            true_pos = target_countries == country
+            pred_pos = (country_predictions_idxs == country).numpy()
+            region = self.regions_dict[country]
+            true_region = (target_region_idx == region).numpy()
+            pred_region = (region_predictions_idxs == region).numpy()
 
-            p_country = (country_predictions_idxs == country).numpy()
-            p_region = (region_predictions_idxs == self.regions_dict[country]).numpy()
-            pi = (p_region.sum() + p_country.sum())
+            TP[idx] = (true_pos & pred_pos).sum().item() + (((true_pos & ~pred_pos) & (pred_region & true_region)).sum().item() / 2)
+            FP[idx] = (~true_pos & pred_pos).sum().item()
+            FN[idx] = (true_pos & ~pred_pos & ~pred_region).sum().item()
 
-            intersec_country = t_country & p_country
-            intersec_region = t_region & p_region
+        mixed_prec = TP / (TP + FP)
+        mixed_rec = TP / (TP + FN)
+        mixed_f1 = 2 * (mixed_prec * mixed_rec) / (mixed_prec + mixed_rec)
 
-            pi_sec_ti = intersec_country.sum() + intersec_region.sum()
-
-            if pi == 0 or ti == 0:
-                hP_class = 0
-                hR_class = 0
-                hF_class = 0
-            else:
-                hP_class = pi_sec_ti / pi
-                hR_class = pi_sec_ti / ti
-                hF_class = 2 * hP_class * hR_class / (hP_class + hR_class)
-
-            hP.append(hP_class)
-            hR.append(hR_class)
-            hF.append(hF_class)
-
-        mixed_prec = np.mean(hP)
-        mixed_rec = np.mean(hR)
-        mixed_f1 = np.mean(hF)
+        mixed_prec = np.nan_to_num(mixed_prec, nan=0.0)
+        mixed_rec = np.nan_to_num(mixed_rec, nan=0.0)
+        mixed_f1 = np.nan_to_num(mixed_f1, nan=0.0)
 
         return mixed_prec, mixed_rec, mixed_f1
+    
+
