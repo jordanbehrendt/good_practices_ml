@@ -96,7 +96,7 @@ def calculate_metric(repo_path: str, batch_df: pd.DataFrame, metric_name: str) -
     elif metric_name == 'region_acc':
         return calculate_experiment_region_accuracy(country_list, batch_df)
     elif metric_name == 'mixed':
-        return calculate_experiment_country_accuracy(batch_df) * 0.5 + calculate_experiment_region_accuracy(country_list, batch_df) * 0.5
+        return calculate_mixed_metric(repo_path, batch_df)
     else:
         raise ValueError(f"The metric {metric_name} is not known.")
     
@@ -118,4 +118,39 @@ def calculate_experiment_metric(repo_path: str, exp_dir:str, metric_name: str) -
         if not os.path.isdir(os.path.join(exp_dir, batch_file)):
             batch_df = pd.read_csv(os.path.join(exp_dir, batch_file))
             exp_metric.append(calculate_metric(repo_path, batch_df, metric_name))
-    return exp_metric
+    return np.array(exp_metric)
+
+def calculate_mixed_metric(repo_path: str, batch_df:object):
+    country_list = pd.read_csv(f'{repo_path}/utils/country_list/country_list_region_and_continent.csv')
+    merged_df = pd.merge(batch_df, country_list, left_on='Predicted labels', right_on='Country', how='inner')
+    merged_df = merged_df.rename(columns={'Intermediate Region Name': 'predicted_region'})
+    merged_df = pd.merge(merged_df, country_list, left_on='label', right_on='Country', how='inner')
+    merged_df = merged_df.rename(columns={'Intermediate Region Name': 'reference_region'})
+
+    unique_countries = list(set(merged_df['label'].tolist() + merged_df['Predicted labels'].tolist()))
+    TP, FP, FN = np.zeros(len(unique_countries)), np.zeros(len(unique_countries)), np.zeros(len(unique_countries))
+
+    for idx, country in enumerate(unique_countries):
+        true_pos = np.array([x == country for x in merged_df['label'].tolist()])
+        pred_pos = np.array([x == country for x in merged_df['Predicted labels'].tolist()])
+        region = country_list.loc[country_list['Country'] == country]['Intermediate Region Name'].values[0]
+        true_region = np.array([x == region for x in merged_df['reference_region'].tolist()])
+        pred_region = np.array([x == region for x in merged_df['predicted_region'].tolist()])
+
+        TP[idx] = (true_pos & pred_pos).sum().item() + (((true_pos & ~pred_pos) & (pred_region & true_region)).sum().item() / 2)
+        FP[idx] = (~true_pos & pred_pos).sum().item()
+        FN[idx] = (true_pos & ~pred_pos & ~pred_region).sum().item()
+
+    mixed_prec = TP / (TP + FP)
+    mixed_rec = TP / (TP + FN)
+    mixed_f1 = 2 * (mixed_prec * mixed_rec) / (mixed_prec + mixed_rec)
+
+    mixed_prec = np.nan_to_num(mixed_prec, nan=0.0)
+    mixed_rec = np.nan_to_num(mixed_rec, nan=0.0)
+    mixed_f1 = np.nan_to_num(mixed_f1, nan=0.0)
+
+    prec_mean = np.mean(mixed_prec)
+    rec_mean = np.mean(mixed_rec)
+    f1_mean = np.mean(mixed_f1)
+
+    return prec_mean, rec_mean, f1_mean

@@ -93,7 +93,7 @@ def run_analysis_of_dataset_and_prompts(output_dir: str,comparison_df: pd.DataFr
         p_values = []
         df_values = []
         for j in range(num_datasets):              
-            if i < j:
+            if i > j:
                 if paired_ttest:
                     t,p,df = compute_paired_k_fold_cross_validation_t_test(comparison_df.iloc[:,i].tolist(),comparison_df.iloc[:,j].tolist(),20,10)
                     t_values.append(t)
@@ -174,4 +174,4 @@ if __name__ == "__main__":
     with open(args.yaml_path) as file:
         paths = yaml.safe_load(file)
         REPO_PATH = paths['repo_path'][args.user]
-        run_analysis_of_experiments(REPO_PATH, 'mixed')
+        run_analysis_of_experiments(REPO_PATH, 'Mixed_F1')

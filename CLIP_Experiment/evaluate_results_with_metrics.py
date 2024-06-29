@@ -23,18 +23,38 @@ def calculate_metrics(REPO_PATH):
     seeds = [4808,4947,5723,3838,5836,3947,8956,5402,1215,8980]
     datasets = ['geoguessr', 'tourist', 'aerial']
     prompts = ['default_prompt', 'extended_prompt']
-    metrics = ['country_acc', 'region_acc', 'mixed']
-    for metric in metrics:
-        for prompt in prompts:
-            for dataset in datasets:
-                df = pd.DataFrame()
-                for seed in seeds:
-                    result_list = calculate_accuracies(REPO_PATH, seed, dataset, prompt, metric)
-                    df[f'{seed}'] = result_list
-                output_dir = f'{REPO_PATH}/CLIP_Experiment/result_accuracy/{metric}/{prompt}'
-                if not os.path.exists(output_dir):
-                    os.makedirs(output_dir)
-                df.to_csv(f'{output_dir}/{dataset}.csv')
+    metrics = ['country_acc', 'region_acc']
+    for prompt in prompts:
+        for dataset in datasets:
+            # for metric in metrics:
+            #     df = pd.DataFrame()
+            #     for seed in seeds:
+            #         result_list = calculate_accuracies(REPO_PATH, seed, dataset, prompt, metric)
+            #         df[f'{seed}'] = result_list
+            #     output_dir = f'{REPO_PATH}/CLIP_Experiment/result_accuracy/{metric}/{prompt}'
+            #     if not os.path.exists(output_dir):
+            #         os.makedirs(output_dir)
+            #     df.to_csv(f'{output_dir}/{dataset}.csv')
+            pre_df = pd.DataFrame()
+            rec_df = pd.DataFrame()
+            f1_df = pd.DataFrame()
+            for seed in seeds:
+                result_list = calculate_accuracies(REPO_PATH, seed, dataset, prompt, 'mixed')
+                pre_df[f'{seed}'] = result_list[:,0]
+                rec_df[f'{seed}'] = result_list[:,1]
+                f1_df[f'{seed}'] = result_list[:,2]
+                pre_output_dir = f'{REPO_PATH}/CLIP_Experiment/result_accuracy/Mixed_Precision/{prompt}'
+                if not os.path.exists(pre_output_dir):
+                    os.makedirs(pre_output_dir)
+                pre_df.to_csv(f'{pre_output_dir}/{dataset}.csv')
+                rec_output_dir = f'{REPO_PATH}/CLIP_Experiment/result_accuracy/Mixed_Recall/{prompt}'
+                if not os.path.exists(rec_output_dir):
+                    os.makedirs(rec_output_dir)
+                rec_df.to_csv(f'{rec_output_dir}/{dataset}.csv')
+                f1_output_dir = f'{REPO_PATH}/CLIP_Experiment/result_accuracy/Mixed_F1/{prompt}'
+                if not os.path.exists(f1_output_dir):
+                    os.makedirs(f1_output_dir)
+                f1_df.to_csv(f'{f1_output_dir}/{dataset}.csv')
 
 if __name__ == "__main__":
     """
