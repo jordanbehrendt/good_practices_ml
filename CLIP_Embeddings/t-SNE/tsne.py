@@ -12,7 +12,7 @@ import ast
 
 
 def load_european_data(REPO_PATH, dataset_name, country_list):
-    """Load the data to run tSNE analysis
+    """Load only european data to run european tSNE analysis
 
     Args:
         REPO_PATH (str): local path of repository
@@ -44,6 +44,37 @@ def load_european_data(REPO_PATH, dataset_name, country_list):
 
     # map contries to regions
     combined_df = pd.merge(europe_combined_df,country_list,left_on='label',right_on='Country')
+    return combined_df
+
+
+def load_data(REPO_PATH, dataset_name, country_list):
+    """Load the data to run tSNE analysis
+
+    Args:
+        REPO_PATH (str): local path of repository
+        dataset_name (str): unique dataset name from {geoguessr, aerial, tourist}
+        country_list (DataFrame): Data Frame of Countries, Regions and Continents
+    """
+    # Directory containing CSV files
+    directory = f'{REPO_PATH}/CLIP_Embeddings/Image/'
+
+    # Get a list of all filenames in each directory
+    file_list = [file for file in os.listdir(directory) if file.startswith(dataset_name)]
+
+    # Initialize an empty list to store DataFrames
+    dfs = []
+
+    # Iterate through the files, read them as DataFrames, and append to the list
+    for file in file_list:
+        file_path = os.path.join(directory, file)
+        df = pd.read_csv(file_path)
+        dfs.append(df)
+
+    # Concatenate all DataFrames in the list into a single DataFrame
+    combined_df = pd.concat(dfs, ignore_index=True)
+
+    # map contries to regions
+    combined_df = pd.merge(combined_df,country_list,left_on='label',right_on='Country')
     return combined_df
 
 def transform_tensor_rep_to_array(x):
@@ -84,7 +115,7 @@ def save_continent_plot(REPO_PATH, tsne_results, dataset_name, continents):
     df_subset = pd.DataFrame()
     df_subset['tsne-2d-one'] = tsne_results[:,0]
     df_subset['tsne-2d-two'] = tsne_results[:,1]
-    df_subset['Classes'] = continents
+    df_subset['Classes'] = ['Europe', 'Americas', 'Asia', 'Africa', 'Oceania', 'Antarctica']
 
     plt.figure(figsize=(16,10), clear=True)
     scatterplot = sns.scatterplot(
@@ -123,8 +154,8 @@ def save_region_plots_europe(REPO_PATH, y, country_list, tsne_results, dataset_n
     df_subset = pd.DataFrame()
     df_subset['tsne-2d-one'] = tsne_results[:,0]
     df_subset['tsne-2d-two'] = tsne_results[:,1]
-    if not os.path.isdir(f'./{dataset_name}/Europe'):
-        os.mkdir(f'./{dataset_name}/Europe')
+    if not os.path.isdir(f'{REPO_PATH}/CLIP_Embeddings/t-SNE/{dataset_name}/Europe'):
+        os.mkdir(f'{REPO_PATH}/CLIP_Embeddings/t-SNE/{dataset_name}/Europe')
     df_subset['Classes'] = region_result_array
 
     color_palette = sns.color_palette("hls", len(region_classes)).as_hex()
@@ -170,8 +201,8 @@ def save_region_plots(REPO_PATH, y, country_list, tsne_results, dataset_name, co
     df_subset = pd.DataFrame()
     df_subset['tsne-2d-one'] = tsne_results[:,0]
     df_subset['tsne-2d-two'] = tsne_results[:,1]
-    if not os.path.isdir(f'./{dataset_name}/Continent'):
-        os.mkdir(f'./{dataset_name}/Continent')
+    if not os.path.isdir(f'{REPO_PATH}/CLIP_Embeddings/t-SNE/{dataset_name}/Continent'):
+        os.mkdir(f'{REPO_PATH}/CLIP_Embeddings/t-SNE/{dataset_name}/Continent')
     for i in range(0, len(continent_specific_labels)):
         df_subset['Classes'] = continent_specific_labels[i]
 
@@ -224,8 +255,8 @@ def save_country_plots_europe(REPO_PATH, y, country_list, tsne_results, dataset_
     df_subset = pd.DataFrame()
     df_subset['tsne-2d-one'] = tsne_results[:,0]
     df_subset['tsne-2d-two'] = tsne_results[:,1]
-    if not os.path.isdir(f'./{dataset_name}/Europe/Region'):
-        os.mkdir(f'./{dataset_name}/Europe/Region')
+    if not os.path.isdir(f'{REPO_PATH}/CLIP_Embeddings/t-SNE/{dataset_name}/Europe/Region'):
+        os.mkdir(f'{REPO_PATH}/CLIP_Embeddings/t-SNE/{dataset_name}/Europe/Region')
     for i in range(0, len(region_specific_labels)):
         df_subset['Classes'] = region_specific_labels[i]
 
@@ -278,8 +309,8 @@ def save_country_plots(REPO_PATH, y, country_list, tsne_results, dataset_name, r
     df_subset = pd.DataFrame()
     df_subset['tsne-2d-one'] = tsne_results[:,0]
     df_subset['tsne-2d-two'] = tsne_results[:,1]
-    if not os.path.isdir(f'./{dataset_name}/Region'):
-        os.mkdir(f'./{dataset_name}/Region')
+    if not os.path.isdir(f'{REPO_PATH}/CLIP_Embeddings/t-SNE/{dataset_name}/Region'):
+        os.mkdir(f'{REPO_PATH}/CLIP_Embeddings/t-SNE/{dataset_name}/Region')
     for i in range(0, len(region_specific_labels)):
         df_subset['Classes'] = region_specific_labels[i]
 
@@ -319,7 +350,7 @@ def conduct_tsne_analysis(REPO_PATH, dataset_name, only_europe, include_distance
         #Load Data
         combined_df = load_european_data(REPO_PATH, dataset_name, country_list)
     else:
-        combined_df = load_european_data(REPO_PATH, dataset_name, country_list)
+        combined_df = load_data(REPO_PATH, dataset_name, country_list)
     y = combined_df['label'].to_numpy()
 
     # Get sets of country, region and continent classes
@@ -347,8 +378,8 @@ def conduct_tsne_analysis(REPO_PATH, dataset_name, only_europe, include_distance
     tsne_results = tsne.fit_transform(X)
     if (not only_europe):
         save_continent_plot(REPO_PATH, tsne_results, dataset_name, continents)
-        save_region_plots(REPO_PATH, y, country_list, tsne_results, dataset_name, continent_classes)
-        save_country_plots(REPO_PATH, y, country_list, tsne_results, dataset_name, region_classes)
+        # save_region_plots(REPO_PATH, y, country_list, tsne_results, dataset_name, continent_classes)
+        # save_country_plots(REPO_PATH, y, country_list, tsne_results, dataset_name, region_classes)
     else:
         save_region_plots_europe(REPO_PATH, y, country_list, tsne_results, dataset_name, region_classes)
         save_country_plots_europe(REPO_PATH, y, country_list, tsne_results, dataset_name, region_classes)
@@ -365,4 +396,4 @@ if __name__ == "__main__":
     with open(args.yaml_path) as file:
         paths = yaml.safe_load(file)
         REPO_PATH = paths['repo_path'][args.user]
-        conduct_tsne_analysis(REPO_PATH,dataset_name='geoguessr',only_europe=False,include_distances=False)
+        conduct_tsne_analysis(REPO_PATH,dataset_name='geoguessr',only_europe=False,include_distances=True)
