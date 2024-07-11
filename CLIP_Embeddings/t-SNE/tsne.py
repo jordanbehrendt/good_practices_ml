@@ -385,8 +385,7 @@ def conduct_tsne_analysis(REPO_PATH, dataset_name, only_europe, include_distance
         continents.append(country_row['Continent'])
 
     region_classes = np.unique(regions)
-    # continent_classes = np.unique(continents)
-    continent_classes = ['Europe', 'Americas', 'Asia', 'Africa', 'Oceania', 'Antarctica']
+    continent_classes = np.unique(continents)
 
 
     #Create numpy array for TSNE
@@ -402,8 +401,8 @@ def conduct_tsne_analysis(REPO_PATH, dataset_name, only_europe, include_distance
     tsne_results = tsne.fit_transform(X)
     if (not only_europe):
         save_continent_plot(REPO_PATH, tsne_results, dataset_name, continents, continent_classes, include_distances)
-        # save_region_plots(REPO_PATH, y, country_list, tsne_results, dataset_name, continent_classes, include_distances)
-        # save_country_plots(REPO_PATH, y, country_list, tsne_results, dataset_name, region_classes, include_distances)
+        save_region_plots(REPO_PATH, y, country_list, tsne_results, dataset_name, continent_classes, include_distances)
+        save_country_plots(REPO_PATH, y, country_list, tsne_results, dataset_name, region_classes, include_distances)
     else:
         save_region_plots_europe(REPO_PATH, y, country_list, tsne_results, dataset_name, region_classes, include_distances)
         save_country_plots_europe(REPO_PATH, y, country_list, tsne_results, dataset_name, region_classes, include_distances)

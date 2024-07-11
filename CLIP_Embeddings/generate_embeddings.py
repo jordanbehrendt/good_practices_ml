@@ -56,8 +56,8 @@ def generate_embeddings(REPO_PATH,DATA_PATH):
 
     # load image data
     geoguessr_df = load_dataset.load_data(f'{DATA_PATH}/geoguessr')
-    # tourist_df = load_dataset.load_data(f'{DATA_PATH}/tourist')
-    # aerial_df = load_dataset.load_data(f'{DATA_PATH}/aerial')
+    tourist_df = load_dataset.load_data(f'{DATA_PATH}/tourist')
+    aerial_df = load_dataset.load_data(f'{DATA_PATH}/aerial')
 
     # generate Prompts
     country_list = pd.read_csv(f'{REPO_PATH}/utils/country_list/country_list_region_and_continent.csv')["Country"].to_list()
@@ -66,8 +66,8 @@ def generate_embeddings(REPO_PATH,DATA_PATH):
     with torch.no_grad():
         # generate image embeddings
         geoguessr_df["Embedding"] = geoguessr_df["path"].apply(lambda path: model.encode_image(preprocessor(PIL.Image.open(path)).unsqueeze(0).to(device)))
-        # tourist_df["Embedding"] = tourist_df["path"].apply(lambda path: model.encode_image(preprocessor(PIL.Image.open(path)).unsqueeze(0).to(device)))
-        # aerial_df["Embedding"] = aerial_df["path"].apply(lambda path: model.encode_image(preprocessor(PIL.Image.open(path)).unsqueeze(0).to(device)))
+        tourist_df["Embedding"] = tourist_df["path"].apply(lambda path: model.encode_image(preprocessor(PIL.Image.open(path)).unsqueeze(0).to(device)))
+        aerial_df["Embedding"] = aerial_df["path"].apply(lambda path: model.encode_image(preprocessor(PIL.Image.open(path)).unsqueeze(0).to(device)))
 
         # generate prompt embeddings
         simple_tokens = clip.tokenize(country_list)
@@ -78,13 +78,13 @@ def generate_embeddings(REPO_PATH,DATA_PATH):
 
     # generate model inputs, by appending distances to the prompt embeddings
     geoguessr_df["model_input"] = geoguessr_df["Embedding"].apply(lambda x: calculate_distances(x, prompt_embedding))
-    # aerial_df["model_input"] = aerial_df["Embedding"].apply(lambda x: calculate_distances(x, prompt_embedding))
-    # tourist_df["model_input"] = tourist_df["Embedding"].apply(lambda x: calculate_distances(x, prompt_embedding))
+    aerial_df["model_input"] = aerial_df["Embedding"].apply(lambda x: calculate_distances(x, prompt_embedding))
+    tourist_df["model_input"] = tourist_df["Embedding"].apply(lambda x: calculate_distances(x, prompt_embedding))
 
     # save image embeddings
     save_dataframe_in_batches(geoguessr_df, 2000, f"{REPO_PATH}/CLIP_Embeddings/Image/geoguessr_embeddings")
-    # save_dataframe_in_batches(tourist_df, 2000, f"{REPO_PATH}/CLIP_Embeddings/Image/tourist_embeddings")
-    # save_dataframe_in_batches(aerial_df, 2000, f"{REPO_PATH}/CLIP_Embeddings/Image/aerial_embeddings")
+    save_dataframe_in_batches(tourist_df, 2000, f"{REPO_PATH}/CLIP_Embeddings/Image/tourist_embeddings")
+    save_dataframe_in_batches(aerial_df, 2000, f"{REPO_PATH}/CLIP_Embeddings/Image/aerial_embeddings")
 
     # save prompt embeddings
     torch.save(simple_embedding, f'{REPO_PATH}/CLIP_Embeddings/Prompt/prompt_simple_embedding.pt')
