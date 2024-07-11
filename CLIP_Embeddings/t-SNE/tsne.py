@@ -101,7 +101,7 @@ def transform_buffer_to_array(x):
     model_input = model_input_array.tolist()
     return model_input
 
-def save_continent_plot(REPO_PATH, tsne_results, dataset_name, continents, include_distances):
+def save_continent_plot(REPO_PATH, tsne_results, dataset_name, continents, continent_classes, include_distances):
     """Save a plot of the t-SNE results colored by continent
 
     Args:
@@ -116,12 +116,13 @@ def save_continent_plot(REPO_PATH, tsne_results, dataset_name, continents, inclu
     df_subset = pd.DataFrame()
     df_subset['tsne-2d-one'] = tsne_results[:,0]
     df_subset['tsne-2d-two'] = tsne_results[:,1]
-    df_subset['Classes'] = ['Europe', 'Americas', 'Asia', 'Africa', 'Oceania', 'Antarctica']
+    df_subset['Classes'] = continents
 
     plt.figure(figsize=(16,10), clear=True)
     scatterplot = sns.scatterplot(
         x="tsne-2d-one", y="tsne-2d-two",
         hue="Classes",
+        hue_order=continent_classes,
         palette=sns.color_palette("hls", 6),
         data=df_subset,
         legend="full",
@@ -384,7 +385,8 @@ def conduct_tsne_analysis(REPO_PATH, dataset_name, only_europe, include_distance
         continents.append(country_row['Continent'])
 
     region_classes = np.unique(regions)
-    continent_classes = np.unique(continents)
+    # continent_classes = np.unique(continents)
+    continent_classes = ['Europe', 'Americas', 'Asia', 'Africa', 'Oceania', 'Antarctica']
 
 
     #Create numpy array for TSNE
@@ -399,7 +401,7 @@ def conduct_tsne_analysis(REPO_PATH, dataset_name, only_europe, include_distance
     tsne = TSNE(n_components=2, verbose=1, init='pca')
     tsne_results = tsne.fit_transform(X)
     if (not only_europe):
-        save_continent_plot(REPO_PATH, tsne_results, dataset_name, continent_classes, include_distances)
+        save_continent_plot(REPO_PATH, tsne_results, dataset_name, continents, continent_classes, include_distances)
         # save_region_plots(REPO_PATH, y, country_list, tsne_results, dataset_name, continent_classes, include_distances)
         # save_country_plots(REPO_PATH, y, country_list, tsne_results, dataset_name, region_classes, include_distances)
     else:
@@ -411,8 +413,12 @@ if __name__ == "__main__":
     """Runs t-SNE on a dataset. The dataset_name along with the binary values of only_europe and include_distances can be modified below
     """
     parser = argparse.ArgumentParser()
-    parser.add_argument('--user', metavar='str', required=True, help='The user of the gpml group')
-    parser.add_argument("--yaml_path",  default="", type=str, help="Path to the yaml file")
+    parser.add_argument('--user', metavar='str', required=True,
+                        help='The user of the gpml group')
+    parser.add_argument('--yaml_path', metavar='str', required=True,
+                        help='The path to the yaml file with the stored paths')
+    parser.add_argument('-d', '--debug', action='store_true',
+                        required=False, help='Enable debug mode', default=False)
     args = parser.parse_args()
 
     with open(args.yaml_path) as file:
