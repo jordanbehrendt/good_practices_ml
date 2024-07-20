@@ -28,7 +28,24 @@ import numpy as np
 
 class ModelTrainer():
 
-    def __init__(self, model: torch.nn.Module, train_dataframe, country_list, region_list, num_folds=10, num_epochs=3, learning_rate=0.001, starting_regional_loss_portion=0.9, regional_loss_decline=0.2, train_dataset_name="Balanced", batch_size=260, seed=123) -> None:
+    def __init__(self, model: torch.nn.Module, train_dataframe: pd.DataFrame, country_list: str, region_list: str, num_folds: int=10, num_epochs:int=3, learning_rate: float=0.001, starting_regional_loss_portion: float=0.9, regional_loss_decline: float=0.2, train_dataset_name: str="Balanced", batch_size: int=260, seed: int=123) -> None:
+        """
+        Initializes the ModelTrainer class.
+
+        Args:
+            model (torch.nn.Module): The model to be trained.
+            train_dataframe (pd.DataFrame): The training data.
+            country_list (str): The path to the country list.
+            region_list (str): The path to the region list.
+            num_folds (int): The number of folds for the cross-validation.
+            num_epochs (int): The number of epochs to train the model.
+            learning_rate (float): The learning rate for the optimizer.
+            starting_regional_loss_portion (float): The starting regional loss portion.
+            regional_loss_decline (float): The factor with which the regional loss portion is multiplied each epoch.
+            train_dataset_name (str): The name of the training dataset.
+            batch_size (int): The batch size for the training.
+            seed (int): The seed for the random number generator.
+        """
         # set radom seed
         os.environ['PYTHONHASHSEED']=str(seed)
         torch.manual_seed(seed)
@@ -69,7 +86,7 @@ class ModelTrainer():
         self.writer = SummaryWriter(log_dir=self.log_dir)
         self.start_training()
 
-    def add_metrics_and_plot_tb(self, outputs, targets, name, step):
+    def add_metrics_and_plot_tb(self, outputs: torch.Tensor, targets: list[str], name: str, step: int):
         per_class_precision, per_class_recall, per_class_f1, _, target_idx = self.criterion.calculate_metrics_per_class(outputs, targets)
         self.writer.add_scalar(f'{name} avg Class Precision', per_class_precision.mean(), step)
         self.writer.add_scalar(f'{name} avg Class Recall', per_class_recall.mean(), step)
@@ -143,12 +160,7 @@ class ModelTrainer():
             # print(f"batch {i} loss: {loss}")
             # if i % 10 == 9:
             #     last_loss = running_loss/
-            # print(f"batch {i} loss: {loss}")
-            # if i % 10 == 9:
-            #     last_lo
-        fold_mean_loss = running_loss / len(train_loader)
-        return fold_mean_loss
-
+            # print(f"batch {i} loss: {loss}")train_dataframe
     def validate(self, epoch_index, fold_index, validation_dataset):
         inputs, targets = validation_dataset[:]
         outputs = self.model(inputs)
