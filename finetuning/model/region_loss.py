@@ -41,13 +41,13 @@ class Regional_Loss(torch.nn.Module):
             self.selective_sum_operator[i, indices] = 1
         self.selective_sum_operator
 
-    def forward(self, outputs, targets):
+    def forward(self, outputs: torch.Tensor, targets: list[str]):
         """
         Forward pass of the model.
 
         Args:
             outputs (torch.Tensor): The output tensor from the model.
-            targets (list): The list of target values.
+            targets (list[str]): The list of target values.
 
         Returns:
             tuple: A tuple containing the mean region loss and mean country loss.
@@ -68,13 +68,13 @@ class Regional_Loss(torch.nn.Module):
 
         return region_loss.mean(), country_loss.mean()
 
-    def claculate_region_accuracy(self, outputs, targets):
+    def claculate_region_accuracy(self, outputs: torch.Tensor, targets: list[str]):
         """
         Calculates the accuracy of region predictions.
 
         Args:
             outputs (torch.Tensor): The output tensor from the model.
-            targets (list): The list of target countries.
+            targets (list[str]): The list of target countries.
 
         Returns:
             torch.Tensor: The mean accuracy of region predictions.
@@ -93,13 +93,13 @@ class Regional_Loss(torch.nn.Module):
         # calculate the accuracy of the region predictions
         return torch.mean((region_predictions_idxs == target_region_idx).float())
 
-    def calculate_country_accuracy(self, outputs, targets):
+    def calculate_country_accuracy(self, outputs: torch.Tensor, targets: list[str]):
         """
         Calculates the accuracy of country predictions.
 
         Args:
             outputs (torch.Tensor): The predicted outputs of the model.
-            targets (list): The target country labels.
+            targets (list[str]): The target country labels.
 
         Returns:
             torch.Tensor: The mean accuracy of country predictions.
@@ -112,13 +112,13 @@ class Regional_Loss(torch.nn.Module):
         # calculate the accuracy of the country predictions
         return torch.mean((country_predictions_idxs == torch.tensor(target_countries_idxs, device=self.device)).float())
     
-    def calculate_metrics_per_class(self, outputs, targets):
+    def calculate_metrics_per_class(self, outputs: torch.Tensor, targets: list[str]):
         """
         Calculates precision, recall, F1-score, and support for country predictions for each class.
 
         Args:
             outputs (torch.Tensor): The predicted outputs of the model.
-            targets (list): The target country labels.
+            targets (list[str]): The target country labels.
 
         Returns:
             tuple: A tuple containing precision, recall, F1-score, and support for each class.
@@ -141,9 +141,9 @@ class Regional_Loss(torch.nn.Module):
 
         Args:
             outputs (torch.Tensor): The predicted outputs of the model.
-            targets (list): The target country labels.
+            targets (list[str]): The target country labels.
 
-        Returns:_
+        Returns:
             tuple: A tuple containing precision, recall, F1-score, and support for each class.
         """
         # get the indices of all targets for the country_list, which is the index of the one hot encoded country vector
@@ -163,9 +163,20 @@ class Regional_Loss(torch.nn.Module):
         region_metrics_index = np.unique(target_region_idx.tolist())
         region_metrics_index = np.take(all_regions, region_metrics_index)
         return precision, recall, fscore, support, region_metrics_index
+    
 
 
-    def calculate_mixed_metrics(self, outputs, targets):
+    def calculate_mixed_metrics(self, outputs: torch.Tensor, targets: list[str]):
+        """
+        Calculates mixed precision, mixed recall, and mixed F1-score.
+
+        Args:
+            outputs (torch.Tensor): The predicted outputs of the model.
+            targets (list[str]): The target country labels.
+
+        Returns:
+            tuple: A tuple containing mixed precision, mixed recall, and mixed F1-score.
+        """
         country_predictions_idxs = torch.argmax(outputs, axis=1)
         target_countries = [self.country_dict[target] for target in targets]
 
@@ -182,7 +193,7 @@ class Regional_Loss(torch.nn.Module):
             region = self.regions_dict[country]
             true_region = (target_region_idx == region).numpy()
             pred_region = (region_predictions_idxs == region).numpy()
-
+            # calculate the true positive, including the half true positive when the region is correct but the country is wrong
             TP[idx] = (true_pos & pred_pos).sum().item() + (((true_pos & ~pred_pos) & (pred_region & true_region)).sum().item() / 2)
             FP[idx] = (~true_pos & pred_pos).sum().item()
             FN[idx] = (true_pos & ~pred_pos & ~pred_region).sum().item()
