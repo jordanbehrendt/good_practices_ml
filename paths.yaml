@@ -2,6 +2,6 @@
 #Currently there is only one user 'default'
 ---
 data_path:
-  default: '/share/temp/bjordan/good_practices_in_machine_learning/Tourist/'
+  default: 'path/to/data/'
 repo_path:
-  default: '/share/temp/bjordan/good_practices_in_machine_learning/good_practices_ml/'
+  default: 'path/to/repo/'

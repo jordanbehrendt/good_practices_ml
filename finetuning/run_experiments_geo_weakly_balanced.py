@@ -3,7 +3,7 @@ import sys
 sys.path.append("./../")
 import finetuning.model.model_trainer as trainer
 
-REPO_PATH = "/share/temp/bjordan/good_practices_in_machine_learning/good_practices_ml/"
+REPO_PATH = "path/to/your/repo/"
 training_datasets = [
         'geo_weakly_balanced.csv'
     ]

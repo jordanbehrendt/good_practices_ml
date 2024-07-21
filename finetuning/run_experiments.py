@@ -3,7 +3,7 @@ import sys
 sys.path.append("./../")
 import finetuning.model.model_trainer as trainer
 
-REPO_PATH = "/share/temp/bjordan/good_practices_in_machine_learning/good_practices_ml/"
+REPO_PATH = "path/to/your/repo/"
 
 #create_datasets_from_embddings.create_datasets_from_embddings(REPO_PATH, seed=1234)
 seeds = [4808,4947,5723,3838,5836,3947,8956,5402,1215,8980]

@@ -351,7 +351,6 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "--repo_path",
-        default="/media/leon/Samsung_T5/Uni/good_practices_ml/Embeddings/",
         type=str,
         help="Path to the repository",
     )

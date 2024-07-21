@@ -266,8 +266,8 @@ def read_experiment_data(experiment_dir):
 
 if __name__ == "__main__":
     # Specify the path to the TensorBoard log directory
-    log_dir = '/share/temp/bjordan/good_practices_in_machine_learning/good_practices_ml/finetuning/runs/experiment1/'
-    save_path = '/share/temp/bjordan/good_practices_in_machine_learning/good_practices_ml/finetuning/runs/experiment1/boxplots/'
+    log_dir = 'path/to/your/log/directory/'
+    save_path = 'path/to/your/save/directory/'
     dataset_names = ['geo_strongly_balanced', 'geo_unbalanced', 'geo_weakly_balanced', 'mixed_strongly_balanced', 'mixed_weakly_balanced']
     metric_names = ['']
     # Call the event_to_df function with the log directory 
