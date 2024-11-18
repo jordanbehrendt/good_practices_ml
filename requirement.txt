@@ -10,7 +10,6 @@ charset-normalizer==3.3.2
 click==8.1.7
 click-plugins==1.1.1
 cligj==0.7.2
-clip==1.0
 comm==0.2.1
 contourpy==1.1.1
 cycler==0.12.1
@@ -72,6 +71,7 @@ nvidia-nccl-cu12==2.18.1
 nvidia-nvjitlink-cu12==12.3.52
 nvidia-nvtx-cu12==12.1.105
 oauthlib==3.2.2
+openai-clip==1.0.1
 opt-einsum==3.3.0
 packaging==23.2
 pandas==2.0.3
