@@ -1,15 +1,17 @@
 # Set-Up
 
-1. In the paths.yaml file you have to add the path to the repository and the path to the data that you want to use.
+1. In the paths.yaml file you have to add the absolute path to the code directory (where this repository lives) and the path to the data directory (where you will place the folders containing geoguessr, tourist, and aerial datasets).
+2. Create a python environment with the same python version as stated in `.python-version`.
+3. Install the dependencies listed in `requirements.txt`. :warning: In its current version, `requirements.txt` lists all dependencies listed in the environment where this code was produced (Ubunto 20.04.6), if you encounter installation errors, consider whether they might be caused by platform specific dependencies, and CUDA version/capabilities compatibility. In these cases, remove those dependencies from your local version of `requirements.txt` and let pip dependency resolver figure out which packages you need. In a future revision of this project we will fix this.
 
 # data_collection
 
 ## This folder is provided for the purpose of cross-checking the methods for data collection. The Data need not be collected again and can instead be downloaded from the following sources
 
-1. Create a data repository and copy the repository path into the paths.yaml file
+1. Create a data directory and copy its absolute path into the paths.yaml file, replacing the `data_path: default:` field.
 2. *Geoguessr:* download the 'compressed_dataset' folder from <https://www.kaggle.com/datasets/ubitquitin/geolocation-geoguessr-images-50k/data> and rename it to 'geoguessr'
 3. *Tourist:* download the 'tourist' folder from <https://osf.io/pe453/?view_only=d4ebd0f1fcb54dd8b24312fed3e5b722>
-4. *Aerial:* download the 'aerial' folder from <https://osf.io/pe453/?view_only=d4ebd0f1fcb54dd8b24312fed3e5b722>
+4. *Aerial:* download the 'aerial' folder from <https://osf.io/wrmzx/?view_only=bbd7cf7d0f6243e7ac6b87fb45fac04a>
 
 ## data_exploration
 
