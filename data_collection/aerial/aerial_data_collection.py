@@ -197,4 +197,4 @@ if __name__ == "__main__":
         DATA_PATH = paths['data_path']
         REPO_PATH = paths['repo_path']
         # find_interior_boxes(REPO_PATH)
-        get_aerial_images(REPO_PATH)
+        get_aerial_images(REPO_PATH, DATA_PATH)
