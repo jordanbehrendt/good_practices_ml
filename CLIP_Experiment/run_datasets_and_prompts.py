@@ -197,8 +197,6 @@ if __name__ == "__main__":
     """Runs the initial CLIP experiments
     """
     parser = argparse.ArgumentParser(description='Pretrained Model')
-    parser.add_argument('--user', metavar='str', required=True,
-                        help='The user of the gpml group')
     parser.add_argument('--yaml_path', metavar='str', required=True,
                         help='The path to the yaml file with the stored paths')
     parser.add_argument('-d', '--debug', action='store_true',
@@ -207,6 +205,6 @@ if __name__ == "__main__":
 
     with open(args.yaml_path) as file:
         paths = yaml.safe_load(file)
-        DATA_PATH = paths['data_path'][args.user]
-        REPO_PATH = paths['repo_path'][args.user]
+        DATA_PATH = paths['data_path']
+        REPO_PATH = paths['repo_path']
         run_experiments(DATA_PATH, REPO_PATH)

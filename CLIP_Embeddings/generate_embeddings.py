@@ -94,8 +94,6 @@ if __name__ == "__main__":
     """Generates embeddings for the geoguessr, tourist and aerial datasets and saves them to csv files
     """
     parser = argparse.ArgumentParser(description='Generate Embeddings')
-    parser.add_argument('--user', metavar='str', required=True,
-                        help='The user of the gpml group')
     parser.add_argument('--yaml_path', metavar='str', required=True,
                         help='The path to the yaml file with the stored paths')
     parser.add_argument('-d', '--debug', action='store_true',
@@ -104,6 +102,6 @@ if __name__ == "__main__":
 
     with open(args.yaml_path) as file:
         paths = yaml.safe_load(file)
-        REPO_PATH = paths['repo_path'][args.user]
-        DATA_PATH = paths['data_path'][args.user]
+        REPO_PATH = paths['repo_path']
+        DATA_PATH = paths['data_path']
         generate_embeddings(REPO_PATH,DATA_PATH)

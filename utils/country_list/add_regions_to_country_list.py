@@ -49,12 +49,11 @@ if __name__ == "__main__":
     """Extends the country_list.csv dataframe to include continent, regional and one-hot-encoding information
     """
     parser = argparse.ArgumentParser()
-    parser.add_argument('--user', metavar='str', required=True, help='The user of the gpml group')
     parser.add_argument("--yaml_path",  default="", type=str, help="Path to the yaml file")
     args = parser.parse_args()
 
     with open(args.yaml_path) as file:
         paths = yaml.safe_load(file)
-        REPO_PATH = paths['repo_path'][args.user]
+        REPO_PATH = paths['repo_path']
         add_continent_and_region(REPO_PATH)
         add_one_hot_encodings(REPO_PATH)

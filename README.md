@@ -29,17 +29,15 @@ The data_profile script, located in the data_collection/data_exploration directo
 ### Command line interface
 
 To run the script from the command line, navigate to the script's directory and execute the following command:
-python data_profile.py --user [user] --yaml_path [path_to_yaml] --dataset_dir [path_to_dataset] --dataset_name [name_of_dataset]
+python data_profile.py --yaml_path [path_to_yaml] --dataset_name [name_of_dataset]
 
 Arguments
-    --user: Specifies the user of the GPML group.
     --yaml_path: Path to the YAML configuration file containing paths needed for the script.
-    --dataset_dir: Directory path where the dataset is located.
     --dataset_name: Name of the dataset for which the profile and visualizations are generated.
 
 #### Example
 
-python data_profile.py --user bjordan --yaml_path /path/to/paths.yaml --dataset_dir /path/to/dataset --dataset_name "Tourist"
+python data_profile.py --yaml_path /path/to/paths.yaml --dataset_name "Tourist"
 
 ### Output
 

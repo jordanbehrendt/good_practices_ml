@@ -469,8 +469,6 @@ def create_and_train_model(REPO_PATH: str, seed: int = 1234, training_datasets=[
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Pretrained Model')
-    parser.add_argument('--user', metavar='str', required=True,
-                        help='The user of the gpml group')
     parser.add_argument('--yaml_path', metavar='str', required=True,
                         help='The path to the yaml file with the stored paths')
     # parser.add_argument('--training_dataset_name', metavar='str', required=True, help='the name of the dataset')
@@ -480,5 +478,5 @@ if __name__ == "__main__":
 
     with open(args.yaml_path) as file:
         paths = yaml.safe_load(file)
-        REPO_PATH = paths['repo_path'][args.user]
+        REPO_PATH = paths['repo_path']
         create_and_train_model(REPO_PATH)

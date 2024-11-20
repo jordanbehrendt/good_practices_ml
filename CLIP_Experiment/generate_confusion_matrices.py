@@ -88,12 +88,11 @@ if __name__ == "__main__":
     Create and compute confusion matrices with seed = 4808 (the choice of seed is irrelevant)
     """
     parser = argparse.ArgumentParser(description='Pretrained Model')
-    parser.add_argument('--user', metavar='str', required=True, help='The user of the gpml group')
     parser.add_argument('--yaml_path', metavar='str', required=True, help='The path to the yaml file with the stored paths')
     parser.add_argument('-d', '--debug', action='store_true', required=False, help='Enable debug mode', default=False)
     args = parser.parse_args()
 
     with open(args.yaml_path) as file:
         paths = yaml.safe_load(file)
-        REPO_PATH = paths['repo_path'][args.user]
+        REPO_PATH = paths['repo_path']
         generate_confusion_matrices(REPO_PATH, 4808)

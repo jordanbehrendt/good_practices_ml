@@ -412,15 +412,15 @@ if __name__ == "__main__":
     """Runs t-SNE on a dataset. The dataset_name along with the binary values of only_europe and include_distances can be modified below
     """
     parser = argparse.ArgumentParser()
-    parser.add_argument('--user', metavar='str', required=True,
-                        help='The user of the gpml group')
     parser.add_argument('--yaml_path', metavar='str', required=True,
                         help='The path to the yaml file with the stored paths')
+    parser.add_argument('--dataset_name', metavar='str',
+                        required=False, help='Name of dataset to conduct tsne analysis on', default='geoguessr')
     parser.add_argument('-d', '--debug', action='store_true',
                         required=False, help='Enable debug mode', default=False)
     args = parser.parse_args()
 
     with open(args.yaml_path) as file:
         paths = yaml.safe_load(file)
-        REPO_PATH = paths['repo_path'][args.user]
-        conduct_tsne_analysis(REPO_PATH,dataset_name='geoguessr',only_europe=False,include_distances=True)
+        REPO_PATH = paths['repo_path']
+        conduct_tsne_analysis(REPO_PATH,dataset_name=args.dataset_name,only_europe=False,include_distances=True)
