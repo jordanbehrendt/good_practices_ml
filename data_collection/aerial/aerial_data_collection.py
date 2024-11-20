@@ -189,13 +189,12 @@ def get_images_from_bbox(bbox, count, country, DATA_PATH):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Pretrained Model')
-    parser.add_argument('--user', metavar='str', required=True, help='The user of the gpml group')
     parser.add_argument('--yaml_path', metavar='str', required=True, help='The path to the yaml file with the stored paths')
     args = parser.parse_args()
 
     with open(args.yaml_path) as file:
         paths = yaml.safe_load(file)
-        DATA_PATH = paths['data_path'][args.user]
-        REPO_PATH = paths['repo_path'][args.user]
+        DATA_PATH = paths['data_path']
+        REPO_PATH = paths['repo_path']
         # find_interior_boxes(REPO_PATH)
         get_aerial_images(REPO_PATH)

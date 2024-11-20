@@ -218,14 +218,12 @@ def data_profile(dataset_dir: str, REPO_PATH: str, dataset_name: str) -> None:
     bar_graph(os.path.join(output_dir, 'image_distribution.csv'), output_dir=output_dir, logarithmic=False)
     pdf.create_merged_pdf(output_dir, 'image_distribution')
 
-def create_dataset_profile(user: str, yaml_path: str, dataset_dir: str, dataset_name: str) -> None:
+def create_dataset_profile(yaml_path: str, dataset_name: str) -> None:
     """
     Create a dataset profile including a report, image distribution CSV, and world heat map.
 
     Args:
-        user (str): The user of the gpml group.
         yaml_path (str): The path to the YAML file with the stored paths.
-        dataset_dir (str): The path to directory with the dataset.
         dataset_name (str): The name of the dataset.
 
     Returns:
@@ -233,14 +231,13 @@ def create_dataset_profile(user: str, yaml_path: str, dataset_dir: str, dataset_
     """
     with open(yaml_path) as file:
         paths: Dict[str, Dict[str, str]] = yaml.safe_load(file)
-        repo_path = paths['repo_path'][user]
-        data_profile(dataset_dir, repo_path, dataset_name)
+        repo_path = paths['repo_path']
+        data_path = paths['data_path']
+        data_profile(data_path, repo_path, dataset_name)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Create Dataset Profile')
-    parser.add_argument('--user', metavar='str', required=True, help='the user of the gpml group')
     parser.add_argument('--yaml_path', metavar='str', required=True, help='the path to the yaml file with the stored paths')
-    parser.add_argument('--dataset_dir', metavar='str', required=True, help='the path to directory with the dataset')
     parser.add_argument('--dataset_name', metavar='str', required=True, help='the name of the dataset')
     args = parser.parse_args()
-    create_dataset_profile(args.user, args.yaml_path, args.dataset_dir, args.dataset_name)
+    create_dataset_profile(args.yaml_path, args.dataset_name)
