@@ -14,20 +14,8 @@ import yaml
 # Local or intra-package imports
 import sys
 import os
-#sys.path.append(os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), 'utils'))
-# Get the directory of the current script
-current_dir = os.path.dirname(os.path.abspath(__file__))
-
-# Construct the path to the utils directory relative to the current directory
-utils_dir = os.path.join(current_dir, '..', 'utils')
-
-# Add the utils directory to sys.path
-sys.path.append(utils_dir)
-import sys
-sys.path.append('/share/temp/bjordan/good_practices_in_machine_learning/good_practices_ml/utils')
-
-
-import load_dataset, pdf
+sys.path.append('.')
+from utils import load_dataset, pdf
 
 def line_graph(image_distribution_path: str, output_dir: str, logarithmic: bool) -> None:
     """
