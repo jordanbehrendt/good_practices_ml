@@ -173,11 +173,12 @@ def run_experiments(DATA_PATH: str, REPO_PATH: str):
 
         batch_sizes = []
 
-        geoguessr_batch_size = 430
+
+        geoguessr_batch_size = calculate_batch_size(len(geoguessr))
         batch_sizes.append(geoguessr_batch_size)
-        tourist_batch_size = 115
+        tourist_batch_size = calculate_batch_size(len(tourist))
         batch_sizes.append(tourist_batch_size)
-        aerialmap_batch_size = 14
+        aerialmap_batch_size = calculate_batch_size(len(aerialmap))
         batch_sizes.append(aerialmap_batch_size)
 
         country_list = pd.read_csv(f'{REPO_PATH}/utils/country_list/country_list_region_and_continent.csv')["Country"].to_list()
@@ -192,6 +193,14 @@ def run_experiments(DATA_PATH: str, REPO_PATH: str):
             test = ModelTester(datasets[i], model, [default_prompt, extended_prompt], batch_sizes[i], country_list, seed, folder_path, model_name, [default_prompt_name, image_prompt_name] , '')
             test.run_test()
 
+def calculate_batch_size(len: int):
+    """Calculates the batch size for the given length
+    Args:
+        len (int): The length of the dataset
+    Returns:
+        int: The batch size
+    """
+    return len // 20 if len % 20 == 0 else len // 20 + 1
 
 if __name__ == "__main__":
     """Runs the initial CLIP experiments
