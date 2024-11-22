@@ -190,7 +190,7 @@ def run_experiments(DATA_PATH: str, REPO_PATH: str):
         extended_name = 'extended_prompt'
 
         for i in range(0,len(datasets)):
-            test = ModelTester(datasets[i], model, [default_prompt, extended_prompt], batch_sizes[i], country_list, seed, folder_path, model_name, [default_prompt_name, image_prompt_name] , '')
+            test = ModelTester(datasets[i], model, [default_prompt, extended_prompt], batch_sizes[i], country_list, seed, folder_path, model_name, [default_prompt_name, extended_name] , '')
             test.run_test()
 
 def calculate_batch_size(len: int):
