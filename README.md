@@ -9,7 +9,7 @@
 ## This folder is provided for the purpose of cross-checking the methods for data collection. The Data need not be collected again and can instead be downloaded from the following sources
 
 1. Create a data directory and copy its absolute path into the paths.yaml file, replacing the `data_path: default:` field.
-2. *Geoguessr:* download the 'compressed_dataset' folder from <https://www.kaggle.com/datasets/ubitquitin/geolocation-geoguessr-images-50k/data> and rename it to 'geoguessr'
+2. *Geoguessr:* download the 'compressed_dataset' folder from <https://www.kaggle.com/datasets/ubitquitin/geolocation-geoguessr-images-50k/data>, rename it to 'geoguessr' and run '/data_collection/geoguessr/geoguessr_data_preparation.py'
 3. *Tourist:* download the 'tourist' folder from <https://osf.io/pe453/?view_only=d4ebd0f1fcb54dd8b24312fed3e5b722>
 4. *Aerial:* download the 'aerial' folder from <https://osf.io/wrmzx/?view_only=bbd7cf7d0f6243e7ac6b87fb45fac04a>
 
