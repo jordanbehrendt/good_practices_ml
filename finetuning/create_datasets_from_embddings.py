@@ -1,19 +1,14 @@
+import argparse
+import clip
+import torch
+import pandas as pd
+import os
+import sklearn.model_selection
+import numpy as np
+import random
 import sys
 sys.path.append("./../")
 sys.path.append(".")
-
-import random
-import numpy as np
-import sklearn.model_selection
-import PIL
-import os
-import pandas as pd
-import torch
-import clip
-from utils import load_dataset
-import argparse
-
-
 
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
@@ -52,10 +47,36 @@ def balance_data(
                 n=min(len(group_df), max_images), random_state=seed
             )
             # Append the sampled data to the balanced DataFrame
-            balanced_df = pd.concat([balanced_df, sampled_df], ignore_index=True)
+            balanced_df = pd.concat(
+                [balanced_df, sampled_df], ignore_index=True)
 
     # Save the balanced DataFrame
     return balanced_df
+
+
+def read_dataframe_from_batches(REPO_PATH, dataset_name):
+    """
+    Read a dataframe from a dataset that is stored in batches.
+
+    Args:
+        REPO_PATH (str): The path to the repository.
+        dataset_name (str): The name of the dataset.
+
+    Returns:
+        pd.DataFrame: The DataFrame containing the data.
+    """
+    # Iterate over each file in the directory and read the batches
+    batch_files = [
+        os.path.join(REPO_PATH, "CLIP_Embeddings/Image", file_name)
+        for file_name in os.listdir(os.path.join(REPO_PATH, "CLIP_Embeddings/Image"))
+        if file_name.startswith(dataset_name) and file_name.endswith(".csv")
+    ]
+
+    # Read all batches and concatenate them into a single DataFrame
+    df = pd.concat((pd.read_csv(file)
+                   for file in batch_files), ignore_index=True)
+
+    return df
 
 
 def create_datasets_from_embddings(
@@ -94,16 +115,15 @@ def create_datasets_from_embddings(
 
     with torch.no_grad():
         # read in and balance each dataset
-        geo_embed = pd.read_csv(
-            os.path.join(REPO_PATH, "CLIP_Embeddings/Image/geoguessr_embeddings.csv")
+        geo_embed = read_dataframe_from_batches(
+            REPO_PATH, "geoguessr_embeddings"
         )
-        aerial_df = pd.read_csv(
-            os.path.join(REPO_PATH, "CLIP_Embeddings/Image/aerial_embeddings.csv")
+        aerial_df = read_dataframe_from_batches(
+            REPO_PATH, "aerial_embeddings"
         )
-        tourist_df = pd.read_csv(
-            os.path.join(REPO_PATH, "CLIP_Embeddings/Image/tourist_embeddings.csv")
+        tourist_df = read_dataframe_from_batches(
+            REPO_PATH, "tourist_embeddings"
         )
-
         # Print dataset information
         print(f"Datasets read in with seed {seed}")
         print(f"Geo: {len(geo_embed)}")
@@ -146,9 +166,11 @@ def create_datasets_from_embddings(
             stratify=balanced_aerial_df["label"],
         )
         # Make sure that all labels in the training set are also in the test set
-        labels_in_aerial_train_not_in_aerial_test = set(aerial_train_and_val['label'].value_counts().keys().to_list()) - set(aerial_test['label'].value_counts().keys().to_list())
+        labels_in_aerial_train_not_in_aerial_test = set(aerial_train_and_val['label'].value_counts(
+        ).keys().to_list()) - set(aerial_test['label'].value_counts().keys().to_list())
         for label in labels_in_aerial_train_not_in_aerial_test:
-            entry = aerial_train_and_val[aerial_train_and_val['label'] == label].sample(1)
+            entry = aerial_train_and_val[aerial_train_and_val['label'] == label].sample(
+                1)
             aerial_test = pd.concat([aerial_test, entry])
             aerial_train_and_val = aerial_train_and_val.drop(entry.index)
 
@@ -166,7 +188,8 @@ def create_datasets_from_embddings(
         )
 
         # Create zero shot datasets
-        geo_zero_shot_df = geo_embed[~geo_embed["label"].isin(test_data["label"])]
+        geo_zero_shot_df = geo_embed[~geo_embed["label"].isin(
+            test_data["label"])]
         aerial_zero_shot_df = aerial_df[
             ~aerial_df["label"].isin(test_data["label"])
         ]
@@ -180,17 +203,21 @@ def create_datasets_from_embddings(
 
         # Save test and zero shot datasets
         test_data.to_csv(
-            os.path.join(REPO_PATH, "CLIP_Embeddings/Testing/known_test_data.csv"),
+            os.path.join(
+                REPO_PATH, "CLIP_Embeddings/Testing/known_test_data.csv"),
             index=False,
         )
         zero_shot_data.to_csv(
-            os.path.join(REPO_PATH, "CLIP_Embeddings/Testing/zero_shot_test_data.csv"),
+            os.path.join(
+                REPO_PATH, "CLIP_Embeddings/Testing/zero_shot_test_data.csv"),
             index=False,
         )
 
-        weakly_balanced_geo_df = geo_train_and_val.sample(frac=1, random_state=seed)
+        weakly_balanced_geo_df = geo_train_and_val.sample(
+            frac=1, random_state=seed)
         weakly_balanced_geo_df.to_csv(
-            os.path.join(REPO_PATH, "CLIP_Embeddings/Training/geo_weakly_balanced.csv"),
+            os.path.join(
+                REPO_PATH, "CLIP_Embeddings/Training/geo_weakly_balanced.csv"),
             index=False,
         )
 
@@ -211,7 +238,8 @@ def create_datasets_from_embddings(
             [geo_train_and_val, geo_additional_images]
         ).sample(frac=1, random_state=seed)
         unbalanced_geo_df.to_csv(
-            os.path.join(REPO_PATH, "CLIP_Embeddings/Training/geo_unbalanced.csv"),
+            os.path.join(
+                REPO_PATH, "CLIP_Embeddings/Training/geo_unbalanced.csv"),
             index=False,
         )
 
@@ -253,7 +281,8 @@ def create_datasets_from_embddings(
                 .index
             )
             cols_to_use = mixed_weakly_balanced_df.columns
-            mixed_weakly_balanced_df.loc[replace_indices] = replace_images[cols_to_use].sample(num_replace, random_state=seed).to_numpy()
+            mixed_weakly_balanced_df.loc[replace_indices] = replace_images[cols_to_use].sample(
+                num_replace, random_state=seed).to_numpy()
 
         # Replace up to 50% of each label with images of that same label from aerial
         # and tourist data in the strongly balanced set
@@ -279,7 +308,8 @@ def create_datasets_from_embddings(
                 .index
             )
             cols_to_use = mixed_strongly_balanced_df.columns
-            mixed_strongly_balanced_df.loc[replace_indices] = replace_images[cols_to_use].sample(num_replace, random_state=seed).to_numpy()
+            mixed_strongly_balanced_df.loc[replace_indices] = replace_images[cols_to_use].sample(
+                num_replace, random_state=seed).to_numpy()
 
         # Save the mixed datasets
         mixed_weakly_balanced_df.to_csv(
@@ -305,29 +335,38 @@ def create_datasets_from_embddings(
         print(f"Mixed strongly balanced: {len(mixed_strongly_balanced_df)}")
 
         # Check how much data from the tourist df is in the mixed weakly dataframe
-        tourist_in_mixed_weakly = mixed_weakly_balanced_df[mixed_weakly_balanced_df["path"].isin(tourist_df["path"])]
+        tourist_in_mixed_weakly = mixed_weakly_balanced_df[mixed_weakly_balanced_df["path"].isin(
+            tourist_df["path"])]
         tourist_count_in_mixed_weakly = len(tourist_in_mixed_weakly)
-        print(f"Number of tourist data in mixed weakly balanced dataset: {tourist_count_in_mixed_weakly}")
+        print(
+            f"Number of tourist data in mixed weakly balanced dataset: {tourist_count_in_mixed_weakly}")
 
         # Check how much data from the aerial df is in the mixed weakly dataframe
-        aerial_in_mixed_weakly = mixed_weakly_balanced_df[mixed_weakly_balanced_df["path"].isin(aerial_df["path"])]
+        aerial_in_mixed_weakly = mixed_weakly_balanced_df[mixed_weakly_balanced_df["path"].isin(
+            aerial_df["path"])]
         aerial_count_in_mixed_weakly = len(aerial_in_mixed_weakly)
-        print(f"Number of aerial data in mixed weakly balanced dataset: {aerial_count_in_mixed_weakly}")
+        print(
+            f"Number of aerial data in mixed weakly balanced dataset: {aerial_count_in_mixed_weakly}")
 
         # Check how much data from the tourist df is in the mixed strongly dataframe
-        tourist_in_mixed_strongly = mixed_strongly_balanced_df[mixed_strongly_balanced_df["path"].isin(tourist_df["path"])]
+        tourist_in_mixed_strongly = mixed_strongly_balanced_df[mixed_strongly_balanced_df["path"].isin(
+            tourist_df["path"])]
         tourist_count_in_mixed_strongly = len(tourist_in_mixed_strongly)
-        print(f"Number of tourist data in mixed strongly balanced dataset: {tourist_count_in_mixed_strongly}")
+        print(
+            f"Number of tourist data in mixed strongly balanced dataset: {tourist_count_in_mixed_strongly}")
 
         # Check how much data from the aerial df is in the mixed strongly dataframe
-        aerial_in_mixed_strongly = mixed_strongly_balanced_df[mixed_strongly_balanced_df["path"].isin(aerial_df["path"])]
+        aerial_in_mixed_strongly = mixed_strongly_balanced_df[mixed_strongly_balanced_df["path"].isin(
+            aerial_df["path"])]
         aerial_count_in_mixed_strongly = len(aerial_in_mixed_strongly)
-        print(f"Number of aerial data in mixed strongly balanced dataset: {aerial_count_in_mixed_strongly}")
+        print(
+            f"Number of aerial data in mixed strongly balanced dataset: {aerial_count_in_mixed_strongly}")
 
         # Check how much data from the tourist df is in the test data
         tourist_in_test = test_data[test_data["path"].isin(tourist_df["path"])]
         tourist_count_in_test = len(tourist_in_test)
-        print(f"Number of tourist data in test dataset: {tourist_count_in_test}")
+        print(
+            f"Number of tourist data in test dataset: {tourist_count_in_test}")
 
         # Check how much data from the aerial df is in the test data
         aerial_in_test = test_data[test_data["path"].isin(aerial_df["path"])]
@@ -335,14 +374,19 @@ def create_datasets_from_embddings(
         print(f"Number of aerial data in test dataset: {aerial_count_in_test}")
 
         # Check how much data from the tourist df is in the zero shot data
-        tourist_in_zero_shot = zero_shot_data[zero_shot_data["path"].isin(tourist_df["path"])]
+        tourist_in_zero_shot = zero_shot_data[zero_shot_data["path"].isin(
+            tourist_df["path"])]
         tourist_count_in_zero_shot = len(tourist_in_zero_shot)
-        print(f"Number of tourist data in zero shot dataset: {tourist_count_in_zero_shot}")
+        print(
+            f"Number of tourist data in zero shot dataset: {tourist_count_in_zero_shot}")
 
         # Check how much data from the aerial df is in the zero shot data
-        aerial_in_zero_shot = zero_shot_data[zero_shot_data["path"].isin(aerial_df["path"])]
+        aerial_in_zero_shot = zero_shot_data[zero_shot_data["path"].isin(
+            aerial_df["path"])]
         aerial_count_in_zero_shot = len(aerial_in_zero_shot)
-        print(f"Number of aerial data in zero shot dataset: {aerial_count_in_zero_shot}")
+        print(
+            f"Number of aerial data in zero shot dataset: {aerial_count_in_zero_shot}")
+
 
 if __name__ == "__main__":
     """Creates the test set and the diffrent train/valdiation sets.
