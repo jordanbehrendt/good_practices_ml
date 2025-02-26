@@ -23,7 +23,7 @@ requests = "==2.31.0"
 selenium = "==4.16.0"
 leafmap = "==0.35.11"
 fiona = "<1.10.0"
-webdriver-manager = "*"
+webdriver-manager = "==4.0.1"
 
 [dev-packages]
 
