@@ -1,3 +1,20 @@
+# -*- coding: utf-8 -*-
+"""
+utils.analyzation_tools
+-----------------------
+
+Script to create boxplots showing the
+comparison of performance metrics for
+country and region identification in validation
+and test, for the different datasets.
+"""
+# Imports
+# Built-in
+
+# Local
+
+# 3r-party
+
 import numpy as np
 import scipy.stats as stats
 import pandas as pd
@@ -10,11 +27,11 @@ from tensorflow.python.summary.summary_iterator import summary_iterator
 
 def corrected_repeated_kFold_cv_test(data1, data2, n1, n2, alpha):
     """
-    Perform corrected repeated k-fold cross-validation test to evaluate the replicability 
-    of significance tests for comparing learning algorithms.
-    This implments the test as suggested in the paper 
-    "A corrected repeated k-fold cross-validation test for replicability in psychophysiology"
-    by Bouckaert et al. (2004).
+    Perform corrected repeated k-fold cross-validation test to evaluate
+    the replicability of significance tests for comparing learning algorithms.
+    This implments the test as suggested in the paper
+    "A corrected repeated k-fold cross-validation test for replicability
+    in psychophysiology" by Bouckaert et al. (2004).
 
     Parameters:
     data1 (array-like): The first dataset.
@@ -24,7 +41,8 @@ def corrected_repeated_kFold_cv_test(data1, data2, n1, n2, alpha):
     alpha (float): The significance level.
 
     Returns:
-    tuple: A tuple containing the degrees of freedom, t-statistic, critical value and the p-value.
+    tuple: A tuple containing the degrees of freedom, t-statistic, critical
+        value and the p-value.
     """
     n = len(data1)
     if n != len(data2):
@@ -46,7 +64,11 @@ def corrected_repeated_kFold_cv_test(data1, data2, n1, n2, alpha):
     return df, t, cv, p
 
 
-def box_plot_experiments(list_of_df, name, save_path, loss_number=0, dataset_names=None, metric_names=None):
+def box_plot_experiments(
+    list_of_df, name, save_path,
+    loss_number=0, dataset_names=None,
+    metric_names=None
+):
     """
     Genreates box plots for all metrics contained in the dataframes.
     Compares these metrics for each dataframe in the list.
@@ -57,9 +79,16 @@ def box_plot_experiments(list_of_df, name, save_path, loss_number=0, dataset_nam
     save_path (str): The path to save the plot.
 
     Returns:
-    pd.DataFrame: A concatenated dataframe containing all data with a coloumn tagging the used Loss.
+    pd.DataFrame: A concatenated dataframe containing all data with a coloumn
+        tagging the used Loss.
     """
-    dataset_to_indices = {'geo_strongly_balanced':0, 'geo_unbalanced':1, 'geo_weakly_balanced':2, 'mixed_strongly_balanced':3, 'mixed_weakly_balanced':4}
+    dataset_to_indices = {
+        'geo_strongly_balanced': 0,
+        'geo_unbalanced': 1,
+        'geo_weakly_balanced': 2,
+        'mixed_strongly_balanced': 3,
+        'mixed_weakly_balanced': 4
+    }
     if dataset_names is not None:
         indices = [dataset_to_indices[name] for name in dataset_names]
     else:
@@ -69,16 +98,28 @@ def box_plot_experiments(list_of_df, name, save_path, loss_number=0, dataset_nam
     list_of_df = [df[loss_number].copy() for df in list_of_df]
 
     for i in indices:
-        list_of_df[i] = list_of_df[i].assign(Experiment=f"{list(dataset_to_indices.values())[i]}")
+        list_of_df[i] = list_of_df[i].assign(
+            Experiment=f"{list(dataset_to_indices.values())[i]}"
+        )
         list_of_df[i] = list_of_df[i][metric_names]
-        #cols_to_drop = list_of_df[i].filter(like='text', axis=1).columns
-        #list_of_df[i] = list_of_df[i].drop(columns=cols_to_drop)
 
-        list_of_df[i].columns = list_of_df[i].columns.str.split().str[-2:].str.join(" ")
+        list_of_df[i].columns = list_of_df[i]\
+            .columns\
+            .str\
+            .split()\
+            .str[-2:]\
+            .str\
+            .join(" ")
 
     condf = pd.concat(list_of_df)
-    meltdf = condf.melt(id_vars=["Experiment"], var_name="Metric", value_name="Value")
-    meltdf["Value"] = meltdf["Value"].apply(lambda x: float(x[0]) if type(x) == list else x) 
+    meltdf = condf.melt(
+        id_vars=["Experiment"],
+        var_name="Metric",
+        value_name="Value"
+    )
+    meltdf["Value"] = meltdf["Value"].apply(
+        lambda x: float(x[0]) if isinstance(x, list) else x
+    )
     ax = sns.boxplot(
         x="Metric", y="Value", hue="Experiment", data=meltdf, showfliers=False
     )
@@ -103,11 +144,15 @@ def read_event_for_different_seeds(log_dir):
 
     Returns:
         tuple: A tuple containing four pandas DataFrames:
-            - region_columns_val: DataFrame containing validation metrics for region columns.
-            - country_columns_val: DataFrame containing validation metrics for non-region columns.
-            - region_columns_test: DataFrame containing test metrics for region columns.
-            - country_columns_test: DataFrame containing test metrics for non-region columns.
-            - other_columns: DataFrame containing other 
+            - region_columns_val: DataFrame containing validation metrics for
+                region columns.
+            - country_columns_val: DataFrame containing validation metrics for
+                non-region columns.
+            - region_columns_test: DataFrame containing test metrics for
+                region columns.
+            - country_columns_test: DataFrame containing test metrics for
+                non-region columns.
+            - other_columns: DataFrame containing other
     """
     # Get a list of file paths that match the pattern in log_dir
     log_files = glob.glob(log_dir + "/*")
@@ -137,25 +182,28 @@ def read_event_for_different_seeds(log_dir):
                         if "Validation" in tag:
                             if tag not in validation_buffer.keys():
                                 validation_buffer[tag] = []
-                            if  "text_summary" in tag:
-                                validation_buffer[tag].append([v.tensor.string_val])
+                            if "text_summary" in tag:
+                                validation_buffer[tag].append(
+                                    [v.tensor.string_val]
+                                )
                             else:
                                 validation_buffer[tag].append([v.simple_value])
                         elif "Test" in tag:
                             if tag not in test_buffer.keys():
                                 test_buffer[tag] = []
-                            if  "text_summary" in tag:
+                            if "text_summary" in tag:
                                 test_buffer[tag].append([v.tensor.string_val])
                             else:
                                 test_buffer[tag].append([v.simple_value])
-        # Add the Values of the Last epoch to the validation data for each seed 
+        # Add the Values of the Last epoch to the validation data for each seed
         # (validation has 10 folds, test data only 1 value)
         validation_columns = pd.concat(
             [
                 validation_columns,
-                pd.DataFrame(
-                    {key: values[-10:] for key, values in validation_buffer.items()}
-                ),
+                pd.DataFrame({
+                    key: values[-10:]
+                    for key, values in validation_buffer.items()
+                }),
             ],
             ignore_index=True,
         )
@@ -163,7 +211,10 @@ def read_event_for_different_seeds(log_dir):
         test_columns = pd.concat(
             [
                 test_columns,
-                pd.DataFrame({key: values[-1:] for key, values in test_buffer.items()}),
+                pd.DataFrame({
+                    key: values[-1:]
+                    for key, values in test_buffer.items()
+                }),
             ],
             ignore_index=True,
         )
@@ -171,7 +222,10 @@ def read_event_for_different_seeds(log_dir):
         other_columns = pd.concat(
             [
                 other_columns,
-                pd.DataFrame({key: values[-1:] for key, values in other_buffer.items()}),
+                pd.DataFrame({
+                    key: values[-1:]
+                    for key, values in other_buffer.items()
+                }),
             ],
             ignore_index=True,
         )
@@ -195,11 +249,13 @@ def read_event_for_different_seeds(log_dir):
         other_columns
     )
 
+
 def event_to_df(log_dir):
     """
-    Converts and merges the event files of multiple seeds into a DataFrame for all directories.
-    The log_dir should be comtaim multiple folders (e.g. diffrent loss configurations) 
-    that each contain event files for all the used random seeds.
+    Converts and merges the event files of multiple seeds into a DataFrame for
+    all directories. The log_dir should be comtaim multiple folders (e.g.
+    diffrent loss configurations) that each contain event files for all the
+    used random seeds.
 
     Args:
         log_dir (str): The directory path containing the event log folders.
@@ -207,10 +263,14 @@ def event_to_df(log_dir):
     Returns:
         tuple: A tuple containing lists of dataframes for different columns.
             The tuple contains the following lists:
-            - region_columns_val_list: List of dataframes for region metrics in validation set.
-            - country_columns_val_list: List of dataframes for country columns in validation set.
-            - region_columns_test_list: List of dataframes for region columns in test set.
-            - country_columns_test_list: List of dataframes for country columns in test set.
+            - region_columns_val_list: List of dataframes for region metrics
+                in validation set.
+            - country_columns_val_list: List of dataframes for country columns
+                in validation set.
+            - region_columns_test_list: List of dataframes for region columns
+                in test set.
+            - country_columns_test_list: List of dataframes for country
+                columns in test set.
             - other_coloumns_list: List of dataframes for other columns.
 
     """
@@ -226,8 +286,14 @@ def event_to_df(log_dir):
         folder_path = os.path.join(log_dir, folder)
         if os.path.isdir(folder_path):
             # Call the read_event_for_different_seeds function for each folder
-            region_columns_val, coutnry_columns_val, region_columns_test, coutnry_columns_test, other_coloumns = read_event_for_different_seeds(folder_path)
-            
+            (
+                region_columns_val,
+                coutnry_columns_val,
+                region_columns_test,
+                coutnry_columns_test,
+                other_coloumns
+            ) = read_event_for_different_seeds(folder_path)
+
             # Append the dataframes to the respective lists
             region_columns_val_list.append(region_columns_val)
             country_columns_val_list.append(coutnry_columns_val)
@@ -235,7 +301,14 @@ def event_to_df(log_dir):
             country_columns_test_list.append(coutnry_columns_test)
             other_coloumns_list.append(other_coloumns)
 
-    return region_columns_val_list, country_columns_val_list, region_columns_test_list, country_columns_test_list, other_coloumns_list
+    return (
+        region_columns_val_list,
+        country_columns_val_list,
+        region_columns_test_list,
+        country_columns_test_list,
+        other_coloumns_list
+    )
+
 
 def read_experiment_data(experiment_dir):
     # directory of all experiments
@@ -254,26 +327,48 @@ def read_experiment_data(experiment_dir):
         if os.path.isdir(log_dir):
             if 'balanced' not in log_dir:
                 continue
-            save_path = log_dir + '/results/'
-            # Call the event_to_df function with the log directory 
+            # Call the event_to_df function with the log directory
             rv, cv, rt, ct, o = event_to_df(log_dir)
             region_val_datasets.append(rv)
             country_val_datasets.append(cv)
             region_test_datasets.append(rt)
             country_test_datasets.append(ct)
             other_coloumns_list.append(o)
-    return region_val_datasets, country_val_datasets, region_test_datasets, country_test_datasets, other_coloumns_list
+    return (
+        region_val_datasets,
+        country_val_datasets,
+        region_test_datasets,
+        country_test_datasets,
+        other_coloumns_list
+    )
+
 
 if __name__ == "__main__":
     # Specify the path to the TensorBoard log directory
     log_dir = 'path/to/your/log/directory/'
     save_path = 'path/to/your/save/directory/'
-    dataset_names = ['geo_strongly_balanced', 'geo_unbalanced', 'geo_weakly_balanced', 'mixed_strongly_balanced', 'mixed_weakly_balanced']
+    dataset_names = [
+        'geo_strongly_balanced',
+        'geo_unbalanced',
+        'geo_weakly_balanced',
+        'mixed_strongly_balanced',
+        'mixed_weakly_balanced'
+    ]
     metric_names = ['']
-    # Call the event_to_df function with the log directory 
-    region_columns_val_list, coutnry_columns_val_list, region_columns_test_list, country_columns_test_list, other_coloumns_list = read_experiment_data(log_dir)
+    # Call the event_to_df function with the log directory
+    *columns_lists, _ = read_experiment_data(log_dir)
+    experiment_names = [
+        'validation-region',
+        'validation_country',
+        'test-region',
+        'test-country'
+    ]
     # Call the box_plot_experiments function with the lists of dataframes
-    val_region_metrics = box_plot_experiments(region_columns_val_list, 'validation-region', save_path, dataset_names=dataset_names, metric_names=metric_names)   
-    val_country_metrics = box_plot_experiments(coutnry_columns_val_list, 'validation-country', save_path, dataset_names=dataset_names, metric_names=metric_names)
-    test_region_metric = box_plot_experiments(region_columns_test_list, 'test-region', save_path, dataset_names=dataset_names, metric_names=metric_names)
-    test_coutnry_metric = box_plot_experiments(country_columns_test_list, 'test-country', save_path, dataset_names=dataset_names, metric_names=metric_names)
+    for columns, name in zip(columns_lists, experiment_names):
+        box_plot_experiments(
+            columns,
+            name,
+            save_path,
+            dataset_names=dataset_names,
+            metric_names=metric_names
+        )
