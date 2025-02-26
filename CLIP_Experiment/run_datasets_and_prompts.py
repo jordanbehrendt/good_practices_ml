@@ -1,30 +1,40 @@
-import sys
-sys.path.append('.')
+# -*- coding: utf-8 -*-
+"""
+CLIP_Experiment.run_datasets_and_prompts
+----------------------------------------
 
+Script to run test loop on a given model and dataset combination.
+"""
+# Imports
+# Built-in
+import os
+import random
+import argparse
+from datetime import datetime
 from typing import Callable, List
-from torch.utils.data import DataLoader
+
+# Local
 from utils import load_dataset
-import utils.load_dataset as geo_data
+
+# 3r-party
 import clip
 import torch
-import csv
-import pandas as pd
-import argparse
-import yaml
-import os
 import tqdm
-from datetime import datetime
-import random
+import yaml
+import pandas as pd
+from torch.utils.data import DataLoader
 
 
 class ModelTester:
     """
-    A class for testing a PyTorch model on a specified dataset and saving the results as csv.
+    A class for testing a PyTorch model on a specified dataset and saving the
+    results as csv.
 
     Attributes:
-        test_set (geo_data.ImageDataset_from_df): The test dataset.
+        test_set (load_dataset.ImageDataset_from_df): The test dataset.
         model (torch.nn.Module): The model to test.
-        prompt (Callable): Transformation for the prompt given the country name.
+        prompt (Callable): Transformation for the prompt given the country
+            name.
         batch_size (int): The batch size to use.
         country_list (List[str]): List of all possible countries.
         seed (int): Random seed used for operations.
@@ -34,30 +44,44 @@ class ModelTester:
         custom_tag (str): Custom tag for naming the experiment.
 
     Methods:
-        __init__(self, dataset: geo_data.ImageDataset_from_df, model: torch.nn.Module, prompt: Callable, batch_size: int, country_list: List[str], seed: int, folder_path: str, model_name: str, prompt_name: str, custom_tag: str):
-            Initializes a new instance of the ModelTester class.
-
         run_test(self):
             Runs the model on the given test set with the specified batch size.
             The results are saved as CSV files using the structure:
-            {output_folder}/Experiments/{model_name}/{prompt_name}/{dataset_name}-{custom_tag}/{date}-{batch_number}.csv
+            {output_folder}/Experiments/{model_name}/{prompt_name}/{dataset_name}-{custom_tag}/{date}-{batch_number}.csv  # noqa: E501
 
-        __save_data_to_file(self, data: pd.DataFrame, model_name: str, prompt_name: str, dataset_name: str, batch_number: str, custom_tag: str = None, output_dir='./Experiments/'):
-            Saves data from a Pandas DataFrame as a CSV file in the specified structure.
 
     Usage:
         # Example usage:
-        tester = ModelTester(dataset=my_dataset, model=my_model, prompt=my_prompt, batch_size=32, country_list=my_country_list, seed=42, folder_path='./', model_name='MyModel', prompt_name='MyPrompt', custom_tag='Tag1')
+        tester = ModelTester(
+            dataset=my_dataset,
+            model=my_model,
+            prompt=my_prompt,
+            batch_size=32,
+            country_list=my_country_list,
+            seed=42,
+            folder_path='./',
+            model_name='MyModel',
+            prompt_name='MyPrompt',
+            custom_tag='Tag1'
+        )
         tester.run_test()
     """
 
-    def __init__(self, dataset: geo_data.ImageDataset_from_df, model: torch.nn.Module, prompt: List[Callable], batch_size: int, country_list: List[str], seed: int, folder_path: str, model_name: str, prompt_name: List[str], custom_tag: str):
+    def __init__(
+        self, dataset: load_dataset.ImageDataset_from_df,
+        model: torch.nn.Module, prompt: List[Callable],
+        batch_size: int, country_list: List[str],
+        seed: int, folder_path: str,
+        model_name: str, prompt_name: List[str],
+        custom_tag: str
+    ):
         """Generate a ModelTester object, that can be used to test the model.
 
         Args:
-            dataset (geo_data.ImageDataset_from_df): The test-dataset.
+            dataset (load_dataset.ImageDataset_from_df): The test-dataset.
             model (torch.nn.Module): The Model to test.
-            prompt (List[Callable]): Transformations for prompts given the countryname.
+            prompt (List[Callable]): Transformations for prompts given the
+                country name.
             batch_size (int): The batch size to use.
             country_list (List[str]): List of all possible countries.
             seed (int): Random seed used for operations.
@@ -86,10 +110,14 @@ class ModelTester:
         random.seed(self.seed)
         device = "cuda" if torch.cuda.is_available() else "cpu"
 
-        for promt, promt_name in zip(self.prompt,self.prompt_name):
+        for promt, promt_name in zip(self.prompt, self.prompt_name):
             country_tokens = clip.tokenize(list(map(promt, self.country_list)))
             print(f"Running data from dataset: {self.test_set.name}")
-            for batch_number, (images, labels) in enumerate(tqdm.tqdm(DataLoader(self.test_set, batch_size=self.batch_size), desc=f"Testing on {self.test_set.name}")):
+            iterator = enumerate(tqdm.tqdm(
+                DataLoader(self.test_set, batch_size=self.batch_size),
+                desc=f"Testing on {self.test_set.name}"
+            ))
+            for batch_number, (images, labels) in iterator:
 
                 images = images.to(device)
 
@@ -102,11 +130,19 @@ class ModelTester:
                     'label': labels,
                     'All-Probs': probs.tolist()
                 })
-                self.__save_data_to_file(performance_data, self.model_name, promt_name, self.test_set.name,
-                                        batch_number, self.custom_tag, self.folder_path)
+                self.__save_data_to_file(
+                    performance_data, self.model_name, promt_name,
+                    self.test_set.name, batch_number, self.custom_tag,
+                    self.folder_path
+                )
 
-    def __save_data_to_file(self, data: pd.DataFrame, model_name: str, prompt_name: str, dataset_name: str, batch_number: str, custom_tag: str = None, output_dir='./Experiments/'):
-        """Saves data from a Pandas DataFrame as a csv file in the way: 
+    def __save_data_to_file(
+        self, data: pd.DataFrame, model_name: str,
+        prompt_name: str, dataset_name: str,
+        batch_number: str, custom_tag: str = None,
+        output_dir='./Experiments/'
+    ):
+        """Saves data from a Pandas DataFrame as a csv file in the way:
         {model_name}/{prompt_name}/{dateset_name}-{custom_tag}/{date}-{batch_number}.csv
         Args:
             data (pd.DataFrame): The data to save.
@@ -114,8 +150,10 @@ class ModelTester:
             prompt_name (str): The name of the promt used in the experiment.
             dataset_name (str): The name of the dataset used in the experiment.
             batch_number (str): The batch number of the generated data.
-            custom_tag (str, optional): A custom tag to add to the experiment-name, intended for versioning.
-            output_dir (str, optional): The path where the file is saved. Defaults to './Experiments/'.
+            custom_tag (str, optional): A custom tag to add to the
+                experiment-name, intended for versioning.
+            output_dir (str, optional): The path where the file is saved.
+                Defaults to './Experiments/'.
 
         Raises:
             TypeError: Data parameter must be a pandas DataFrame
@@ -125,8 +163,10 @@ class ModelTester:
             raise TypeError("The 'data' parameter must be a pandas DataFrame.")
 
         # Create directory structure
-        experiment_dir = os.path.join(output_dir, model_name, prompt_name,
-                                      f"{dataset_name}-{custom_tag}" if custom_tag else dataset_name)
+        experiment_dir = os.path.join(
+            output_dir, model_name, prompt_name,
+            f"{dataset_name}-{custom_tag}" if custom_tag else dataset_name
+        )
         os.makedirs(experiment_dir, exist_ok=True)
 
         # Generate file name
@@ -140,39 +180,60 @@ class ModelTester:
             print(f"Model performance saved to {file_path} successfully.")
         except Exception as e:
             print(
-                f"Error: Unable to save model performance to {file_path}. {str(e)}")
+                "Error: Unable to save model performance to "
+                f"{file_path}. {str(e)}"
+            )
 
 
 def run_experiments(DATA_PATH: str, REPO_PATH: str):
-    """Runs CLIP experiments for 10 different seeds, over the 3 datasets and 2 prompts
-    The experiment results will be saved in '{REPO_PATH}/CLIP_Experiment/clip_results'
+    """Runs CLIP experiments for 10 different seeds, over the 3 datasets
+    and 2 prompts. The experiment results will be saved in
+    '{REPO_PATH}/CLIP_Experiment/clip_results'.
     Args:
         DATA_PATH (str): path to the data folder.
         REPO_PATH (str): path to the repo folder
     """
-    seeds = [4808,4947,5723,3838,5836,3947,8956,5402,1215,8980]
+
+    def default_prompt(x):
+        return f"{x}"
+
+    def extended_prompt(x):
+        return f"This image shows the country {x}"
+
+    seeds = [4808, 4947, 5723, 3838, 5836, 3947, 8956, 5402, 1215, 8980]
     device = "cuda" if torch.cuda.is_available() else "cpu"
     model, preprocessor = clip.load("ViT-B/32", device=device)
 
     for seed in seeds:
         datasets = []
 
-        geoguessr = load_dataset.load_data(f'{DATA_PATH}/geoguessr/', 0, 5000, False, False, seed)
-        geoguessr = geoguessr.head(int(len(geoguessr)*0.2))
-        geoguessr = load_dataset.ImageDataset_from_df(geoguessr, preprocessor, name= "geoguessr")
+        geoguessr = load_dataset.load_data(
+            f'{DATA_PATH}/geoguessr/',
+            0, 5000, False, False, seed
+        )
+        geoguessr = geoguessr.head(int(len(geoguessr) * 0.2))
+        geoguessr = load_dataset.ImageDataset_from_df(
+            geoguessr, preprocessor, name="geoguessr"
+        )
         datasets.append(geoguessr)
-        tourist = load_dataset.load_data(f'{DATA_PATH}/tourist/', 0, 5000, False, False, seed)
-        tourist = load_dataset.ImageDataset_from_df(tourist, preprocessor, name= "tourist")
+        tourist = load_dataset.load_data(
+            f'{DATA_PATH}/tourist/',
+            0, 5000, False, False, seed
+        )
+        tourist = load_dataset.ImageDataset_from_df(
+            tourist, preprocessor, name="tourist"
+        )
         datasets.append(tourist)
-        aerialmap = load_dataset.load_data(f'{DATA_PATH}/aerial/', 0, 5000, False, False, seed)
-        aerialmap = load_dataset.ImageDataset_from_df(aerialmap, preprocessor, name= "aerial")
+        aerialmap = load_dataset.load_data(
+            f'{DATA_PATH}/aerial/',
+            0, 5000, False, False, seed
+        )
+        aerialmap = load_dataset.ImageDataset_from_df(
+            aerialmap, preprocessor, name="aerial"
+        )
         datasets.append(aerialmap)
 
-        default_prompt = lambda x: f"{x}"
-        extended_prompt = lambda x: f"This image shows the country {x}"
-
         batch_sizes = []
-
 
         geoguessr_batch_size = calculate_batch_size(len(geoguessr))
         batch_sizes.append(geoguessr_batch_size)
@@ -181,7 +242,10 @@ def run_experiments(DATA_PATH: str, REPO_PATH: str):
         aerialmap_batch_size = calculate_batch_size(len(aerialmap))
         batch_sizes.append(aerialmap_batch_size)
 
-        country_list = pd.read_csv(f'{REPO_PATH}/utils/country_list/country_list_region_and_continent.csv')["Country"].to_list()
+        country_list = pd.read_csv(
+            f'{REPO_PATH}/utils/country_list/'
+            'country_list_region_and_continent.csv'
+        )["Country"].to_list()
 
         folder_path = f'{REPO_PATH}/CLIP_Experiment'
         model_name = f'clip_results/seed_{seed}'
@@ -189,9 +253,17 @@ def run_experiments(DATA_PATH: str, REPO_PATH: str):
         default_prompt_name = 'default_prompt'
         extended_name = 'extended_prompt'
 
-        for i in range(0,len(datasets)):
-            test = ModelTester(datasets[i], model, [default_prompt, extended_prompt], batch_sizes[i], country_list, seed, folder_path, model_name, [default_prompt_name, extended_name] , '')
+        for i in range(0, len(datasets)):
+            test = ModelTester(
+                datasets[i], model,
+                [default_prompt, extended_prompt],
+                batch_sizes[i], country_list,
+                seed, folder_path,
+                model_name,
+                [default_prompt_name, extended_name], ''
+            )
             test.run_test()
+
 
 def calculate_batch_size(len: int):
     """Calculates the batch size for the given length
@@ -202,14 +274,19 @@ def calculate_batch_size(len: int):
     """
     return len // 20 if len % 20 == 0 else len // 20 + 1
 
+
 if __name__ == "__main__":
     """Runs the initial CLIP experiments
     """
     parser = argparse.ArgumentParser(description='Pretrained Model')
-    parser.add_argument('--yaml_path', metavar='str', required=True,
-                        help='The path to the yaml file with the stored paths')
-    parser.add_argument('-d', '--debug', action='store_true',
-                        required=False, help='Enable debug mode', default=False)
+    parser.add_argument(
+        '--yaml_path', metavar='str', required=True,
+        help='The path to the yaml file with the stored paths'
+    )
+    parser.add_argument(
+        '-d', '--debug', action='store_true',
+        required=False, help='Enable debug mode', default=False
+    )
     args = parser.parse_args()
 
     with open(args.yaml_path) as file:
