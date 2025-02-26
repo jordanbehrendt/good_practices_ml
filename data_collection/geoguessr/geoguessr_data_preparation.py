@@ -1,11 +1,30 @@
-import argparse
-import json
+# -*- coding: utf-8 -*-
+"""
+geoguessr.geoguessr_data_preparation
+------------------------------------
+
+Script to pre-process the GeoGuessr downloaded
+data into the same format used in the rest of the experiments.
+"""
+# Imports
+# Built-in
 import os
-from typing import Dict, List
+import json
 import yaml
 import shutil
+import argparse
+from typing import Dict, List
 
-def rename_folder(DATA_PATH: str, old_folder_name: str, new_folder_name: str) -> None:
+# Local
+
+# 3r-party
+
+
+def rename_folder(
+    DATA_PATH: str,
+    old_folder_name: str,
+    new_folder_name: str
+) -> None:
     """Renames a folder in {DATA_PATH}/geoguessr.
 
     Args:
@@ -17,8 +36,10 @@ def rename_folder(DATA_PATH: str, old_folder_name: str, new_folder_name: str) ->
         None
     """
     try:
-        os.rename(os.path.join(DATA_PATH, "geoguessr", old_folder_name),
-              os.path.join(DATA_PATH, "geoguessr", new_folder_name))
+        os.rename(
+            os.path.join(DATA_PATH, "geoguessr", old_folder_name),
+            os.path.join(DATA_PATH, "geoguessr", new_folder_name)
+        )
     except FileNotFoundError:
         print(f"Can't Rename: Folder '{old_folder_name}' not found.")
 
@@ -50,7 +71,7 @@ def prepare_geoguessr_data(REPO_PATH: str, DATA_PATH: str) -> None:
     Returns:
         None
     """
-    changes_file = open("{}/data_collection/geoguessr/changes.json".format(REPO_PATH))
+    changes_file = open(f"{REPO_PATH}/data_collection/geoguessr/changes.json")
     changes_json = json.load(changes_file)
 
     # Rename folders
@@ -65,8 +86,15 @@ def prepare_geoguessr_data(REPO_PATH: str, DATA_PATH: str) -> None:
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description='Prepare the geoguessr folders')
-    parser.add_argument('--yaml_path', metavar='str', required=True, help='The path to the yaml file with the stored paths')
+    parser = argparse.ArgumentParser(
+        description='Prepare the geoguessr folders'
+    )
+    parser.add_argument(
+        '--yaml_path',
+        metavar='str',
+        required=True,
+        help='The path to the yaml file with the stored paths'
+    )
     args = parser.parse_args()
     with open(args.yaml_path) as file:
         paths = yaml.safe_load(file)
