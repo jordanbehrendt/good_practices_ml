@@ -10,6 +10,6 @@ Good Pracices in Machine Learning Research project.
 # Built-in
 
 # Local
-from __version__ import __version__  # noqa: F401
+from countryguessr.__version__ import __version__  # noqa: F401
 
 # 3r-party
