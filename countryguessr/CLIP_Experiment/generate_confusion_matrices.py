@@ -13,7 +13,9 @@ import ast
 import argparse
 
 # Local
-from utils.confusion_matrix import create_and_save_confusion_matrices
+from countryguessr.utils.confusion_matrix import (
+    create_and_save_confusion_matrices
+)
 
 # 3r-party
 import yaml

@@ -14,7 +14,7 @@ import os
 import argparse
 
 # Local
-from utils import geo_metrics
+from countryguessr.utils import geo_metrics
 
 # 3r-party
 import yaml

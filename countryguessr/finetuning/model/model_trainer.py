@@ -16,9 +16,9 @@ import argparse
 import datetime
 
 # Local
-from utils import load_dataset
-from finetuning.model import nn
-from finetuning.model.region_loss import Regional_Loss
+from countryguessr.utils import load_dataset
+from countryguessr.finetuning.model import nn
+from countryguessr.finetuning.model.region_loss import Regional_Loss
 
 # 3r-party
 import yaml

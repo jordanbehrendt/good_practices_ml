@@ -14,7 +14,7 @@ from datetime import datetime
 from typing import Callable, List
 
 # Local
-from utils import load_dataset
+from countryguessr.utils import load_dataset
 
 # 3r-party
 import clip

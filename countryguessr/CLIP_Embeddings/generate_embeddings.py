@@ -13,7 +13,7 @@ import argparse
 from functools import partial
 
 # Local
-from utils import load_dataset
+from countryguessr.utils import load_dataset
 
 # 3r-party
 import clip

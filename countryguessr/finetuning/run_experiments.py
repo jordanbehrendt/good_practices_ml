@@ -9,14 +9,14 @@ provided as `--training_datasets dataset_1.csv dataset_2.csv ...`)
 """
 # Imports
 # Built-in
+import yaml
+import argparse
 
 # Local
+import countryguessr.finetuning.model.model_trainer as trainer
 
 # 3r-party
 
-import finetuning.model.model_trainer as trainer
-import yaml
-import argparse
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Run model training')

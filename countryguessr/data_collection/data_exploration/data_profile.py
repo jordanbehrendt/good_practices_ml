@@ -13,7 +13,7 @@ import argparse
 from typing import Union, Dict
 
 # Local
-from utils import load_dataset, pdf
+from countryguessr.utils import load_dataset, pdf
 
 # 3r-party
 import yaml
