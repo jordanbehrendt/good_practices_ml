@@ -1,11 +1,25 @@
-import csv
+# -*- coding: utf-8 -*-
+"""
+utils.pdf
+---------
+
+Module containing methods to create PDF exports
+of generated images and CSV tables.
+"""
+# Imports
+# Built-in
 import os
+import csv
 from PIL import Image
-from reportlab.lib.pagesizes import letter
+
+# Local
+
+# 3r-party
+from PyPDF2 import PdfMerger
 from reportlab.pdfgen import canvas
 from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph
 from reportlab.lib.styles import getSampleStyleSheet
-from PyPDF2 import PdfMerger
+from reportlab.lib.pagesizes import letter
 
 
 def images_to_pdf(pdf_filename: str, image_files: list) -> None:
@@ -14,7 +28,8 @@ def images_to_pdf(pdf_filename: str, image_files: list) -> None:
 
     Args:
         pdf_filename (str): File path of the output PDF.
-        image_files (list): List of file paths for images to be included in the PDF.
+        image_files (list): List of file paths for images to be included
+            in the PDF.
 
     Returns:
         None
@@ -36,13 +51,18 @@ def images_to_pdf(pdf_filename: str, image_files: list) -> None:
 
         # Add title to the page
         c.setFont("Helvetica", 16)
-        c.drawString(20, pdf_height - 40, image_file.split('/')[-1].split('.')[0])
+        c.drawString(
+            20,
+            pdf_height - 40,
+            image_file.split('/')[-1].split('.')[0]
+        )
         # Draw the image onto the PDF canvas
         c.drawImage(image_file, 0, 0, width=img_width, height=img_height)
         c.showPage()
 
     # Save the PDF
     c.save()
+
 
 def read_csv(csv_filename: str) -> list:
     """
@@ -58,8 +78,9 @@ def read_csv(csv_filename: str) -> list:
     with open(csv_filename, 'r') as file:
         csv_reader = csv.reader(file)
         data = [row for row in csv_reader]
-    
+
     return data
+
 
 def create_pdf_with_tables(pdf_filename: str, csv_files: list) -> None:
     """
@@ -93,16 +114,20 @@ def create_pdf_with_tables(pdf_filename: str, csv_files: list) -> None:
             table.setStyle(style)
             # Add title as a Paragraph above each table
             styles = getSampleStyleSheet()
-            title_paragraph = Paragraph(f"<b>{csv_file.split('/')[-1].split('.')[0]}</b>", styles['Heading1'])
+            title_paragraph = Paragraph(
+                f"<b>{csv_file.split('/')[-1].split('.')[0]}</b>",
+                styles['Heading1']
+            )
             elements.append(title_paragraph)
             elements.append(table)  # Append the table to the elements list
 
-
     doc.build(elements)  # Build the PDF document containing all tables
+
 
 def create_merged_pdf(output_dir: str, pdf_name: str) -> None:
     """
-    Generate a PDF containing images and a table from CSV data and merge them into a single PDF.
+    Generate a PDF containing images and a table from CSV data and merge them
+    into a single PDF.
 
     Args:
         output_dir (str): Directory path where the data files are stored.
@@ -112,11 +137,22 @@ def create_merged_pdf(output_dir: str, pdf_name: str) -> None:
     """
     # List all files in the directory
     data_exploration_files = os.listdir(output_dir)
-    data_exploration_files = [os.path.join(output_dir, file) for file in data_exploration_files]
+    data_exploration_files = [
+        os.path.join(output_dir, file)
+        for file in data_exploration_files
+    ]
 
     # Filter image files (JPG) and find the CSV file
-    image_files = [file for file in data_exploration_files if file.lower().endswith(('.jpg', '.png'))]    
-    csv_files = [file for file in data_exploration_files if file.lower().endswith('.csv')]
+    image_files = [
+        file
+        for file in data_exploration_files
+        if file.lower().endswith(('.jpg', '.png'))
+    ]
+    csv_files = [
+        file
+        for file in data_exploration_files
+        if file.lower().endswith('.csv')
+    ]
     images_exists = False
     if len(image_files) > 0:
         images_exists = True
@@ -125,7 +161,9 @@ def create_merged_pdf(output_dir: str, pdf_name: str) -> None:
         csv_exists = True
 
     if not (images_exists or csv_exists):
-        raise Exception(f'No images or csv files found in directory {output_dir}')
+        raise Exception(
+            f'No images or csv files found in directory {output_dir}'
+        )
 
     # Create a PDF from images
     if images_exists:

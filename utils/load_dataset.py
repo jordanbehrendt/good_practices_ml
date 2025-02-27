@@ -1,13 +1,25 @@
+# -*- coding: utf-8 -*-
+"""
+utils.load_dataset
+------------------
+
+Modulue containing methods and class definitions
+to load the dataset items for model training and evaluation.
+"""
+# Imports
+# Built-in
 import os
 import PIL
-import torch
-import clip
-import pandas as pd
-import ast
-from torch.utils.data import Dataset
 import random
-from sklearn.metrics.pairwise import cosine_similarity
+
+# Local
+
+# 3r-party
+import torch
 import numpy as np
+import pandas as pd
+from torch.utils.data import Dataset
+
 
 def filter_min_img_df(df: pd.DataFrame, min_img: int):
     """Filters classes by minimum amount of images
@@ -25,18 +37,30 @@ def filter_min_img_df(df: pd.DataFrame, min_img: int):
     return df
 
 
-def load_data(DATA_PATH: str, min_img: int = 0, max_img: int = None, size_constraints: bool = False, debug_data: bool = False, random_seed: int = 1234):
+def load_data(
+    DATA_PATH: str,
+    min_img: int = 0,
+    max_img: int = None,
+    size_constraints: bool = False,
+    debug_data: bool = False,
+    random_seed: int = 1234
+):
     """Loads data in a dataframe form a given folder, with basic filtering.
 
     Args:
         DATA_PATH (str): Path to folder containing folders of images.
-        min_img (int, optional): Minimal number of images accepted into the dataset. Defaults to 0.
-        max_img (int, optional): Maximal number of images accepted into the dataset. Defaults to None.
-        size_constraints (bool, optional): Remove images of diffrent sizes. Defaults to False.
-        debug_data (bool, optional): Reduces dataset size to 100 images. Defaults to False.
+        min_img (int, optional): Minimal number of images accepted into the
+            dataset. Defaults to 0.
+        max_img (int, optional): Maximal number of images accepted into the
+            dataset. Defaults to None.
+        size_constraints (bool, optional): Remove images of diffrent sizes.
+            Defaults to False.
+        debug_data (bool, optional): Reduces dataset size to 100 images.
+            Defaults to False.
 
     Returns:
-        pd.DataFrame: DataFrame containg basic infromation on label, img widht/hight, format, path to img.
+        pd.DataFrame: DataFrame containg basic infromation on label, img
+            widht/hight, format, path to img.
     """
     random.seed(random_seed)
 
@@ -67,12 +91,14 @@ def load_data(DATA_PATH: str, min_img: int = 0, max_img: int = None, size_constr
         df = filter_min_img_df(df, min_img)
     if debug_data:
         df = df.sample(10)
-    df = df.sample(frac=1,random_state=random_seed).reset_index(drop=True)
+    df = df.sample(frac=1, random_state=random_seed).reset_index(drop=True)
     return df
 
 
 class ImageDataset_from_df(Dataset):
-    def __init__(self, df, transform=None, target_transform=None, name='default_data'):
+    def __init__(
+        self, df, transform=None, target_transform=None, name='default_data'
+    ):
         self.captions = df["label"].tolist()
         self.images = df["path"].tolist()
         self.target_transform = target_transform
@@ -92,17 +118,25 @@ class ImageDataset_from_df(Dataset):
             caption = self.target_transform(caption)
 
         return image, caption
-    
+
+
 class EmbeddingDataset_from_df(Dataset):
     def __init__(self, df, name) -> None:
         self.device = "cuda" if torch.cuda.is_available() else "cpu"
         self.labels = df['label'].tolist()
-        self.model_inputs = torch.tensor([np.frombuffer(eval(value),dtype=np.float32) for value in df['model_input']], dtype=torch.float32, device=self.device)
+        self.model_inputs = torch.tensor(
+            [
+                np.frombuffer(eval(value), dtype=np.float32)
+                for value in df['model_input']
+            ],
+            dtype=torch.float32,
+            device=self.device
+        )
         self.name = name
 
     def __len__(self):
         return len(self.labels)
-    
+
     def __getitem__(self, index):
         label = self.labels[index]
         model_input = self.model_inputs[index]
