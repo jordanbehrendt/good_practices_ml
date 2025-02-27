@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "a414024077a744c0505f8758cd741256c88db92456c3f94e4c38c67a1329bb43"
+            "sha256": "e38bcd781c78053aa8a90719a22ac5719c92b377143ee05ca077c67b0de12d04"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -287,6 +287,10 @@
             ],
             "markers": "python_version >= '3.8'",
             "version": "==1.1.1"
+        },
+        "countryguessr": {
+            "editable": true,
+            "file": "."
         },
         "cycler": {
             "hashes": [
