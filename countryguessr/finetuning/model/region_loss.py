@@ -19,13 +19,17 @@ from sklearn.metrics import precision_recall_fscore_support as score
 
 
 class Regional_Loss(torch.nn.Module):
-    def __init__(self, country_list):
+    def __init__(self, country_list, balance_components=False):
         """
         Initializes the Regional_Loss object.
 
         Args:
             country_list (pandas.DataFrame): A DataFrame containing
             the information of country_list_region_and_continent.csv.
+            balance_components (bool, optional): Whether to balance
+            the country and region loss components. If True, each is
+            divided by the log of their input dimensionality. By default
+            is False.
 
         Attributes:
             device (torch.device): The device (CPU or GPU) on which the
@@ -48,6 +52,7 @@ class Regional_Loss(torch.nn.Module):
         self.device = torch.device(
             "cuda:0" if torch.cuda.is_available() else "cpu")
         self.country_list = country_list
+        self.balance_components = balance_components
         self.country_dict = {
             country: index
             for index, country in enumerate(self.country_list["Country"])
@@ -106,7 +111,13 @@ class Regional_Loss(torch.nn.Module):
             target_countries_idxs, device=self.device))
         region_loss = F.cross_entropy(region_outputs, target_region_enc)
 
-        return region_loss.mean(), country_loss.mean()
+        if self.balance_components:
+            c_balance = 1 / torch.log(len(self.country_list))
+            r_balance = 1 / torch.log(len(self.regions))
+        else:
+            c_balance = r_balance = 1
+
+        return region_loss.mean() / r_balance, country_loss.mean() / c_balance
 
     def calculate_region_accuracy(
             self, outputs: torch.Tensor, targets: list[str]
