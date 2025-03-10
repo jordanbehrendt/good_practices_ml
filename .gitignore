@@ -2,6 +2,7 @@ venv_gpml/
 **/__pycache__/
 fine_tuning/runs/
 stopped_experiment/
+data/
 
 # environments
 .env
