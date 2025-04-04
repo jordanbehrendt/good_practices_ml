@@ -1,0 +1,116 @@
+# -*- coding: utf-8 -*-
+"""
+country_list.add_regions_to_country_list
+----------------------------------------
+
+Script to add region and contient information to country list,
+based on UNSD listing.
+"""
+# Imports
+# Built-in
+
+# Local
+
+# 3r-party
+
+import pandas as pd
+import argparse
+import yaml
+
+
+def add_continent_and_region(REPO_PATH):
+    """
+    Add the Continent and Regional Names as columns to the country_list
+    dataframe.
+
+    Args:
+        REPO_PATH (str): The path to the repository.
+    """
+    country_list = pd.read_csv(
+        f'{REPO_PATH}/utils/country_list/country_list.csv'
+    )
+    UNSD = pd.read_csv(f'{REPO_PATH}/utils/country_list/UNSD_Methodology.csv')
+
+    def find_continent_name(x):
+        return UNSD \
+            .loc[UNSD['ISO-alpha2 Code'] == x] \
+            .iloc[0]['Region Name']
+
+    def find_region_name(x):
+        return UNSD \
+            .loc[UNSD['ISO-alpha2 Code'] == x] \
+            .iloc[0]['Intermediate Region Name']
+
+    country_list['Continent'] = country_list['Alpha2Code'].apply(
+        find_continent_name
+    )
+    country_list['Intermediate Region Name'] = country_list['Alpha2Code'] \
+        .apply(find_region_name)
+
+    country_list.to_csv(
+        f'{REPO_PATH}/utils/country_list/'
+        'country_list_region_and_continent.csv',
+        index=False
+    )
+
+
+def add_one_hot_encodings(REPO_PATH):
+    """
+    Add One Hot Country Encodings and One Hot Region Encodings as columns
+    to the country_list dataframe.
+
+    Args:
+        REPO_PATH (str): The path to the repository.
+    """
+
+    country_list = pd.read_csv(
+        f"{REPO_PATH}/utils/country_list/"
+        "country_list_region_and_continent.csv"
+    )
+    countries_df = pd.get_dummies(country_list['Country'])
+    regions_df = pd.get_dummies(
+        country_list['Intermediate Region Name'],
+        prefix='Region'
+    )
+
+    # Convert the one-hot encoded DataFrames to lists of lists
+    one_hot_regions_list = regions_df.values.tolist()
+    one_hot_regions = [
+        [int(value) for value in row]
+        for row in one_hot_regions_list
+    ]
+    one_hot_countries_list = countries_df.values.tolist()
+    one_hot_countries = [
+        [int(value) for value in row]
+        for row in one_hot_countries_list
+    ]
+
+    # Add the lists of one-hot encoded vectors to the original DataFrame
+    # as a new column
+    country_list['One Hot Region'] = one_hot_regions
+    country_list['One Hot Country'] = one_hot_countries
+    country_list.to_csv(
+        f"{REPO_PATH}/utils/country_list/"
+        "country_list_region_and_continent.csv",
+        index=False
+    )
+
+
+if __name__ == "__main__":
+    """Extends the country_list.csv dataframe to include continent, regional
+    and one-hot-encoding information
+    """
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "--yaml_path",
+        default="",
+        type=str,
+        help="Path to the yaml file"
+    )
+    args = parser.parse_args()
+
+    with open(args.yaml_path) as file:
+        paths = yaml.safe_load(file)
+        REPO_PATH = paths['repo_path']
+        add_continent_and_region(REPO_PATH)
+        add_one_hot_encodings(REPO_PATH)
