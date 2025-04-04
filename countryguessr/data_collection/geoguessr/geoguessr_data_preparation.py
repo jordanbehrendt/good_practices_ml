@@ -80,7 +80,7 @@ def prepare_geoguessr_data(REPO_PATH: str, DATA_PATH: str) -> None:
         rename_folder(DATA_PATH, old_folder_name, new_folder_name)
 
     # Delete folders
-    folders_to_delete: List[str] = changes_json["delete"]
+    folders_to_delete = changes_json["delete"]
     for folder_name in folders_to_delete:
         remove_folder(DATA_PATH, folder_name)
 

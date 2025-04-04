@@ -70,9 +70,9 @@ class ModelTester:
     def __init__(
         self, dataset: load_dataset.ImageDataset_from_df,
         model: torch.nn.Module, prompt: List[Callable],
-        batch_size: int, country_list: List[str],
+        batch_size: int, country_list,
         seed: int, folder_path: str,
-        model_name: str, prompt_name: List[str],
+        model_name: str, prompt_name,
         custom_tag: str
     ):
         """Generate a ModelTester object, that can be used to test the model.

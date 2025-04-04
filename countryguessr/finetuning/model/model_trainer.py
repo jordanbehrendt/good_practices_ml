@@ -130,7 +130,7 @@ class ModelTrainer():
     def add_metrics_and_plot_tb(
         self,
         outputs: torch.Tensor,
-        targets: list[str],
+        targets,
         name: str,
         step: int
     ):

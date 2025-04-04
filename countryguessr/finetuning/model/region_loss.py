@@ -78,7 +78,7 @@ class Regional_Loss(torch.nn.Module):
             self.selective_sum_operator[i, indices] = 1
         self.selective_sum_operator
 
-    def forward(self, outputs: torch.Tensor, targets: list[str]):
+    def forward(self, outputs: torch.Tensor, targets):
         """
         Forward pass of the model.
 
@@ -120,7 +120,7 @@ class Regional_Loss(torch.nn.Module):
         return region_loss.mean() / r_balance, country_loss.mean() / c_balance
 
     def calculate_region_accuracy(
-            self, outputs: torch.Tensor, targets: list[str]
+            self, outputs: torch.Tensor, targets
     ):
         """
         Calculates the accuracy of region predictions.
@@ -159,7 +159,7 @@ class Regional_Loss(torch.nn.Module):
         ).float())
 
     def calculate_country_accuracy(
-        self, outputs: torch.Tensor, targets: list[str]
+        self, outputs: torch.Tensor, targets
     ):
         """
         Calculates the accuracy of country predictions.
@@ -184,7 +184,7 @@ class Regional_Loss(torch.nn.Module):
         )).float())
 
     def calculate_metrics_per_class(
-        self, outputs: torch.Tensor, targets: list[str]
+        self, outputs: torch.Tensor, targets
     ):
         """
         Calculates precision, recall, F1-score, and support for country
@@ -265,7 +265,7 @@ class Regional_Loss(torch.nn.Module):
         return precision, recall, fscore, support, region_metrics_index
 
     def calculate_mixed_metrics(
-            self, outputs: torch.Tensor, targets: list[str]
+            self, outputs: torch.Tensor, targets
     ):
         """
         Calculates mixed precision, mixed recall, and mixed F1-score.
