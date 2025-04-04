@@ -48,7 +48,8 @@ class ModelTrainer():
         regional_loss_decline: float = 0.2,
         train_dataset_name: str = "Balanced",
         batch_size: int = 260,
-        seed: int = 123
+        seed: int = 123,
+        balance_components: bool = False
     ):
         """
         Initializes the ModelTrainer class.
@@ -111,7 +112,7 @@ class ModelTrainer():
             110, 114, 118, 141
         ]
         # self.criterion = torch.nn.CrossEntropyLoss()
-        self.criterion = Regional_Loss(self.country_list)
+        self.criterion = Regional_Loss(self.country_list, balance_components=balance_components)
         self.optimizer = optim.Adam(self.model.parameters(), lr=learning_rate)
         self.batch_count = 0
         self.timestamp = datetime.datetime.now().strftime('%Y%m%d_%H%M%S')
@@ -631,7 +632,8 @@ def create_and_train_model(
         'geo_strongly_balanced.csv',
         'mixed_weakly_balanced.csv',
         'mixed_strongly_balanced.csv'
-    ]
+    ],
+    balance_loss_components: bool = False
 ):
     """
     Creates and trains a model using the specified repository path.
@@ -644,10 +646,10 @@ def create_and_train_model(
     """
 
     country_list = (
-        f'{REPO_PATH}/utils/country_list/'
+        f'{REPO_PATH}/countryguessr/utils/country_list/'
         'country_list_region_and_continent.csv'
     )
-    region_list = f'{REPO_PATH}/utils/country_list/UNSD_Methodology.csv'
+    region_list = f'{REPO_PATH}/countryguessr/utils/country_list/UNSD_Methodology.csv'
 
     testing_directory = (
         f'{REPO_PATH}/CLIP_Embeddings/'
@@ -693,7 +695,7 @@ def create_and_train_model(
                     'starting_regional_loss_portion'],
                 regional_loss_decline=hyperparameters[i][
                     'regional_loss_decline'],
-                train_dataset_name=elem, seed=seed)
+                train_dataset_name=elem, seed=seed, balance_components=balance_loss_components)
             trained_model.test_model(test_dataset, 'test_set')
             trained_model.test_model(zeroshot_test_dataset, 'zero_shot')
     print("END")

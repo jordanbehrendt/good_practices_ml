@@ -33,6 +33,13 @@ if __name__ == "__main__":
         help='List of filenames for the datasets to use.',
         default=None
     )
+    parser.add_argument(
+        '--balance_loss',
+        metavar='bool',
+        required=False,
+        help='Defines if the loss is balanced or normalized',
+        default=False
+    )
     args = parser.parse_args()
     with open(args.yaml_path) as file:
         paths = yaml.safe_load(file)
@@ -40,4 +47,7 @@ if __name__ == "__main__":
 
     seeds = [4808, 4947, 5723, 3838, 5836, 3947, 8956, 5402, 1215, 8980]
     for seed in seeds:
-        trainer.create_and_train_model(REPO_PATH, seed, args.training_datasets)
+        if args.training_datasets == None:
+            trainer.create_and_train_model(REPO_PATH, seed, balance_loss_components=args.balance_loss)
+        else:
+            trainer.create_and_train_model(REPO_PATH, seed, args.training_datasets, balance_loss_components=args.balance_loss)
