@@ -1,2 +1,11 @@
 venv_gpml/
-__pycache__/
+**/__pycache__/
+fine_tuning/runs/
+stopped_experiment/
+
+# environments
+.env
+.venv
+
+# vscode
+.vscode

@@ -1,0 +1,4 @@
+#Edit the REPO_PATH and DATA_PATH here
+---
+data_path: 'path/to/data/'
+repo_path: 'path/to/repo/'

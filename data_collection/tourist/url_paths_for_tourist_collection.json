@@ -1,0 +1,51 @@
+{ "regions": [ 
+    {"region": "africa", 
+    "array": [
+        {"name": "Mauritius", "links": ["mauritius"]},
+        {"name": "Tunisia", "links": ["tunisia"]},
+        {"name": "Egypt", "links": ["egypt"]},
+        {"name": "Ghana", "links": ["ghana-pictures-and-travel-information"]},
+        {"name": "Morocco", "links": ["morocco"]},
+        {"name": "South Africa", "links": ["south-africa"]}
+    ]},
+    {"region": "america", 
+    "array": [
+        {"name": "Canada", "links": ["canada"]},
+        {"name": "Brazil", "links": ["rio-de-janeiro"]}
+    ]},
+    {"region": "asia", 
+    "array": [
+        {"name": "Indonesia", "links": ["bali"]},
+        {"name": "Hong Kong", "links": ["hongkong"]},
+        {"name": "China", "links": ["beijing"]},
+        {"name": "Israel", "links": ["israel"]},
+        {"name": "Laos", "links": ["laos"]},
+        {"name": "Malaysia", "links": ["malaysia"]},
+        {"name": "Singapore", "links": ["singapore"]},
+        {"name": "South Korea", "links": ["seoul"]},
+        {"name": "Turkey", "links": ["turkey"]},
+        {"name": "Thailand", "links": ["bangkok"]},
+        {"name": "Vietnam", "links": ["vietnam"]},
+        {"name": "Uzbekistan", "links": ["uzbekistan"]}
+    ]},
+    {"region": "pacific", 
+    "array": [
+        {"name": "Australia", "links": ["australia"]},
+        {"name": "New Zealand", "links": ["new-zealand"]}
+    ]},
+    {"region": "europe",
+    "array": [
+        {"name": "Croatia", "links": ["croatia"]},
+        {"name": "Czech Republic", "links": ["prague"]},
+        {"name": "Austria", "links": ["austria/graz", "austria/vienna", "austria/salzburg"]},
+        {"name": "Bulgaria", "links": ["bulgaria/sofia", "bulgaria/plovdiv"]},
+        {"name": "Denmark", "links": ["copenhagen"]},
+        {"name": "France", "links": ["paris"]},
+        {"name": "Germany", "links": ["germany/berlin", "germany/munich", "germany/bonn", "germany/neuswan"]},
+        {"name": "Netherlands", "links": ["netherlands/other-2", "netherlands/amsterdam", "netherlands/rotterdam", "netherlands/denhaag", "netherlands/utrecht"]},
+        {"name": "Poland", "links": ["poland"]},
+        {"name": "Switzerland", "links": ["switzerland/zurich"]},
+        {"name": "United Kingdom", "links": ["london"]}
+    ]}
+]
+}
